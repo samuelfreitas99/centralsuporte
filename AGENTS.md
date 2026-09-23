@@ -95,3 +95,28 @@ Nunca fazer commit de:
 - arquivos temporários.
 
 Antes de cada commit, verificar explicitamente se nenhum segredo está sendo incluído.
+
+
+## Product Specification — fonte de verdade funcional
+
+`docs/PRODUCT_SPEC.md` é a fonte de verdade para os requisitos e o comportamento funcional do produto.
+
+Antes de implementar uma nova funcionalidade ou iniciar uma nova fase que envolva comportamento do produto, o agente deve consultar `docs/PRODUCT_SPEC.md`.
+
+O agente NÃO deve depender do histórico da conversa para lembrar requisitos funcionais definidos anteriormente.
+
+Regras:
+
+* Não inventar funcionalidades relevantes que não estejam previstas na especificação, roadmap ou decisões documentadas.
+* Não remover ou alterar silenciosamente requisitos existentes.
+* Se surgir uma necessidade nova que altere o comportamento ou escopo do produto, avaliar e registrar a decisão apropriada antes de implementá-la.
+* Alterações relevantes de requisitos devem atualizar `docs/PRODUCT_SPEC.md`.
+* Alterações de planejamento devem atualizar `docs/ROADMAP.md`.
+* Alterações de estado devem atualizar `docs/PROJECT_STATE.md`.
+* Decisões arquiteturais ou decisões relevantes devem ser registradas em `docs/DECISIONS.md`.
+* `PRODUCT_SPEC.md` define **o que o produto deve fazer**.
+* `ARCHITECTURE.md` define **como o sistema deve ser construído tecnicamente**.
+* `ROADMAP.md` define **quando e em qual ordem as funcionalidades devem ser implementadas**.
+* `PROJECT_STATE.md` define **onde o projeto está atualmente**.
+
+Em caso de conflito ou ambiguidade entre documentos, o agente deve identificar o conflito explicitamente e não escolher uma interpretação silenciosamente.
