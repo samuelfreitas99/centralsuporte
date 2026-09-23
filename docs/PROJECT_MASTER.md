@@ -22,3 +22,11 @@ Sempre avaliar se uma funcionalidade já existe no OTRS ou em outro sistema corp
 
 ### Isolamento no Servidor
 O projeto deve rodar isolado no servidor Ubuntu, utilizando recursos (portas, volumes, redes) dedicados para evitar conflitos com outros containers existentes (ex: Portainer, Jellyfin).
+
+### Arquitetura de Documentação
+Para manter a consistência do desenvolvimento e guiar agentes de IA ou novos desenvolvedores, o projeto divide sua documentação em:
+- **`PRODUCT_SPEC.md`**: A **fonte de verdade** absoluta para requisitos funcionais e escopo do MVP.
+- **`AGENTS.md`**: Regras estritas e inegociáveis para agentes de desenvolvimento.
+- **`ROADMAP.md`**: A ordem cronológica de implementação das funcionalidades descritas na especificação.
+- **`PROJECT_STATE.md`**: O snapshot do momento atual do desenvolvimento.
+- **`DECISIONS.md`**: O registro histórico das decisões arquiteturais relevantes.
