@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: centralsuporte_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-suporte}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-suporte_password}
+      POSTGRES_DB: ${POSTGRES_DB:-centralsuporte_db}
+    volumes:
+      - centralsuporte_pgdata:/var/lib/postgresql/data
+    networks:
+      - centralsuporte_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-suporte} -d ${POSTGRES_DB:-centralsuporte_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: centralsuporte_backend
+    restart: unless-stopped
+    ports:
+      - "8088:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-suporte}:${POSTGRES_PASSWORD:-suporte_password}@db:5432/${POSTGRES_DB:-centralsuporte_db}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    networks:
+      - centralsuporte_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: centralsuporte_frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8088
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - centralsuporte_network
+
+volumes:
+  centralsuporte_pgdata:
+    name: centralsuporte_pgdata
+
+networks:
+  centralsuporte_network:
+    name: centralsuporte_network
+    driver: bridge
