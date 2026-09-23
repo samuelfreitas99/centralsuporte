@@ -21,7 +21,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Autenticação local JWT segura.
 - Controle de sessão e perfis de usuário (Admin, Gestor, Técnico, Consulta).
 **Checkpoints:**
-- [ ] Implementar migrations e models do banco de dados.
+- [x] Implementar migrations e models do banco de dados.
 - [ ] Endpoints de login e gestão de usuários (Backend).
 - [ ] Páginas de login e hooks de autenticação (Frontend).
 - [ ] Proteção de rotas no Frontend e validação de tokens no Backend.
