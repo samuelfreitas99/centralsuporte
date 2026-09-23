@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 0 (Fundação) concluída. Repositório, backend (FastAPI), frontend (Vite/React) e banco (PostgreSQL) configurados via Docker Compose e funcionais em isolamento no servidor.
+**Estado atual**: Fase 0 (Fundação) concluída e Roadmap consolidado. Repositório, backend (FastAPI), frontend (Vite/React) e banco (PostgreSQL) configurados via Docker Compose e funcionais em isolamento no servidor.
 **Fase atual**: Fase 0 concluída. Próxima: Fase 1 (Autenticação).
-**Última implementação**: Setup do Docker Compose com Frontend (5173), Backend (8088) e PostgreSQL (rede interna).
-**Último commit**: "feat: initial project foundation for Central de Suporte" (A realizar).
+**Última implementação**: Detalhamento do Roadmap Operacional (Fases 1 a 15).
+**Último commit**: (Pendente: docs: detail project roadmap)
 **Próxima tarefa**: Iniciar Fase 1 — Autenticação (usuários, login, sessões, perfis).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma da Fase 0.
-**Testes**: Executadas chamadas no endpoint `/health` da API e root `/` do Frontend (OK).
+**Testes**: Documentação revisada.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Utilizar portas 8088 e 5173 para isolar o ambiente. Estrutura monorepo consolidada.
+**Decisões recentes**: Roadmap estendido para incluir checklists operacionais rigorosas e respeitar a regra do OTRS de não substituição.
