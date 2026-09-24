@@ -48,8 +48,8 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Visão geral com informações táticas rápidas (tarefas pendentes, lembretes, últimos atendimentos).
 - Painel para organizar o início do turno do técnico.
 **Checkpoints:**
-- [ ] Criar estrutura do Dashboard no frontend.
-- [ ] Implementar mock de dados se as fases seguintes ainda não estiverem prontas.
+- [x] Criar estrutura do Dashboard no frontend.
+- [x] Implementar mock de dados se as fases seguintes ainda não estiverem prontas.
 - [ ] Integração com os dados (após Fases 4, 5 e 7).
 
 ---
