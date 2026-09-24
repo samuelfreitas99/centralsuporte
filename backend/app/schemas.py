@@ -95,6 +95,7 @@ class ChecklistBase(BaseModel):
 
 class ChecklistCreate(ChecklistBase):
     task_id: Optional[int] = None
+    maintenance_id: Optional[int] = None
     items: Optional[List[ChecklistItemCreate]] = None
 
 class ChecklistUpdate(BaseModel):
@@ -104,6 +105,7 @@ class ChecklistUpdate(BaseModel):
 class ChecklistResponse(ChecklistBase):
     id: int
     task_id: Optional[int] = None
+    maintenance_id: Optional[int] = None
     creator_id: int
     creator: Optional[UserSimpleResponse] = None
     created_at: datetime
@@ -657,5 +659,72 @@ class StockItemResponse(StockItemBase):
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- Maintenance Schemas (Phase 9) ---
+
+class MaintenanceRecordBase(BaseModel):
+    title: str
+    equipment_id: int
+    store_id: Optional[int] = None
+    technician_id: Optional[int] = None
+    maintenance_type: str = "preventiva"  # preventiva, corretiva, substituicao, atualizacao, configuracao, instalacao, outro
+    status: str = "agendada"  # agendada, em_andamento, concluida, cancelada
+    priority: str = "media"  # baixa, media, alta, urgente
+    scheduled_date: Optional[datetime] = None
+    performed_date: Optional[datetime] = None
+    description: Optional[str] = None
+    diagnosis: Optional[str] = None
+    procedure_performed: Optional[str] = None
+    result: Optional[str] = None  # sucesso, parcial, falha
+    cost: Optional[float] = None
+    internal_notes: Optional[str] = None
+
+class MaintenanceRecordCreate(MaintenanceRecordBase):
+    checklist_title: Optional[str] = None
+    checklist_items: Optional[List[str]] = None
+
+class MaintenanceRecordUpdate(BaseModel):
+    title: Optional[str] = None
+    equipment_id: Optional[int] = None
+    store_id: Optional[int] = None
+    technician_id: Optional[int] = None
+    maintenance_type: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    scheduled_date: Optional[datetime] = None
+    performed_date: Optional[datetime] = None
+    description: Optional[str] = None
+    diagnosis: Optional[str] = None
+    procedure_performed: Optional[str] = None
+    result: Optional[str] = None
+    cost: Optional[float] = None
+    internal_notes: Optional[str] = None
+
+class MaintenanceRecordStatusUpdate(BaseModel):
+    status: str
+    result: Optional[str] = None
+    procedure_performed: Optional[str] = None
+    performed_date: Optional[datetime] = None
+
+class MaintenanceRecordResponse(MaintenanceRecordBase):
+    id: int
+    equipment: Optional[EquipmentResponse] = None
+    store: Optional[StoreResponse] = None
+    technician: Optional[UserSimpleResponse] = None
+    checklists: List[ChecklistResponse] = []
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class MaintenanceSummaryMetrics(BaseModel):
+    total: int = 0
+    agendadas: int = 0
+    em_andamento: int = 0
+    concluidas: int = 0
+    preventivas: int = 0
+    corretivas: int = 0
+    model_config = ConfigDict(from_attributes=True)
+
 
 

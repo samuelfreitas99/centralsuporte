@@ -127,10 +127,12 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 **Entregas principais:**
 - Registros específicos para manutenção física/lógica.
 - Entidades: `maintenance_records`.
-- Funcionalidades: Relacionar manutenção a equipamento, checklists de manutenção, registro de resultados e anexos.
+- Funcionalidades: Relacionar manutenção a equipamento, checklists de manutenção, registro de resultados e atualização de status de hardware.
 **Checkpoints:**
-- [ ] Migrations e endpoints específicos.
-- [ ] Integração com checklists e calendário.
+- [x] Migrations e endpoints específicos (`/maintenances`).
+- [x] Integração com checklists e histórico do equipamento.
+- [x] Telas e modais de agendamento, checklists e conclusão técnica (`MaintenancePage.tsx`).
+- [x] Testes automatizados (backend pytest e frontend vitest).
 
 ---
 

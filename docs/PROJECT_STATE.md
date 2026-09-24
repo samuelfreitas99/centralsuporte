@@ -1,28 +1,24 @@
 # PROJECT_STATE
 
-**Estado atual**: Revisão Crítica de UI/UX, Sobrecarga Visual e Dashboard concluída com sucesso. Projeto pronto para a Fase 9 (Manutenções).
-**Fase atual**: Preparação para Fase 9 (Manutenções).
+**Estado atual**: Fase 9 (Manutenções e Planos Preventivos) concluída com sucesso. Sistema pronto para a Fase 10 (Arquivos e Anexos).
+**Fase atual**: Fase 9 concluída -> Preparação para Fase 10 (Arquivos e Anexos).
 **Última implementação**: 
-- **Revisão Crítica de UI/UX, Sobrecarga Visual e Reorganização do Dashboard**:
-  - **Calibração de Cores e Contraste**: Unificação das paletas Dark e Light Mode usando tokens semânticos (`--color-success`, `--color-warning`, `--color-info`, `--color-destructive`), reduzindo fluorescências excessivas e garantindo conformidade AA no modo claro.
-  - **Reorganização Estrutural do Dashboard**: Inclusão de Barra de Ações Rápidas (Novo Atendimento, Minhas Tarefas, Comandos, Base de Conhecimento, Parque TI), integração de navegação direta (`onSelectTab`) nos cards de métricas e cabeçalhos de seções, remoção de animações e ruídos visuais cansativos no header.
-  - **Respiro e Redução de Sobrecarga nos Modais**: Reestruturação do modal de atendimento em 4 blocos visuais lógicos (Identificação/OTRS, Localização/Equipamento, Diagnóstico/Resolução, Comandos de Terminal), acabando com o efeito de "parede de campos amontoados".
-- **Fase 8 — Infraestrutura & Parque Tecnológico (`InfrastructurePage.tsx`, `infrastructureService.ts`, backend `routers/infrastructure.py`)**:
-  - **Equipamentos e Parque Tecnológico**: Cadastro completo de hardware com IP, MAC, patrimônio, status e vinculação a lojas/setores.
-  - **Histórico Técnico do Equipamento**: Trilha de auditoria com rastreamento automático de alterações críticas e notas técnicas.
-  - **Lojas e Departamentos**: Cadastro e visualização de unidades com setores internos.
-  - **Licenças de Software**: Controle operacional de chaves, assentos e atribuição a máquinas/usuários.
-  - **Estoque Operacional**: Controle simplificado de materiais técnicos com alertas de estoque crítico.
+- **Fase 9 — Manutenções & Planos Preventivos (`MaintenancePage.tsx`, `maintenanceService.ts`, backend `routers/maintenances.py`)**:
+  - **Modelos e Ciclo de Vida**: Entidade `maintenance_records` com status (`agendada`, `em_andamento`, `concluida`, `cancelada`), tipo de manutenção (`preventiva`, `corretiva`, `substituicao`, etc.), prioridades e custos operacionais.
+  - **Checklists Técnicos Operacionais**: Integração direta com o motor de `checklists` e `checklist_items`, permitindo vincular checklists passo a passo à rotina de manutenção com marcação interativa em tempo real.
+  - **Integração com Parque de TI e Histórico**: Intervenções geram automaticamente registros na trilha de auditoria (`equipment_history`). Ao concluir com sucesso uma intervenção de um equipamento `em_manutencao`, o status do equipamento é restaurado para `ativo`.
+  - **Métricas e Filtros Operacionais**: Métricas de rotinas ativas/concluídas, filtros por status, tipo, prioridade e busca textual em tempo real.
+  - **Navegação Integrada**: Adicionada rota `/maintenances` no menu lateral com ícone de ferramenta (`Wrench`) e botão de ação rápida no Dashboard.
 - **Testes Automatizados**:
-  - 59 testes de frontend (Vitest) 100% aprovados.
-  - 30 testes de backend (Pytest) 100% aprovados.
-  - Build de produção (`tsc -b && vite build`) validado sem erros de tipagem.
+  - 65 testes de frontend (Vitest) 100% aprovados (12 arquivos de teste).
+  - 31 testes de backend (Pytest) 100% aprovados.
+  - Build de produção (`tsc -b && vite build`) validado sem erros.
 **Último commit**: Pendente de commit desta rodada.
-**Próxima tarefa**: Fase 9 — Manutenções (registros específicos para manutenção física/lógica, checklists de manutenção e integração com equipamentos).
+**Próxima tarefa**: Fase 10 — Arquivos e Anexos (armazenamento de prints, fotos, notas fiscais e relatórios técnicos em disco local com controle e segurança no Postgres).
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 9 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
-**Testes**: 59 testes de frontend (vitest) e 30 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Iniciar Fase 10 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
+**Testes**: 65 testes de frontend (vitest) e 31 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- O estoque operacional foi implementado com foco exclusivo em suporte e reposição técnica de rápida movimentação (sem contabilidade complexa ERP), conforme especificado em `PRODUCT_SPEC.md`.
-- Chaves de licenças são pré-visualizadas de forma mascarada na interface para resguardar dados de ativação.
+- Manutenções integram-se bidirecionalmente com o histórico de equipamentos (`equipment_history`) e reaproveitam o motor de `checklists`.
+- Restauração automática de status de equipamento para `ativo` quando concluída com sucesso.

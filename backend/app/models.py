@@ -117,11 +117,13 @@ class Checklist(Base):
     title = Column(String(255), nullable=False)
     description = Column(String(500), nullable=True)
     task_id = Column(Integer, ForeignKey('tasks.id', ondelete="CASCADE"), nullable=True)
+    maintenance_id = Column(Integer, ForeignKey('maintenance_records.id', ondelete="CASCADE"), nullable=True, index=True)
     creator_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     
     # Relationships
     task = relationship("Task", back_populates="checklists")
+    maintenance = relationship("MaintenanceRecord", back_populates="checklists")
     creator = relationship("User", back_populates="created_checklists")
     items = relationship("ChecklistItem", back_populates="checklist", cascade="all, delete-orphan", order_by="ChecklistItem.position")
 
@@ -385,6 +387,7 @@ class Equipment(Base):
     history = relationship("EquipmentHistory", back_populates="equipment", cascade="all, delete-orphan", order_by="EquipmentHistory.created_at.desc()")
     attendances = relationship("Attendance", back_populates="equipment")
     license_assignments = relationship("LicenseAssignment", back_populates="equipment")
+    maintenances = relationship("MaintenanceRecord", back_populates="equipment", cascade="all, delete-orphan", order_by="MaintenanceRecord.created_at.desc()")
 
 
 class EquipmentHistory(Base):
@@ -474,5 +477,35 @@ class StockMovement(Base):
     user = relationship("User")
     store = relationship("Store")
     attendance = relationship("Attendance")
+
+
+class MaintenanceRecord(Base):
+    __tablename__ = "maintenance_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False, index=True)
+    equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="CASCADE"), nullable=False, index=True)
+    store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
+    technician_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True, index=True)
+    maintenance_type = Column(String(50), default="preventiva", nullable=False, index=True)  # preventiva, corretiva, substituicao, atualizacao, configuracao, instalacao, outro
+    status = Column(String(32), default="agendada", nullable=False, index=True)  # agendada, em_andamento, concluida, cancelada
+    priority = Column(String(20), default="media", nullable=False)  # baixa, media, alta, urgente
+    scheduled_date = Column(DateTime(timezone=True), nullable=True, index=True)
+    performed_date = Column(DateTime(timezone=True), nullable=True)
+    description = Column(Text, nullable=True)
+    diagnosis = Column(Text, nullable=True)
+    procedure_performed = Column(Text, nullable=True)
+    result = Column(String(32), nullable=True)  # sucesso, parcial, falha
+    cost = Column(Float, nullable=True)
+    internal_notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    equipment = relationship("Equipment", back_populates="maintenances")
+    store = relationship("Store")
+    technician = relationship("User")
+    checklists = relationship("Checklist", back_populates="maintenance", cascade="all, delete-orphan")
+
 
 

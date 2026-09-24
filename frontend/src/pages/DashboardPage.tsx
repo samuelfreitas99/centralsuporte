@@ -23,6 +23,7 @@ import {
   Terminal,
   Server,
   PlusCircle,
+  Wrench,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -63,6 +64,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
         >
           <CheckSquare className="h-3.5 w-3.5 text-primary" />
           <span>Minhas Tarefas</span>
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onSelectTab?.('maintenances')}
+          className="h-8 gap-1.5 text-xs font-medium cursor-pointer"
+        >
+          <Wrench className="h-3.5 w-3.5 text-primary" />
+          <span>Manutenções</span>
         </Button>
         <Button
           variant="outline"

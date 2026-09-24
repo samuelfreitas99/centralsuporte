@@ -24,3 +24,9 @@
 - **Decisão**: O Módulo de Cofre de Senhas está estritamente bloqueado de implementação até o estabelecimento e documentação prévia da arquitetura de segurança (Fase 12).
 - **Contexto**: Prevenir vazamentos de credenciais administrativas críticas da empresa (roteadores, switches, instâncias).
 - **Consequências**: A arquitetura deverá incluir obrigatoriamente criptografia sem senhas no banco em texto puro, logs imutáveis e exclusão de payloads visíveis em logs gerais.
+
+### 2026-09-24: Arquitetura de Manutenções e Integração com Equipamentos (Fase 9)
+- **Decisão**: Manutenções (`maintenance_records`) possuem ciclo de vida formal (`agendada`, `em_andamento`, `concluida`, `cancelada`), vinculam-se a equipamentos do parque tecnológico (`equipment_id`), reaproveitam o motor de checklists existente (`checklists` associado a `maintenance_id`), e registram automaticamente eventos na trilha de auditoria técnica (`equipment_history`). Ao concluir com sucesso uma manutenção em equipamento que estava `em_manutencao`, o status do equipamento é restaurado automaticamente para `ativo`.
+- **Contexto**: Centralizar rotinas preventivas, corretivas e checklists operacionais mantendo o histórico de vida útil do hardware sempre atualizado e auditável.
+- **Consequências**: Elimina duplicidade de estruturas de checklist, garante auditoria integrada das intervenções no parque de TI e simplifica o fluxo do técnico no frontend.
+

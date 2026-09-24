@@ -18,6 +18,8 @@ INITIAL_PERMISSIONS = [
     {"name": "equipment:write", "description": "Gerenciar inventário de equipamentos"},
     {"name": "tasks:read", "description": "Visualizar tarefas e checklists"},
     {"name": "tasks:write", "description": "Criar e atualizar tarefas e checklists"},
+    {"name": "maintenance:read", "description": "Visualizar manutenções preventivas e corretivas"},
+    {"name": "maintenance:write", "description": "Registrar e gerenciar manutenções e checklists"},
 ]
 
 ROLE_PERMISSIONS_MAP = {
@@ -25,14 +27,16 @@ ROLE_PERMISSIONS_MAP = {
     "Gestor": [
         "users:read", "roles:read", "knowledge:read", "knowledge:write",
         "attendance:read", "attendance:write", "equipment:read", "equipment:write",
-        "tasks:read", "tasks:write"
+        "tasks:read", "tasks:write", "maintenance:read", "maintenance:write"
     ],
     "Técnico": [
         "knowledge:read", "knowledge:write", "attendance:read", "attendance:write",
-        "equipment:read", "equipment:write", "tasks:read", "tasks:write"
+        "equipment:read", "equipment:write", "tasks:read", "tasks:write",
+        "maintenance:read", "maintenance:write"
     ],
     "Consulta": [
-        "knowledge:read", "attendance:read", "equipment:read", "tasks:read"
+        "knowledge:read", "attendance:read", "equipment:read", "tasks:read",
+        "maintenance:read"
     ]
 }
 
