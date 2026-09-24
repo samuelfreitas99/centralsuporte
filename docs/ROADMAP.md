@@ -59,7 +59,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Entidades: `tasks`, `task_assignments`, `checklists`, `checklist_items`, `reminders`, `calendar_events`.
 - Funcionalidades: Criar/atribuir tarefas, listas de checklists, lembretes pontuais e visualização de calendário.
 **Checkpoints:**
-- [ ] Migrations e models.
+- [x] Migrations e models.
 - [ ] Endpoints de CRUD e gestão de status.
 - [ ] Telas de listagem, criação e edição.
 - [ ] Testes de fluxo e testes unitários.

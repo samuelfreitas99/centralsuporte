@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 3 (Dashboard) implementada no frontend com métricas operacionais, painel do técnico, lista de tarefas do turno, atendimentos vinculados a chamados OTRS, lembretes ativos e procedimentos técnicos rápidos.
-**Fase atual**: Fase 3 concluída (estrutura e mock inicial). Próxima: Fase 4 (Organização: Tarefas, Checklists, Calendário).
-**Última implementação**: Estrutura completa do Dashboard no frontend (`DashboardPage`), cards de métricas táticas (`MetricCard`), lista interativa de tarefas operacionais (`TaskListSection`), histórico de atendimentos com protocolo OTRS (`RecentAttendancesSection`), lembretes de escala/turno (`RemindersSection`) e consultas rápidas de procedimentos (`QuickKnowledgeSection`).
-**Último commit**: "feat: implement frontend dashboard structure with tactical support metrics and OTRS links"
-**Próxima tarefa**: Fase 4 — Organização (Tarefas, Checklists, Calendário) — Migrations e models.
+**Estado atual**: Fase 4 (Organização) em andamento. Primeiro checkpoint concluído com a definição de models SQLAlchemy e migrations Alembic para tarefas, checklists, lembretes e eventos de calendário.
+**Fase atual**: Fase 4 — Organização (Tarefas, Checklists, Calendário).
+**Última implementação**: Definição dos models relacionais (`Task`, `task_assignments`, `Checklist`, `ChecklistItem`, `Reminder`, `CalendarEvent`) com integridade referencial, cascade deletes e campos de apoio (como `otrs_reference`). Geração e execução da migração Alembic (`f929c6f52b43`), além de testes de integração dos models.
+**Último commit**: "feat: add organization models and migrations for tasks, checklists, and calendar" (9764c53)
+**Próxima tarefa**: Fase 4 — Organização (Tarefas, Checklists, Calendário) — Endpoints de CRUD e gestão de status.
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 4 (models e migrations das entidades de tarefas, checklists e calendário).
-**Testes**: 28 testes de frontend (vitest) e 7 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Implementar endpoints de CRUD e regras de negócio para tarefas, checklists, lembretes e eventos no backend.
+**Testes**: 28 testes de frontend (vitest) e 8 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Dados operacionais realistas integrados ao dashboard para guiar o início de turno técnico, reafirmando visualmente a referência ao chamado oficial no OTRS.
+**Decisões recentes**: Models de tarefas mantêm explicitamente o campo `otrs_reference` para respeitar a regra de que o OTRS é a ferramenta oficial de chamados e a Central gerencia o trabalho interno.
