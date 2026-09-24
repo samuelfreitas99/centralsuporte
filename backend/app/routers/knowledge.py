@@ -18,6 +18,7 @@ from app.schemas import (
     KnowledgeCategoryUpdate,
     KnowledgeCategoryResponse,
     KnowledgeTagResponse,
+    KnowledgeVersionResponse,
     KnowledgeArticleCreate,
     KnowledgeArticleUpdate,
     KnowledgeArticleResponse,
@@ -153,9 +154,11 @@ def list_articles(
             or_(
                 KnowledgeArticle.title.ilike(f"%{search}%"),
                 KnowledgeArticle.summary.ilike(f"%{search}%"),
+                KnowledgeArticle.content.ilike(f"%{search}%"),
                 KnowledgeArticle.problem.ilike(f"%{search}%"),
                 KnowledgeArticle.solution.ilike(f"%{search}%"),
                 KnowledgeArticle.commands.ilike(f"%{search}%"),
+                KnowledgeArticle.tags.any(KnowledgeTag.name.ilike(f"%{search}%")),
             )
         )
 
@@ -339,3 +342,79 @@ def toggle_favorite(
 
     db.commit()
     return {"status": "ok", "action": action, "is_favorite": not is_fav}
+
+# --- Versioning Endpoints ---
+
+@router.get("/articles/{article_id}/versions", response_model=List[KnowledgeVersionResponse])
+def list_article_versions(
+    article_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("knowledge:read")),
+):
+    article = db.query(KnowledgeArticle).filter(KnowledgeArticle.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artigo não encontrado")
+
+    if not is_admin(current_user) and article.status != "publicado" and article.author_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Artigo não disponível para visualização")
+
+    return article.versions
+
+@router.get("/articles/{article_id}/versions/{version_number}", response_model=KnowledgeVersionResponse)
+def get_article_version(
+    article_id: int,
+    version_number: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("knowledge:read")),
+):
+    article = db.query(KnowledgeArticle).filter(KnowledgeArticle.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artigo não encontrado")
+
+    if not is_admin(current_user) and article.status != "publicado" and article.author_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Artigo não disponível para visualização")
+
+    ver = db.query(KnowledgeVersion).filter(
+        KnowledgeVersion.article_id == article_id,
+        KnowledgeVersion.version_number == version_number,
+    ).first()
+    if not ver:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Versão não encontrada")
+
+    return ver
+
+@router.post("/articles/{article_id}/versions/{version_number}/restore", response_model=KnowledgeArticleResponse)
+def restore_article_version(
+    article_id: int,
+    version_number: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("knowledge:write")),
+):
+    article = db.query(KnowledgeArticle).filter(KnowledgeArticle.id == article_id).first()
+    if not article:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Artigo não encontrado")
+
+    target_ver = db.query(KnowledgeVersion).filter(
+        KnowledgeVersion.article_id == article_id,
+        KnowledgeVersion.version_number == version_number,
+    ).first()
+    if not target_ver:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Versão alvo não encontrada")
+
+    article.title = target_ver.title
+    article.content = target_ver.content
+
+    new_version_num = len(article.versions) + 1
+    restored_version = KnowledgeVersion(
+        article_id=article.id,
+        version_number=new_version_num,
+        title=article.title,
+        content=article.content,
+        change_summary=f"Restauração a partir da versão v{target_ver.version_number}",
+        editor_id=current_user.id,
+    )
+    db.add(restored_version)
+    db.commit()
+    db.refresh(article)
+    article.is_favorite = any(u.id == current_user.id for u in article.favorited_by)
+    return article

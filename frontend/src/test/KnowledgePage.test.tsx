@@ -16,6 +16,7 @@ vi.mock('@/services/knowledgeService', () => ({
     updateArticle: vi.fn(),
     deleteArticle: vi.fn(),
     toggleFavorite: vi.fn(),
+    restoreArticleVersion: vi.fn(),
   },
 }));
 
@@ -47,6 +48,16 @@ const mockArticles: KnowledgeArticle[] = [
       { id: 2, name: 'switch', created_at: new Date().toISOString() },
     ],
     versions: [
+      {
+        id: 2,
+        article_id: 1,
+        version_number: 2,
+        title: 'Procedimento de Backup e Restauração de Switch HP',
+        content: 'Guia revisado de backup',
+        change_summary: 'Revisão com SCP',
+        editor_id: 1,
+        created_at: new Date().toISOString(),
+      },
       {
         id: 1,
         article_id: 1,
@@ -149,8 +160,19 @@ describe('KnowledgePage', () => {
     // Switch to versions tab
     fireEvent.click(screen.getByText(/Histórico de Versões/i));
     await waitFor(() => {
+      expect(screen.getAllByText(/Versão v2/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getAllByText(/Versão v1/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText('Versão inicial')).toBeInTheDocument();
+      expect(screen.getByText('Revisão com SCP')).toBeInTheDocument();
+    });
+
+    // Restore v1
+    window.confirm = vi.fn(() => true);
+    const restoreBtn = screen.getByTitle('Restaurar esta versão histórica');
+    fireEvent.click(restoreBtn);
+
+    await waitFor(() => {
+      expect(knowledgeService.restoreArticleVersion).toHaveBeenCalledWith(1, 1);
     });
   });
 

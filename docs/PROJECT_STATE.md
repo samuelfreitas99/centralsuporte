@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 5 (Conhecimento) em andamento. Gerenciamento completo de categorias (CRUD, paleta de cores, contagem dinâmica de artigos) e aprimoramento de favoritos implementados no frontend e backend.
-**Fase atual**: Fase 5 — Conhecimento.
-**Última implementação**: Endpoints de atualização e remoção de categorias (`PUT` e `DELETE /knowledge/categories/{id}` com desvinculação segura nos artigos), contagem de artigos por categoria (`articles_count`), modal `CategoryManagementDialog` com paleta de cores e feedback de impacto, chips rápidos de filtragem por categoria e favoritos na `KnowledgePage`, alternância otimista instantânea de favoritos e testes automatizados.
-**Último commit**: `f185b56` - feat: implement category management dialog, color picker, and favorites filter
-**Próxima tarefa**: Fase 5 — Conhecimento — Testes de consistência de pesquisa e histórico de versões.
+**Estado atual**: Fase 5 (Conhecimento) concluída com sucesso. Base de conhecimento técnico com pesquisa textual multi-campo, histórico imutável de versões auditável, restauração de versões anteriores com preservação histórica e controle de permissões.
+**Fase atual**: Fase 5 — Conhecimento (Concluída).
+**Última implementação**: Busca multi-campo (título, sumário, conteúdo, problema, solução, comandos e tags), endpoints dedicados para consulta e restauração de versões (`GET /versions`, `GET /versions/{num}`, `POST /versions/{num}/restore`), ação de restauração no modal de histórico de versões, e testes completos de consistência de busca e integridade de versionamento.
+**Último commit**: `9122c2d` - feat: complete knowledge base search consistency, version history, and restoration
+**Próxima tarefa**: Fase 6 — Comandos e Respostas — Implementação do CRUD no backend.
 **Bloqueios**: Nenhum.
-**Pendências**: Testes automatizados de consistência de busca textual avançada e histórico de versões.
-**Testes**: 40 testes de frontend (vitest) e 18 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
+**Pendências**: Nenhuma na Fase 5.
+**Testes**: 40 testes de frontend (vitest) e 20 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Categorias com paleta de cores pré-definidas e contadores de artigos integrados; remoção de categoria desvincula artigos para `category_id = None` sem perda de conteúdo técnico; alternância de favoritos otimista com resposta visual imediata no card e no modal.
+**Decisões recentes**: Restauração de versões cria um novo snapshot sequencial preservando auditoria completa sem destruir versões anteriores; pesquisa textual inclui conteúdo completo e tags com case-insensitivity.

@@ -83,4 +83,14 @@ export const knowledgeService = {
       method: 'POST',
     });
   },
+
+  getArticleVersions: async (articleId: number): Promise<any[]> => {
+    return request<any[]>(`/knowledge/articles/${articleId}/versions`);
+  },
+
+  restoreArticleVersion: async (articleId: number, versionNumber: number): Promise<KnowledgeArticle> => {
+    return request<KnowledgeArticle>(`/knowledge/articles/${articleId}/versions/${versionNumber}/restore`, {
+      method: 'POST',
+    });
+  },
 };

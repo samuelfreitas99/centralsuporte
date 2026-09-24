@@ -75,7 +75,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - [x] Migrations, models e versionamento do conteúdo.
 - [x] Criação da interface de visualização e edição de artigos.
 - [x] Implementar funcionalidade de favoritar e gerenciar categorias.
-- [ ] Testes de consistência de pesquisa e histórico de versões.
+- [x] Testes de consistência de pesquisa e histórico de versões.
 
 ---
 

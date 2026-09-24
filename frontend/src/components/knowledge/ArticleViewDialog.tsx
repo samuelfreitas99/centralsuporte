@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Terminal,
+  RotateCcw,
 } from 'lucide-react';
 import type { KnowledgeArticle } from '@/types/knowledge';
 import { knowledgeService } from '@/services/knowledgeService';
@@ -33,6 +34,7 @@ interface ArticleViewDialogProps {
   onEdit: (article: KnowledgeArticle) => void;
   onDeleted: () => void;
   onFavoriteToggled: () => void;
+  onRestored?: () => void;
 }
 
 export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
@@ -42,12 +44,25 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
   onEdit,
   onDeleted,
   onFavoriteToggled,
+  onRestored,
 }) => {
   const [activeTab, setActiveTab] = useState<'content' | 'versions'>('content');
   const [copied, setCopied] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
 
   if (!article) return null;
+
+  const handleRestoreVersion = async (versionNumber: number) => {
+    if (!confirm(`Deseja restaurar o conteúdo para a Versão v${versionNumber}? Uma nova versão com a restauração será criada.`)) return;
+    try {
+      await knowledgeService.restoreArticleVersion(article.id, versionNumber);
+      if (onRestored) onRestored();
+      onFavoriteToggled();
+    } catch (err) {
+      console.error('Falha ao restaurar versão:', err);
+      alert('Erro ao restaurar versão.');
+    }
+  };
 
   const handleCopyCommands = () => {
     if (!article.commands) return;
@@ -258,7 +273,7 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
           <div className="space-y-3 py-3">
             {article.versions && article.versions.length > 0 ? (
               <div className="space-y-3">
-                {article.versions.map((ver) => (
+                {article.versions.map((ver, idx) => (
                   <div key={ver.id} className="p-3 rounded-lg border border-border bg-card space-y-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -267,9 +282,23 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
                         </Badge>
                         <span className="text-xs font-semibold text-foreground">{ver.change_summary || 'Sem resumo'}</span>
                       </div>
-                      <span className="text-[11px] text-muted-foreground">
-                        {new Date(ver.created_at).toLocaleString('pt-BR')}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-muted-foreground">
+                          {new Date(ver.created_at).toLocaleString('pt-BR')}
+                        </span>
+                        {idx > 0 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleRestoreVersion(ver.version_number)}
+                            className="h-6 text-[10px] px-2 flex items-center gap-1 text-primary hover:bg-primary/10"
+                            title="Restaurar esta versão histórica"
+                          >
+                            <RotateCcw className="h-2.5 w-2.5" />
+                            <span>Restaurar</span>
+                          </Button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="text-[11px] text-muted-foreground flex items-center gap-1">
