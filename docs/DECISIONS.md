@@ -30,3 +30,9 @@
 - **Contexto**: Centralizar rotinas preventivas, corretivas e checklists operacionais mantendo o histórico de vida útil do hardware sempre atualizado e auditável.
 - **Consequências**: Elimina duplicidade de estruturas de checklist, garante auditoria integrada das intervenções no parque de TI e simplifica o fluxo do técnico no frontend.
 
+### 2026-09-24: Arquitetura de Armazenamento de Arquivos e Controle de Acesso (Fase 10)
+- **Decisão**: Arquivos e anexos (`attachments`) têm seus metadados salvos no PostgreSQL com cálculo de integridade SHA-256 e nomes físicos sanitizados em UUID no disco local (`/app/uploads`), protegidos contra path traversal. Arquivos NÃO são servidos estaticamente de modo público; todo acesso (download ou preview inline) exige autenticação JWT e validação de permissões (`attachment:read`).
+- **Contexto**: Resguardar evidências técnicas, prints com dados de clientes/sistemas e notas fiscais de equipamentos, em estrita conformidade com as seções 33 e 34 do `PRODUCT_SPEC.md`.
+- **Consequências**: Segurança ponta a ponta sem vazamentos acidentais por tentativa de adivinhação de URLs ou caminhos no servidor.
+
+

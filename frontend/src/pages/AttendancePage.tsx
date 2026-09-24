@@ -37,6 +37,7 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { attendanceService } from '@/services/attendanceService';
+import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import type {
   AttendanceItem,
   AttendanceCreateInput,
@@ -883,6 +884,18 @@ export const AttendancePage: React.FC = () => {
               </Button>
             </div>
           </form>
+
+          {/* Anexos e Evidências do Atendimento */}
+          {selectedAttendanceNotes && (
+            <div className="pt-3 border-t border-border/60">
+              <AttachmentManager
+                entityType="attendance"
+                entityId={selectedAttendanceNotes.id}
+                title="Arquivos & Evidências do Atendimento"
+                compact
+              />
+            </div>
+          )}
 
           <DialogFooter className="pt-2">
             <Button

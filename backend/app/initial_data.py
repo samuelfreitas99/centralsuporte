@@ -20,6 +20,9 @@ INITIAL_PERMISSIONS = [
     {"name": "tasks:write", "description": "Criar e atualizar tarefas e checklists"},
     {"name": "maintenance:read", "description": "Visualizar manutenções preventivas e corretivas"},
     {"name": "maintenance:write", "description": "Registrar e gerenciar manutenções e checklists"},
+    {"name": "attachment:read", "description": "Visualizar e baixar anexos"},
+    {"name": "attachment:upload", "description": "Fazer upload de anexos"},
+    {"name": "attachment:delete", "description": "Excluir arquivos e anexos"},
 ]
 
 ROLE_PERMISSIONS_MAP = {
@@ -27,16 +30,18 @@ ROLE_PERMISSIONS_MAP = {
     "Gestor": [
         "users:read", "roles:read", "knowledge:read", "knowledge:write",
         "attendance:read", "attendance:write", "equipment:read", "equipment:write",
-        "tasks:read", "tasks:write", "maintenance:read", "maintenance:write"
+        "tasks:read", "tasks:write", "maintenance:read", "maintenance:write",
+        "attachment:read", "attachment:upload", "attachment:delete"
     ],
     "Técnico": [
         "knowledge:read", "knowledge:write", "attendance:read", "attendance:write",
         "equipment:read", "equipment:write", "tasks:read", "tasks:write",
-        "maintenance:read", "maintenance:write"
+        "maintenance:read", "maintenance:write",
+        "attachment:read", "attachment:upload", "attachment:delete"
     ],
     "Consulta": [
         "knowledge:read", "attendance:read", "equipment:read", "tasks:read",
-        "maintenance:read"
+        "maintenance:read", "attachment:read"
     ]
 }
 

@@ -727,4 +727,22 @@ class MaintenanceSummaryMetrics(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# --- Attachment Schemas (Phase 10) ---
+
+class AttachmentBase(BaseModel):
+    original_filename: str
+    entity_type: str
+    entity_id: int
+    description: Optional[str] = None
+
+class AttachmentResponse(AttachmentBase):
+    id: int
+    stored_filename: str
+    file_size: int
+    mime_type: str
+    file_hash: Optional[str] = None
+    uploader_id: Optional[int] = None
+    uploader: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
 

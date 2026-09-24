@@ -18,6 +18,7 @@ import {
   XCircle,
   FileText,
   Trash2,
+  Paperclip,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ import {
 import { useToast } from '@/components/ui/Toast';
 import { maintenanceService } from '@/services/maintenanceService';
 import { infrastructureService } from '@/services/infrastructureService';
+import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import type {
   MaintenanceRecord,
   MaintenanceCreatePayload,
@@ -96,6 +98,7 @@ export const MaintenancePage: React.FC = () => {
     cost: null,
   });
 
+  const [viewingAttachmentsMaintenance, setViewingAttachmentsMaintenance] = useState<MaintenanceRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load Data
@@ -598,6 +601,17 @@ export const MaintenancePage: React.FC = () => {
                       <Button
                         variant="ghost"
                         size="sm"
+                        onClick={() => setViewingAttachmentsMaintenance(maint)}
+                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                        title="Anexos e Fotos da Manutenção"
+                      >
+                        <Paperclip className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Anexos</span>
+                      </Button>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleDeleteMaintenance(maint.id)}
                         className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive cursor-pointer"
                       >
@@ -1022,6 +1036,44 @@ export const MaintenancePage: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* 7. MODAL: ANEXOS DA MANUTENÇÃO */}
+      <Dialog
+        open={Boolean(viewingAttachmentsMaintenance)}
+        onOpenChange={(open) => !open && setViewingAttachmentsMaintenance(null)}
+      >
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-heading">
+              <Paperclip className="h-5 w-5 text-primary" />
+              <span>Anexos da Manutenção: {viewingAttachmentsMaintenance?.title}</span>
+            </DialogTitle>
+            <DialogDescription>
+              Fotos do equipamento antes/depois, comprovantes de troca de peças, notas fiscais ou laudos técnicos.
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewingAttachmentsMaintenance && (
+            <AttachmentManager
+              entityType="maintenance"
+              entityId={viewingAttachmentsMaintenance.id}
+              title="Evidências & Fotos da Rotina"
+            />
+          )}
+
+          <DialogFooter className="pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setViewingAttachmentsMaintenance(null)}
+            >
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
+

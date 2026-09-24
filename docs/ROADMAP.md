@@ -142,8 +142,10 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Entidades: `attachments`.
 - Funcionalidades: Upload no servidor via API, armazenamento estruturado dos metadados no Postgres e gestão segura de acessos.
 **Checkpoints:**
-- [ ] Configuração do sistema de storage local no FastAPI.
-- [ ] Refatoração das entidades que aceitam anexos.
+- [x] Configuração do sistema de storage local no FastAPI (`/app/uploads` seguro com hash SHA-256 e sem path traversal).
+- [x] Integração de anexos com entidades operacionais (Atendimentos, Equipamentos e Manutenções).
+- [x] Componente reutilizável `AttachmentManager` com upload drag-and-drop, preview inline e download.
+- [x] Testes automatizados (backend pytest e frontend vitest).
 
 ---
 

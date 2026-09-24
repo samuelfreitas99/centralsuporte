@@ -25,6 +25,10 @@ dist-ssr/
 *.log
 *.sqlite3
 
+# Uploads
+backend/uploads/*
+!backend/uploads/.gitkeep
+
 # IDEs
 .vscode/
 .idea/

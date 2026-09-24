@@ -1,24 +1,24 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 9 (Manutenções e Planos Preventivos) concluída com sucesso. Sistema pronto para a Fase 10 (Arquivos e Anexos).
-**Fase atual**: Fase 9 concluída -> Preparação para Fase 10 (Arquivos e Anexos).
+**Estado atual**: Fase 10 (Arquivos e Anexos) concluída com sucesso. Sistema pronto para a Fase 11 (Pesquisa Global e Relatórios).
+**Fase atual**: Fase 10 concluída -> Preparação para Fase 11 (Pesquisa Global e Relatórios).
 **Última implementação**: 
-- **Fase 9 — Manutenções & Planos Preventivos (`MaintenancePage.tsx`, `maintenanceService.ts`, backend `routers/maintenances.py`)**:
-  - **Modelos e Ciclo de Vida**: Entidade `maintenance_records` com status (`agendada`, `em_andamento`, `concluida`, `cancelada`), tipo de manutenção (`preventiva`, `corretiva`, `substituicao`, etc.), prioridades e custos operacionais.
-  - **Checklists Técnicos Operacionais**: Integração direta com o motor de `checklists` e `checklist_items`, permitindo vincular checklists passo a passo à rotina de manutenção com marcação interativa em tempo real.
-  - **Integração com Parque de TI e Histórico**: Intervenções geram automaticamente registros na trilha de auditoria (`equipment_history`). Ao concluir com sucesso uma intervenção de um equipamento `em_manutencao`, o status do equipamento é restaurado para `ativo`.
-  - **Métricas e Filtros Operacionais**: Métricas de rotinas ativas/concluídas, filtros por status, tipo, prioridade e busca textual em tempo real.
-  - **Navegação Integrada**: Adicionada rota `/maintenances` no menu lateral com ícone de ferramenta (`Wrench`) e botão de ação rápida no Dashboard.
+- **Fase 10 — Arquivos e Anexos (`AttachmentManager.tsx`, `attachmentService.ts`, backend `routers/attachments.py`)**:
+  - **Armazenamento e Modelo Estruturado**: Entidade `attachments` com metadados estruturados (nome original, nome físico com UUID, tamanho em bytes, MIME type, hash SHA-256 e uploader).
+  - **Segurança de Acesso**: Proteção contra path traversal e isolamento de arquivos em `/app/uploads` (sem exposição estática desprotegida). Download e visualização inline (preview) protegidos por autenticação JWT e checagem de permissões.
+  - **Componente Reutilizável `AttachmentManager`**: Upload drag & drop com validação de tamanho (25MB), barra de status, listagem detalhada com badges de extensão e modal lightbox de pré-visualização para imagens e PDFs.
+  - **Integração com Entidades Operacionais**: Integrado diretamente ao modal de apontamentos de Atendimentos (`AttendancePage`), linha do tempo de Equipamentos (`InfrastructurePage`) e manutenções técnicas (`MaintenancePage`).
 - **Testes Automatizados**:
-  - 65 testes de frontend (Vitest) 100% aprovados (12 arquivos de teste).
-  - 31 testes de backend (Pytest) 100% aprovados.
+  - 71 testes de frontend (Vitest) 100% aprovados (13 arquivos de teste).
+  - 32 testes de backend (Pytest) 100% aprovados.
   - Build de produção (`tsc -b && vite build`) validado sem erros.
 **Último commit**: Pendente de commit desta rodada.
-**Próxima tarefa**: Fase 10 — Arquivos e Anexos (armazenamento de prints, fotos, notas fiscais e relatórios técnicos em disco local com controle e segurança no Postgres).
+**Próxima tarefa**: Fase 11 — Pesquisa e Relatórios (motor global de Full-Text Search no PostgreSQL, filtros avançados por loja/equipamento/técnico e tela central de pesquisa).
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 10 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
-**Testes**: 65 testes de frontend (vitest) e 31 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Iniciar Fase 11 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
+**Testes**: 71 testes de frontend (vitest) e 32 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Manutenções integram-se bidirecionalmente com o histórico de equipamentos (`equipment_history`) e reaproveitam o motor de `checklists`.
-- Restauração automática de status de equipamento para `ativo` quando concluída com sucesso.
+- Todo arquivo físico anexado é protegido por endpoint autenticado com validação de permissão (`attachment:read`), sem rotas estáticas públicas.
+- Metadados incluem hash SHA-256 e nomes físicos sanitizados com UUID.
+

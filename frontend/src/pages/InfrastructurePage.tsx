@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
+import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import type {
   StoreItem,
   DepartmentItem,
@@ -1412,6 +1413,18 @@ export const InfrastructurePage: React.FC = () => {
               </Button>
             </div>
           </form>
+
+          {/* Anexos e Documentos Técnicos do Equipamento */}
+          {viewingHistoryEquipment && (
+            <div className="pt-3 border-t border-border/60">
+              <AttachmentManager
+                entityType="equipment"
+                entityId={viewingHistoryEquipment.id}
+                title="Manuais, NFs & Fotos do Equipamento"
+                compact
+              />
+            </div>
+          )}
 
           <DialogFooter className="pt-2">
             <Button type="button" variant="outline" size="sm" onClick={() => setViewingHistoryEquipment(null)}>

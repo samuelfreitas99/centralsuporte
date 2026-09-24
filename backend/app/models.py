@@ -508,4 +508,23 @@ class MaintenanceRecord(Base):
     checklists = relationship("Checklist", back_populates="maintenance", cascade="all, delete-orphan")
 
 
+# --- Phase 10 (Arquivos e Anexos) ---
 
+class Attachment(Base):
+    __tablename__ = "attachments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    original_filename = Column(String(255), nullable=False)
+    stored_filename = Column(String(255), nullable=False, unique=True, index=True)
+    file_path = Column(String(512), nullable=False)
+    file_size = Column(Integer, nullable=False)  # in bytes
+    mime_type = Column(String(100), nullable=False, default="application/octet-stream")
+    file_hash = Column(String(64), nullable=True, index=True)  # SHA-256
+    entity_type = Column(String(50), nullable=False, index=True)  # 'attendance', 'knowledge', 'maintenance', 'equipment', 'task'
+    entity_id = Column(Integer, nullable=False, index=True)
+    description = Column(String(255), nullable=True)
+    uploader_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True, index=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    uploader = relationship("User")
