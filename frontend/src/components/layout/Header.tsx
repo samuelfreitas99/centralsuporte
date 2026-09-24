@@ -3,14 +3,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Sun, Moon, LogOut, Menu, ShieldCheck, Terminal } from 'lucide-react';
+import { Sun, Moon, LogOut, Menu, ShieldCheck, Terminal, Search } from 'lucide-react';
 import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
+  onSelectTab?: (tabId: string) => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onSelectTab }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -50,6 +51,22 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Quick Search Trigger (Busca Global Ctrl+K) */}
+        {onSelectTab && (
+          <button
+            type="button"
+            onClick={() => onSelectTab('search-reports')}
+            className="hidden md:flex items-center gap-2.5 rounded-xl border border-border/70 bg-muted/40 hover:bg-muted/70 px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-all duration-150 cursor-pointer focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label="Pesquisa Global e Relatórios (Atalho Ctrl+K)"
+          >
+            <Search className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="font-medium">Busca Global...</span>
+            <kbd className="pointer-events-none hidden sm:inline-flex h-4 select-none items-center gap-0.5 rounded border border-border/80 bg-background/80 px-1 font-mono text-[9px] font-semibold text-muted-foreground shadow-xs">
+              <span>Ctrl</span>K
+            </kbd>
+          </button>
+        )}
+
         {/* User Info Capsule */}
         {user && (
           <div className="hidden sm:flex items-center gap-2.5 rounded-xl border border-border/60 bg-muted/30 px-3 py-1.5 text-xs">

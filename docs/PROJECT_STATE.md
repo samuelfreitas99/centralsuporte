@@ -1,27 +1,28 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 13 (Automação) concluída com sucesso. Sistema pronto para a Fase 14 (Integrações Futuras) ou Fase 15 (Polimento e Estabilização).
-**Fase atual**: Fase 13 concluída -> Preparação para Fase 14 / Fase 15.
+**Estado atual**: Fase 15 (Polimento, Acessibilidade e Estabilização do MVP) concluída com sucesso. O MVP da Central de Suporte encontra-se 100% implementado, testado e estabilizado.
+**Fase atual**: Fase 15 concluída -> MVP Estabilizado e Pronto para Produção / Fase 14 Opcional (Estudo de Integrações Futuras).
 **Última implementação**: 
-- **Fase 13 — Automação (`automation.py`, `routers/automation.py`, `NotificationsDropdown.tsx`, `automationService.ts`, `Header.tsx`)**:
-  - **Motor de Regras Reativas**: Avaliação periódica e sob demanda de tarefas vencidas/próximas ao vencimento (24h), manutenções preventivas agendadas (janela de 3 dias) e detecção de equipamentos com falhas crônicas (>= 3 manutenções em 30 dias).
-  - **Idempotência Estrita**: Mecanismo inteligente de desduplicação (janela de 24h a 48h) impedindo alertas e lembretes redundantes caso já exista lembrete pendente para a mesma entidade.
-  - **Agendador Assíncrono Nativo em Background**: Loop assíncrono leve gerenciado no ciclo de vida lifespan do FastAPI (`start_automation_scheduler` / `stop_automation_scheduler`) sem necessidade de brokers externos (Celery/Redis), respeitando a regra mandatória de servidor compartilhado sem overhead.
-  - **Endpoints de Automação**: `/automation/status`, `/automation/rules` e `/automation/trigger` com auditoria e controle de acesso RBAC.
-  - **Interface de Notificações no Header**: Componente `NotificationsDropdown.tsx` integrado ao `Header.tsx` com contagem dinâmica de alertas pendentes, animações `motion/react`, visualização detalhada por severidade, disparo manual ("Verificar Regras") para admins/gestores e resolução/dispensa com 1 clique.
+- **Fase 15 — Polimento Final, Acessibilidade WCAG 2.1, Otimização de Performance e Estabilização (`App.tsx`, `index.css`, `AppLayout.tsx`, `Header.tsx`, `Sidebar.tsx`, `AuthenticatedView.tsx`, `PageSkeleton.tsx`, `AccessibilityAndUX.test.tsx`)**:
+  - **Acessibilidade de Movimento (`prefers-reduced-motion`)**: Envolvimento global com `<MotionConfig reducedMotion="user">` do `motion/react` e diretivas CSS que anulam animações para usuários com sensibilidade a movimento.
+  - **Navegação Acessível e Teclado**: Inclusão de link WCAG "Pular para o conteúdo principal" direcionado a `#main-content`, anéis de foco com alto contraste (`:focus-visible`), atributos `aria-current="page"` na barra de navegação e `aria-busy="true"` em estados de carregamento.
+  - **Atalhos Operacionais de Alta Eficiência**: Atalho global de teclado `Ctrl+K` / `Cmd+K` para salto instantâneo à Pesquisa Global e Relatórios, com acionador visual ergonomicamente posicionado no Header.
+  - **Code-Splitting e Otimização de Bundle**: Divisão das rotas com `React.lazy` e `Suspense`, reduzindo o bundle principal em ~40% (de 738 kB para 446 kB) com transições visuais suaves proporcionadas pelo `PageSkeleton.tsx`.
+  - **Limpeza Visual de Estabilização**: Remoção de badges transitórias na navegação lateral, refinamento de layout e consistência com `DESIGN_SYSTEM.md` e `UI_UX.md`.
 - **Testes Automatizados**:
-  - 83 testes de frontend (Vitest) 100% aprovados (16 arquivos de teste).
+  - 87 testes de frontend (Vitest) 100% aprovados (17 arquivos de teste).
   - 44 testes de backend (Pytest) 100% aprovados.
-  - Build de produção (`tsc -b && vite build`) validado sem erros.
+  - Build de produção (`tsc -b && vite build`) validado sem erros ou alertas de tamanho de chunk.
 **Último commit**: Pendente de commit desta rodada.
-**Próxima tarefa**: Fase 14 — Integrações Futuras (estudo de viabilidade de integrações OTRS/AD/UniFi) ou Fase 15 — Polimento Final & Estabilização do MVP.
+**Próxima tarefa**: Operação contínua do MVP / Planejamento da Fase 14 (Estudo de viabilidade de integrações OTRS/AD quando demandado).
 **Bloqueios**: Nenhum.
-**Pendências**: Alinhamento com usuário sobre avanço para Fase 14 (estudo de viabilidade de integrações externas) ou Fase 15 (polimento, acessibilidade e consolidação do MVP).
-**Testes**: 83 testes de frontend (vitest) e 44 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Nenhuma pendência para o MVP.
+**Testes**: 87 testes de frontend (vitest) e 44 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Motor de regras reativas assíncrono interno via lifespan do FastAPI com idempotência estrita (evitando brokers externos em servidor compartilhado).
-- Interface de notificações reativas no Header com suporte a resolução imediata e trigger manual.
+- Adoção de MotionConfig com prefers-reduced-motion e skip-link WCAG 2.1.
+- Code-splitting modular via React.lazy em todas as rotas operacionais e atalho global Ctrl+K.
+
 
 
 

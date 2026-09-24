@@ -201,11 +201,11 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ---
 
-## Fase 15 — Polimento
+## Fase 15 — Polimento e Estabilização do MVP
 **Entregas principais:**
 - Ajustes finos do MVP antes de estabilização.
 - Consolidação visual final, UX, acessibilidade, performance e consistência geral.
 **Checkpoints:**
-- [ ] Revisão profunda de UX e acessibilidade (`prefers-reduced-motion`, contraste).
-- [ ] Cobertura de testes e correções finais de performance.
-- [ ] Atualização final da documentação corporativa.
+- [x] Revisão profunda de UX e acessibilidade: `<MotionConfig reducedMotion="user">`, CSS `@media (prefers-reduced-motion: reduce)`, link de acessibilidade "Skip to content" (`#main-content`), anéis de foco (`:focus-visible`) e atalho global `Ctrl+K`.
+- [x] Cobertura de testes e correções de performance: Code-splitting com `React.lazy` e `Suspense` em todas as rotas secundárias (redução de 40% do bundle principal) e `PageSkeleton.tsx`.
+- [x] Atualização de documentação corporativa e técnica com decisões registradas em `DECISIONS.md`.

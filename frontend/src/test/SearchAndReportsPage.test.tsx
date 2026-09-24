@@ -170,10 +170,10 @@ describe('SearchAndReportsPage', () => {
 
     await waitFor(() => {
       expect(reportsService.getSummary).toHaveBeenCalledWith(30);
+      expect(screen.getByText('Taxa de Resolução')).toBeInTheDocument();
     });
 
     // Assert KPI elements
-    expect(screen.getByText('Taxa de Resolução')).toBeInTheDocument();
     expect(screen.getByText('83.33%')).toBeInTheDocument();
     expect(screen.getByText('10 de 12 atendimentos resolvidos')).toBeInTheDocument();
     expect(screen.getByText('Reincidência de Falhas no Parque de TI')).toBeInTheDocument();

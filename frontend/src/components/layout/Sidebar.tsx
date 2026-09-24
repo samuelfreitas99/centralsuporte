@@ -51,6 +51,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/10 text-white border border-blue-500/30 shadow-[0_0_15px_-3px_rgba(59,130,246,0.3)]'
                   : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
               )}
+              aria-current={isActive ? 'page' : undefined}
             >
               {isActive && (
                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-blue-500 rounded-r-full shadow-[0_0_8px_#3b82f6]" />
@@ -62,21 +63,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 )}
               />
               <span className="flex-1">{item.label}</span>
-              {item.id === 'commands' && (
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30">
-                  Fase 6
-                </span>
-              )}
-              {item.id === 'attendance' && (
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                  Fase 7
-                </span>
-              )}
-              {item.id === 'equipment' && (
-                <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                  Fase 8
-                </span>
-              )}
             </button>
           );
         })}
