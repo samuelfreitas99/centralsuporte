@@ -218,3 +218,99 @@ class TaskResponse(TaskBase):
     assigned_users: List[UserSimpleResponse] = []
     checklists: List[ChecklistResponse] = []
     model_config = ConfigDict(from_attributes=True)
+
+# --- Knowledge Base Schemas (Phase 5) ---
+
+class KnowledgeCategoryBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    color: Optional[str] = "#3b82f6"
+
+class KnowledgeCategoryCreate(KnowledgeCategoryBase):
+    pass
+
+class KnowledgeCategoryResponse(KnowledgeCategoryBase):
+    id: int
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class KnowledgeTagBase(BaseModel):
+    name: str
+
+class KnowledgeTagCreate(KnowledgeTagBase):
+    pass
+
+class KnowledgeTagResponse(KnowledgeTagBase):
+    id: int
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class KnowledgeVersionResponse(BaseModel):
+    id: int
+    article_id: int
+    version_number: int
+    title: str
+    content: str
+    change_summary: Optional[str] = None
+    editor_id: Optional[int] = None
+    editor: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class KnowledgeArticleBase(BaseModel):
+    title: str
+    summary: Optional[str] = None
+    content: str
+    problem: Optional[str] = None
+    solution: Optional[str] = None
+    commands: Optional[str] = None
+    category_id: Optional[int] = None
+    status: str = "rascunho"  # rascunho, publicado, arquivado
+    visibility: str = "equipe"  # privado, equipe, todos
+
+class KnowledgeArticleCreate(BaseModel):
+    title: str
+    summary: Optional[str] = None
+    content: str
+    problem: Optional[str] = None
+    solution: Optional[str] = None
+    commands: Optional[str] = None
+    category_id: Optional[int] = None
+    status: Optional[str] = "rascunho"
+    visibility: Optional[str] = "equipe"
+    tag_names: Optional[List[str]] = []
+
+class KnowledgeArticleUpdate(BaseModel):
+    title: Optional[str] = None
+    summary: Optional[str] = None
+    content: Optional[str] = None
+    problem: Optional[str] = None
+    solution: Optional[str] = None
+    commands: Optional[str] = None
+    category_id: Optional[int] = None
+    status: Optional[str] = None
+    visibility: Optional[str] = None
+    tag_names: Optional[List[str]] = None
+    change_summary: Optional[str] = None
+
+class KnowledgeArticleResponse(BaseModel):
+    id: int
+    title: str
+    summary: Optional[str] = None
+    content: str
+    problem: Optional[str] = None
+    solution: Optional[str] = None
+    commands: Optional[str] = None
+    category_id: Optional[int] = None
+    category: Optional[KnowledgeCategoryResponse] = None
+    author_id: int
+    author: Optional[UserSimpleResponse] = None
+    status: str
+    visibility: str
+    views_count: int
+    created_at: datetime
+    updated_at: datetime
+    tags: List[KnowledgeTagResponse] = []
+    versions: List[KnowledgeVersionResponse] = []
+    is_favorite: Optional[bool] = False
+    model_config = ConfigDict(from_attributes=True)

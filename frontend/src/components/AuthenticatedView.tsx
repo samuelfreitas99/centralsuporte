@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AppLayout } from './layout/AppLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { TasksPage } from '@/pages/TasksPage';
+import { KnowledgePage } from '@/pages/KnowledgePage';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { NAV_ITEMS } from './layout/nav-items';
@@ -19,6 +20,8 @@ export const AuthenticatedView: React.FC = () => {
         <DashboardPage />
       ) : currentTab === 'tasks' ? (
         <TasksPage />
+      ) : currentTab === 'knowledge' ? (
+        <KnowledgePage />
       ) : (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
