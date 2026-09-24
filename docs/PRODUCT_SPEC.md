@@ -798,6 +798,55 @@ Esse relacionamento é importante para transformar registros isolados em histór
 
 # 32. Manutenções
 
+Registros específicos para manutenção física/lógica. (Pendente de detalhamento).
+
+---
+
+# 33. Licenças (Novo Módulo)
+
+O sistema deve permitir o controle de licenças de software adquiridas e utilizadas pela empresa.
+* **Informações:** Produto, Chave/Token, Quantidade, Atribuições, Vencimento, Custo, Fornecedor.
+* **Objetivo:** Evitar perda de licenças, facilitar auditoria e alertar sobre vencimentos próximos.
+
+---
+
+# 34. Histórico de lembretes e agenda (Novo Módulo)
+
+O sistema deve registrar o histórico de todos os lembretes disparados e eventos de agenda passados.
+* **Objetivo:** Permitir consulta retroativa do que foi alertado para a equipe e quando os eventos ocorreram.
+
+---
+
+# 35. Perfis de usuários (Novo Módulo)
+
+O sistema de gestão de perfis deve ser enriquecido com informações operacionais.
+* **Informações:** Especialidades, turno, histórico de atendimentos, tarefas concluídas, contato.
+* **Objetivo:** Humanizar o sistema e permitir identificar rapidamente quem é o especialista em determinado assunto.
+
+---
+
+# 36. Controle de materiais/estoque operacional (Novo Módulo)
+
+Módulo para gerenciar materiais de uso rápido (cabos, mouses, teclados, toners).
+* **Funcionalidades:** Entrada, Saída, Saldo, Alertas de estoque mínimo, Vínculo com Atendimento (em qual chamado foi usado o material).
+* **Objetivo:** Evitar falta de suprimentos críticos para a operação diária.
+
+---
+
+# 37. Projetos operacionais (Novo Módulo)
+
+Permitir o agrupamento de tarefas, checklists e arquivos em "Projetos".
+* **Exemplos:** "Migração de Servidor X", "Abertura da Loja Y".
+* **Objetivo:** Organizar ações que demandam vários passos e múltiplos envolvidos ao longo do tempo, mantendo a visão macro.
+
+---
+
+# 38. Cofre de senhas (Novo Módulo - ATENÇÃO)
+
+Módulo para armazenamento seguro de credenciais administrativas.
+* **Regra Crítica:** Requer revisão profunda de segurança (criptografia em repouso, chave mestre, log de acesso rigoroso) antes da implementação.
+* **Objetivo:** Centralizar de forma segura senhas de roteadores, switches, contas de serviço, etc.
+
 O módulo de Manutenções deve registrar atividades de manutenção física ou lógica.
 
 Tipos previstos:

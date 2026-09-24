@@ -186,3 +186,35 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - [ ] Revisão de UX e acessibilidade.
 - [ ] Cobertura de testes e correções finais de performance.
 - [ ] Atualização final da documentação corporativa.
+
+---
+
+## Fase 16 — Licenças e Estoque Operacional
+**Entregas principais:**
+- Módulo de controle de licenças de software.
+- Módulo de controle de materiais de uso rápido (toners, periféricos).
+**Checkpoints:**
+- [ ] Entidades de banco de dados (`licenses`, `stock_items`, `stock_movements`).
+- [ ] Endpoints e UI para CRUD e gestão de atribuição/uso.
+- [ ] Alertas de vencimento de licença e estoque mínimo.
+
+---
+
+## Fase 17 — Projetos Operacionais e Histórico Completo
+**Entregas principais:**
+- Agrupamento de tarefas e checklists em "Projetos".
+- Histórico auditável e consultivo de lembretes e agenda.
+- Expansão dos perfis de usuários com metadados.
+**Checkpoints:**
+- [ ] Entidade `projects` e relacionamentos com `tasks` e `checklists`.
+- [ ] Telas de visão macro de projetos.
+
+---
+
+## Fase 18 — Cofre de Senhas
+**Entregas principais:**
+- Armazenamento de senhas e credenciais administrativas.
+**Checkpoints:**
+- [ ] Revisão de arquitetura de segurança, documentada em `DECISIONS.md`.
+- [ ] Implementação de criptografia robusta.
+- [ ] Auditoria de acessos.
