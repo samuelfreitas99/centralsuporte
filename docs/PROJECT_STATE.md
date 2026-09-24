@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 1 (Autenticação) concluída. Autenticação local JWT ponta a ponta validada e operacional no Backend (FastAPI/Postgres) e Frontend (React/Vite) com proteção de rotas, verificação de perfis/permissões e suíte de testes automatizados completa.
-**Fase atual**: Fase 1 concluída. Próxima: Fase 2 (Design System).
-**Última implementação**: Interface e fluxo de autenticação no frontend: páginas de login com feedback visual e tratamento de erros, context e hooks (`useAuth`), proteção de rotas com controle de perfis/permissões (`ProtectedRoute`), view autenticada com logout e testes automatizados (`vitest`).
-**Último commit**: "feat: add frontend login page, auth hooks, route protection, and vitest tests"
-**Próxima tarefa**: Fase 2 — Design System (Configuração do shadcn/ui e variáveis Tailwind).
+**Estado atual**: Fase 2 (Design System) iniciada. Tailwind CSS v4 configurado com `@tailwindcss/vite`, variáveis CSS e tokens de tema (Dark/Light) integrados, utilitário `cn` configurado e base do shadcn/ui estabelecida.
+**Fase atual**: Fase 2 (Design System).
+**Última implementação**: Configuração do Tailwind CSS v4 com `@tailwindcss/vite`, definição de variáveis de tema no `src/index.css`, configuração do `components.json`, aliases de path `@/*` e utilitário `cn` (`src/lib/utils.ts`).
+**Último commit**: "feat: configure Tailwind CSS v4 and shadcn/ui foundation"
+**Próxima tarefa**: Fase 2 — Implementação de componentes base (Buttons, Inputs, Cards, Modals).
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 2.
-**Testes**: 7 testes de backend (pytest) e 8 testes de frontend (vitest) executados e aprovados com 100% de sucesso.
+**Pendências**: Componentes base, Layout principal (Sidebar, Header, Container) e testes de renderização.
+**Testes**: 8 testes de frontend (vitest) e 7 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Sessão JWT mantida em localStorage com validação contínua no backend (`/auth/me`), lembrete visual contínuo da regra OTRS (Central como ferramenta complementar de operação interna).
+**Decisões recentes**: Uso do Tailwind CSS v4 moderno conforme definido com o usuário, eliminando arquivos legados de configuração e integrando diretamente via Vite e CSS variables.

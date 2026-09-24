@@ -36,7 +36,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Layout base, barra lateral de navegação e menu superior.
 - Tema (Light/Dark mode) e responsividade para dispositivos móveis, tablets e desktops.
 **Checkpoints:**
-- [ ] Configuração do shadcn/ui e variáveis Tailwind.
+- [x] Configuração do shadcn/ui e variáveis Tailwind.
 - [ ] Implementação de componentes base (Buttons, Inputs, Cards, Modals).
 - [ ] Criação do Layout principal (`Sidebar`, `Header`, `Container`).
 - [ ] Testes de renderização dos componentes principais.
