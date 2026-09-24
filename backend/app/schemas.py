@@ -1,5 +1,8 @@
+from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel, ConfigDict
+
+# --- Auth & Users Schemas ---
 
 class PermissionBase(BaseModel):
     name: str
@@ -16,6 +19,14 @@ class RoleBase(BaseModel):
 class RoleResponse(RoleBase):
     id: int
     permissions: List[PermissionResponse] = []
+    model_config = ConfigDict(from_attributes=True)
+
+class UserSimpleResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    is_active: bool = True
+    role_id: Optional[int] = None
     model_config = ConfigDict(from_attributes=True)
 
 class UserBase(BaseModel):
@@ -50,3 +61,160 @@ class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserResponse
+
+# --- Checklist & Checklist Item Schemas ---
+
+class ChecklistItemBase(BaseModel):
+    title: str
+    position: int = 0
+    is_completed: bool = False
+
+class ChecklistItemCreate(BaseModel):
+    title: str
+    position: Optional[int] = 0
+
+class ChecklistItemUpdate(BaseModel):
+    title: Optional[str] = None
+    position: Optional[int] = None
+    is_completed: Optional[bool] = None
+
+class ChecklistItemResponse(BaseModel):
+    id: int
+    checklist_id: int
+    title: str
+    is_completed: bool
+    position: int
+    completed_at: Optional[datetime] = None
+    completed_by_id: Optional[int] = None
+    completed_by: Optional[UserSimpleResponse] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class ChecklistBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+class ChecklistCreate(ChecklistBase):
+    task_id: Optional[int] = None
+    items: Optional[List[ChecklistItemCreate]] = None
+
+class ChecklistUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+class ChecklistResponse(ChecklistBase):
+    id: int
+    task_id: Optional[int] = None
+    creator_id: int
+    creator: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    items: List[ChecklistItemResponse] = []
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Reminder Schemas ---
+
+class ReminderBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    remind_at: datetime
+    priority: str = "media"
+    status: str = "pendente"
+    task_id: Optional[int] = None
+
+class ReminderCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    remind_at: datetime
+    priority: Optional[str] = "media"
+    status: Optional[str] = "pendente"
+    task_id: Optional[int] = None
+
+class ReminderUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    remind_at: Optional[datetime] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    task_id: Optional[int] = None
+
+class ReminderStatusUpdate(BaseModel):
+    status: str  # pendente, concluido, dispensado
+
+class ReminderResponse(ReminderBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Calendar Event Schemas ---
+
+class CalendarEventBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
+    event_type: str = "atividade"
+
+class CalendarEventCreate(CalendarEventBase):
+    event_type: Optional[str] = "atividade"
+
+class CalendarEventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    event_type: Optional[str] = None
+
+class CalendarEventResponse(CalendarEventBase):
+    id: int
+    user_id: int
+    creator: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+# --- Task Schemas ---
+
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: str = "media"
+    status: str = "pendente"
+    due_date: Optional[datetime] = None
+    visibility: str = "equipe"
+    category: Optional[str] = None
+    otrs_reference: Optional[str] = None
+
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    priority: Optional[str] = "media"
+    status: Optional[str] = "pendente"
+    due_date: Optional[datetime] = None
+    visibility: Optional[str] = "equipe"
+    category: Optional[str] = None
+    otrs_reference: Optional[str] = None
+    assigned_user_ids: Optional[List[int]] = []
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[datetime] = None
+    visibility: Optional[str] = None
+    category: Optional[str] = None
+    otrs_reference: Optional[str] = None
+    assigned_user_ids: Optional[List[int]] = None
+
+class TaskStatusUpdate(BaseModel):
+    status: str  # pendente, em_andamento, concluida, cancelada
+
+class TaskResponse(TaskBase):
+    id: int
+    creator_id: int
+    creator: Optional[UserSimpleResponse] = None
+    completed_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    assigned_users: List[UserSimpleResponse] = []
+    checklists: List[ChecklistResponse] = []
+    model_config = ConfigDict(from_attributes=True)

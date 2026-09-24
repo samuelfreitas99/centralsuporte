@@ -60,7 +60,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Funcionalidades: Criar/atribuir tarefas, listas de checklists, lembretes pontuais e visualização de calendário.
 **Checkpoints:**
 - [x] Migrations e models.
-- [ ] Endpoints de CRUD e gestão de status.
+- [x] Endpoints de CRUD e gestão de status.
 - [ ] Telas de listagem, criação e edição.
 - [ ] Testes de fluxo e testes unitários.
 
