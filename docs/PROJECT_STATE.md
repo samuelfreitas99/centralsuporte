@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 5 (Conhecimento) concluída com sucesso. Base de conhecimento técnico com pesquisa textual multi-campo, histórico imutável de versões auditável, restauração de versões anteriores com preservação histórica e controle de permissões.
-**Fase atual**: Fase 5 — Conhecimento (Concluída).
-**Última implementação**: Busca multi-campo (título, sumário, conteúdo, problema, solução, comandos e tags), endpoints dedicados para consulta e restauração de versões (`GET /versions`, `GET /versions/{num}`, `POST /versions/{num}/restore`), ação de restauração no modal de histórico de versões, e testes completos de consistência de busca e integridade de versionamento.
-**Último commit**: `9122c2d` - feat: complete knowledge base search consistency, version history, and restoration
-**Próxima tarefa**: Fase 6 — Comandos e Respostas — Implementação do CRUD no backend.
+**Estado atual**: Fase 6 (Comandos e Respostas) em andamento. Modelos, migrations e endpoints REST de CRUD para biblioteca de comandos técnicos e respostas padrão implementados com rastreamento de cópia.
+**Fase atual**: Fase 6 — Comandos e Respostas.
+**Última implementação**: Entidades `Command` e `StandardResponse`, migration Alembic `4d6b319bf17a`, schemas Pydantic, roteadores `/commands` e `/responses` com listagem filtrada por sistema, categoria, público-alvo e busca textual, endpoints de métricas de cópia (`POST /copy`), e testes automatizados de integração.
+**Último commit**: `fc02303` - feat: implement commands and standard responses models, migration, and backend CRUD
+**Próxima tarefa**: Fase 6 — Comandos e Respostas — Implementação das telas focadas em rápida pesquisa e ação de "Copiar para área de transferência".
 **Bloqueios**: Nenhum.
-**Pendências**: Nenhuma na Fase 5.
-**Testes**: 40 testes de frontend (vitest) e 20 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
+**Pendências**: Implementação das telas de rápida pesquisa e cópia no frontend.
+**Testes**: 40 testes de frontend (vitest) e 23 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Restauração de versões cria um novo snapshot sequencial preservando auditoria completa sem destruir versões anteriores; pesquisa textual inclui conteúdo completo e tags com case-insensitivity.
+**Decisões recentes**: Comandos e Respostas são exclusivamente de consulta e cópia para área de transferência (sem execução remota ou shell); contadores de cópia (`copies_count`) rastreiam os itens mais acionados para ordenar por relevância de uso pela equipe.

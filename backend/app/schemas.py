@@ -320,3 +320,67 @@ class KnowledgeArticleResponse(BaseModel):
     versions: List[KnowledgeVersionResponse] = []
     is_favorite: Optional[bool] = False
     model_config = ConfigDict(from_attributes=True)
+
+# --- Commands & Standard Responses Schemas (Phase 6) ---
+
+class CommandBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    command: str
+    system: str = "Geral"
+    category: Optional[str] = None
+    tags: Optional[str] = None
+    notes: Optional[str] = None
+    warning: Optional[str] = None
+    visibility: str = "equipe"
+
+class CommandCreate(CommandBase):
+    pass
+
+class CommandUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    command: Optional[str] = None
+    system: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[str] = None
+    notes: Optional[str] = None
+    warning: Optional[str] = None
+    visibility: Optional[str] = None
+
+class CommandResponse(CommandBase):
+    id: int
+    author_id: int
+    author: Optional[UserSimpleResponse] = None
+    copies_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class StandardResponseBase(BaseModel):
+    title: str
+    content: str
+    category: Optional[str] = None
+    audience: str = "usuario_final"
+    tags: Optional[str] = None
+    visibility: str = "equipe"
+
+class StandardResponseCreate(StandardResponseBase):
+    pass
+
+class StandardResponseUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    category: Optional[str] = None
+    audience: Optional[str] = None
+    tags: Optional[str] = None
+    visibility: Optional[str] = None
+
+class StandardResponseResponse(StandardResponseBase):
+    id: int
+    author_id: int
+    author: Optional[UserSimpleResponse] = None
+    copies_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)

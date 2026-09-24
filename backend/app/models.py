@@ -79,6 +79,10 @@ class User(Base):
     authored_articles = relationship("KnowledgeArticle", foreign_keys="KnowledgeArticle.author_id", back_populates="author")
     favorite_articles = relationship("KnowledgeArticle", secondary=article_favorites, back_populates="favorited_by")
 
+    # Relationships for Phase 6 (Commands & Standard Responses)
+    authored_commands = relationship("Command", foreign_keys="Command.author_id", back_populates="author")
+    authored_responses = relationship("StandardResponse", foreign_keys="StandardResponse.author_id", back_populates="author")
+
 class Task(Base):
     __tablename__ = "tasks"
     
@@ -228,3 +232,43 @@ class KnowledgeVersion(Base):
     # Relationships
     article = relationship("KnowledgeArticle", back_populates="versions")
     editor = relationship("User", foreign_keys=[editor_id])
+
+class Command(Base):
+    __tablename__ = "commands"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    command = Column(Text, nullable=False)
+    system = Column(String(50), nullable=False, default="Geral", index=True)
+    category = Column(String(100), nullable=True, index=True)
+    tags = Column(String(255), nullable=True)
+    notes = Column(Text, nullable=True)
+    warning = Column(Text, nullable=True)
+    author_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False)
+    visibility = Column(String(20), default="equipe", nullable=False)  # privado, equipe, todos
+    copies_count = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    author = relationship("User", foreign_keys=[author_id], back_populates="authored_commands")
+
+class StandardResponse(Base):
+    __tablename__ = "standard_responses"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False, index=True)
+    content = Column(Text, nullable=False)
+    category = Column(String(100), nullable=True, index=True)
+    audience = Column(String(50), default="usuario_final", nullable=False, index=True)
+    tags = Column(String(255), nullable=True)
+    author_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False)
+    visibility = Column(String(20), default="equipe", nullable=False)  # privado, equipe, todos
+    copies_count = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    author = relationship("User", foreign_keys=[author_id], back_populates="authored_responses")
+
