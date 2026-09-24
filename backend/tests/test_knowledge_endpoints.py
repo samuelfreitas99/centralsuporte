@@ -105,3 +105,81 @@ def test_knowledge_categories_and_articles_crud():
 def test_unauthenticated_knowledge_blocked():
     assert client.get("/knowledge/articles").status_code == 401
     assert client.get("/knowledge/categories").status_code == 401
+
+def test_knowledge_category_management_and_favorites():
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    uid = uuid.uuid4().hex[:6]
+    cat_name = f"Redes e Firewall {uid}"
+
+    # 1. Create Category
+    res = client.post("/knowledge/categories", json={
+        "name": cat_name,
+        "description": "Switches, VLANs e regras de firewall",
+        "color": "#10b981"
+    }, headers=headers)
+    assert res.status_code == 201
+    cat_id = res.json()["id"]
+    assert res.json()["articles_count"] == 0
+
+    # 2. Duplicate Category Name should fail
+    dup_res = client.post("/knowledge/categories", json={"name": cat_name}, headers=headers)
+    assert dup_res.status_code == 400
+
+    # 3. Create Article in this category
+    art_res = client.post("/knowledge/articles", json={
+        "title": f"Configuração de VLAN no Switch {uid}",
+        "summary": "Isolamento de tráfego de visitantes",
+        "content": "Procedimento passo a passo para configuração de VLAN tag 10.",
+        "category_id": cat_id,
+        "status": "publicado"
+    }, headers=headers)
+    assert art_res.status_code == 201
+    art_id = art_res.json()["id"]
+
+    # 4. List categories - verify articles_count == 1
+    list_res = client.get("/knowledge/categories", headers=headers)
+    assert list_res.status_code == 200
+    cat_item = next(c for c in list_res.json() if c["id"] == cat_id)
+    assert cat_item["articles_count"] == 1
+
+    # 5. Update Category
+    new_cat_name = f"Infra de Redes e Firewall {uid}"
+    up_res = client.put(f"/knowledge/categories/{cat_id}", json={
+        "name": new_cat_name,
+        "description": "Descrição atualizada de infra de redes",
+        "color": "#06b6d4"
+    }, headers=headers)
+    assert up_res.status_code == 200
+    assert up_res.json()["name"] == new_cat_name
+    assert up_res.json()["color"] == "#06b6d4"
+
+    # 6. Favorite toggle: add then remove
+    fav_on = client.post(f"/knowledge/articles/{art_id}/favorite", headers=headers)
+    assert fav_on.status_code == 200
+    assert fav_on.json()["is_favorite"] is True
+
+    fav_list = client.get("/knowledge/articles?only_favorites=true", headers=headers)
+    assert any(a["id"] == art_id for a in fav_list.json())
+
+    fav_off = client.post(f"/knowledge/articles/{art_id}/favorite", headers=headers)
+    assert fav_off.status_code == 200
+    assert fav_off.json()["is_favorite"] is False
+
+    fav_list_after = client.get("/knowledge/articles?only_favorites=true", headers=headers)
+    assert not any(a["id"] == art_id for a in fav_list_after.json())
+
+    # 7. Delete Category - Article should remain with category_id = None
+    del_cat_res = client.delete(f"/knowledge/categories/{cat_id}", headers=headers)
+    assert del_cat_res.status_code == 200
+    assert del_cat_res.json()["articles_affected"] == 1
+
+    # Verify article still exists but category is None
+    art_after = client.get(f"/knowledge/articles/{art_id}", headers=headers)
+    assert art_after.status_code == 200
+    assert art_after.json()["category_id"] is None
+
+    # Cleanup article
+    client.delete(f"/knowledge/articles/{art_id}", headers=headers)
+

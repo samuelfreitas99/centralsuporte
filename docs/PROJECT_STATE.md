@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 5 (Conhecimento) em andamento. Interface completa de visualização e edição de artigos técnicos implementada no frontend com suporte a versionamento, histórico de alterações, cópia de comandos em 1 clique e busca textual.
+**Estado atual**: Fase 5 (Conhecimento) em andamento. Gerenciamento completo de categorias (CRUD, paleta de cores, contagem dinâmica de artigos) e aprimoramento de favoritos implementados no frontend e backend.
 **Fase atual**: Fase 5 — Conhecimento.
-**Última implementação**: Implementação de schemas e endpoints REST da Base de Conhecimento (`/knowledge/articles`, `/knowledge/categories`, `/knowledge/tags`), routers integrados ao FastAPI, componentes frontend `KnowledgePage`, `ArticleFormDialog` (criação e edição com geração de novas versões), `ArticleViewDialog` (visualização rica com abas de conteúdo e histórico de versões, diagnóstico, solução e bloco de comandos) e testes de integração com 100% de sucesso.
-**Último commit**: `d2ec2f1` - feat: implement knowledge base article view, editor dialog, and REST endpoints
-**Próxima tarefa**: Fase 5 — Conhecimento — Implementar funcionalidade de favoritar e gerenciar categorias.
+**Última implementação**: Endpoints de atualização e remoção de categorias (`PUT` e `DELETE /knowledge/categories/{id}` com desvinculação segura nos artigos), contagem de artigos por categoria (`articles_count`), modal `CategoryManagementDialog` com paleta de cores e feedback de impacto, chips rápidos de filtragem por categoria e favoritos na `KnowledgePage`, alternância otimista instantânea de favoritos e testes automatizados.
+**Último commit**: `f185b56` - feat: implement category management dialog, color picker, and favorites filter
+**Próxima tarefa**: Fase 5 — Conhecimento — Testes de consistência de pesquisa e histórico de versões.
 **Bloqueios**: Nenhum.
-**Pendências**: Finalizar gerenciamento dedicado de categorias e aprimoramento de favoritos no frontend.
-**Testes**: 37 testes de frontend (vitest) e 17 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
+**Pendências**: Testes automatizados de consistência de busca textual avançada e histórico de versões.
+**Testes**: 40 testes de frontend (vitest) e 18 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Formato estruturado de artigos com campos dedicados para sintoma, diagnóstico, solução e comandos, facilitando a rápida consulta do técnico em atendimentos em andamento.
+**Decisões recentes**: Categorias com paleta de cores pré-definidas e contadores de artigos integrados; remoção de categoria desvincula artigos para `category_id = None` sem perda de conteúdo técnico; alternância de favoritos otimista com resposta visual imediata no card e no modal.

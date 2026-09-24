@@ -13,6 +13,7 @@ import {
   Tag,
   History,
   Terminal,
+  FolderTree,
 } from 'lucide-react';
 import type {
   KnowledgeArticle,
@@ -23,6 +24,7 @@ import type {
 import { knowledgeService } from '@/services/knowledgeService';
 import { ArticleFormDialog } from '@/components/knowledge/ArticleFormDialog';
 import { ArticleViewDialog } from '@/components/knowledge/ArticleViewDialog';
+import { CategoryManagementDialog } from '@/components/knowledge/CategoryManagementDialog';
 
 export const KnowledgePage: React.FC = () => {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
@@ -37,6 +39,7 @@ export const KnowledgePage: React.FC = () => {
   const [articleToEdit, setArticleToEdit] = useState<KnowledgeArticle | null>(null);
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedArticle, setSelectedArticle] = useState<KnowledgeArticle | null>(null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -102,13 +105,29 @@ export const KnowledgePage: React.FC = () => {
 
   const handleToggleFavorite = async (e: React.MouseEvent, articleId: number) => {
     e.stopPropagation();
+    // Optimistic toggle
+    setArticles((prev) =>
+      prev.map((a) => (a.id === articleId ? { ...a, is_favorite: !a.is_favorite } : a))
+    );
+    if (selectedArticle && selectedArticle.id === articleId) {
+      setSelectedArticle({
+        ...selectedArticle,
+        is_favorite: !selectedArticle.is_favorite,
+      });
+    }
+
     try {
       await knowledgeService.toggleFavorite(articleId);
-      loadData();
+      if (onlyFavorites) {
+        loadData();
+      }
     } catch (err) {
       console.error('Falha ao alternar favorito:', err);
+      loadData();
     }
   };
+
+  const totalFavorites = articles.filter((a) => a.is_favorite).length;
 
   return (
     <div className="space-y-6">
@@ -124,15 +143,26 @@ export const KnowledgePage: React.FC = () => {
           </p>
         </div>
 
-        <Button onClick={handleOpenCreate} className="flex items-center gap-1.5 h-9 shrink-0">
-          <Plus className="h-4 w-4" />
-          <span>Novo Artigo Técnico</span>
-        </Button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button
+            variant="outline"
+            onClick={() => setCategoryDialogOpen(true)}
+            className="flex items-center gap-1.5 h-9 text-xs"
+          >
+            <FolderTree className="h-4 w-4 text-primary" />
+            <span>Gerenciar Categorias</span>
+          </Button>
+
+          <Button onClick={handleOpenCreate} className="flex items-center gap-1.5 h-9 text-xs">
+            <Plus className="h-4 w-4" />
+            <span>Novo Artigo Técnico</span>
+          </Button>
+        </div>
       </div>
 
       {/* Barra de Filtros e Busca */}
       <Card>
-        <CardHeader className="p-4 pb-3">
+        <CardHeader className="p-4 pb-3 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex flex-1 items-center gap-2">
               <div className="relative flex-1 max-w-md">
@@ -147,13 +177,16 @@ export const KnowledgePage: React.FC = () => {
 
               <select
                 value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value ? Number(e.target.value) : '')}
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value ? Number(e.target.value) : '');
+                  setOnlyFavorites(false);
+                }}
                 className="h-9 rounded-md border border-input bg-background px-2.5 text-xs text-foreground font-medium"
               >
                 <option value="">Todas as Categorias</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name}
+                    {c.name} {c.articles_count !== undefined ? `(${c.articles_count})` : ''}
                   </option>
                 ))}
               </select>
@@ -161,17 +194,81 @@ export const KnowledgePage: React.FC = () => {
               <Button
                 variant={onlyFavorites ? 'default' : 'outline'}
                 size="sm"
-                onClick={() => setOnlyFavorites(!onlyFavorites)}
+                onClick={() => {
+                  setOnlyFavorites(!onlyFavorites);
+                  if (!onlyFavorites) setSelectedCategory('');
+                }}
                 className="h-9 text-xs flex items-center gap-1.5"
               >
                 <Star className={`h-3.5 w-3.5 ${onlyFavorites ? 'fill-current' : ''}`} />
                 <span>Favoritos</span>
+                {totalFavorites > 0 && (
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-background/20 font-bold">
+                    {totalFavorites}
+                  </span>
+                )}
               </Button>
             </div>
 
             <div className="text-xs font-semibold text-muted-foreground">
               {articles.length} artigo{articles.length !== 1 ? 's' : ''} encontrado{articles.length !== 1 ? 's' : ''}
             </div>
+          </div>
+
+          {/* Category Quick Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <button
+              onClick={() => {
+                setSelectedCategory('');
+                setOnlyFavorites(false);
+              }}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium transition-all ${
+                selectedCategory === '' && !onlyFavorites
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              Todas ({categories.reduce((acc, c) => acc + (c.articles_count || 0), 0) || articles.length})
+            </button>
+
+            <button
+              onClick={() => {
+                setOnlyFavorites(!onlyFavorites);
+                if (!onlyFavorites) setSelectedCategory('');
+              }}
+              className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all ${
+                onlyFavorites
+                  ? 'bg-amber-500 text-white font-semibold shadow-xs'
+                  : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+              }`}
+            >
+              <Star className={`h-3 w-3 ${onlyFavorites ? 'fill-current' : ''}`} />
+              <span>Favoritos</span>
+            </button>
+
+            {categories.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setSelectedCategory(selectedCategory === c.id ? '' : c.id);
+                  setOnlyFavorites(false);
+                }}
+                className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all ${
+                  selectedCategory === c.id
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                    : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
+                }`}
+              >
+                <span
+                  className="h-2 w-2 rounded-full shrink-0"
+                  style={{ backgroundColor: c.color || '#3b82f6' }}
+                />
+                <span>{c.name}</span>
+                {c.articles_count !== undefined && (
+                  <span className="opacity-75 text-[10px]">({c.articles_count})</span>
+                )}
+              </button>
+            ))}
           </div>
         </CardHeader>
 
@@ -201,7 +298,11 @@ export const KnowledgePage: React.FC = () => {
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {article.category && (
-                          <Badge variant="outline" className="text-[10px] py-0 h-4 border-primary/30 text-primary font-semibold">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] py-0 h-4 border-primary/30 font-semibold"
+                            style={{ color: article.category.color || '#3b82f6' }}
+                          >
                             {article.category.name}
                           </Badge>
                         )}
@@ -304,6 +405,13 @@ export const KnowledgePage: React.FC = () => {
         onEdit={handleOpenEdit}
         onDeleted={loadData}
         onFavoriteToggled={loadData}
+      />
+
+      <CategoryManagementDialog
+        open={categoryDialogOpen}
+        onOpenChange={setCategoryDialogOpen}
+        categories={categories}
+        onCategoriesChanged={loadData}
       />
     </div>
   );

@@ -74,7 +74,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 **Checkpoints:**
 - [x] Migrations, models e versionamento do conteúdo.
 - [x] Criação da interface de visualização e edição de artigos.
-- [ ] Implementar funcionalidade de favoritar e gerenciar categorias.
+- [x] Implementar funcionalidade de favoritar e gerenciar categorias.
 - [ ] Testes de consistência de pesquisa e histórico de versões.
 
 ---

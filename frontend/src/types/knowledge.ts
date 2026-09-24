@@ -5,7 +5,20 @@ export interface KnowledgeCategory {
   name: string;
   description?: string | null;
   color?: string;
+  articles_count?: number;
   created_at: string;
+}
+
+export interface KnowledgeCategoryCreatePayload {
+  name: string;
+  description?: string;
+  color?: string;
+}
+
+export interface KnowledgeCategoryUpdatePayload {
+  name?: string;
+  description?: string;
+  color?: string;
 }
 
 export interface KnowledgeTag {

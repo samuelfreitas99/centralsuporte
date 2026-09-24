@@ -19,6 +19,19 @@ export const knowledgeService = {
     });
   },
 
+  updateCategory: async (id: number, payload: { name?: string; description?: string; color?: string }): Promise<KnowledgeCategory> => {
+    return request<KnowledgeCategory>(`/knowledge/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  deleteCategory: async (id: number): Promise<{ message: string; articles_affected: number }> => {
+    return request<{ message: string; articles_affected: number }>(`/knowledge/categories/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   getTags: async (): Promise<KnowledgeTag[]> => {
     return request<KnowledgeTag[]>('/knowledge/tags');
   },

@@ -15,6 +15,7 @@ from app.models import (
 from app.auth import get_current_active_user, require_permission
 from app.schemas import (
     KnowledgeCategoryCreate,
+    KnowledgeCategoryUpdate,
     KnowledgeCategoryResponse,
     KnowledgeTagResponse,
     KnowledgeArticleCreate,
@@ -34,7 +35,10 @@ def list_categories(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("knowledge:read")),
 ):
-    return db.query(KnowledgeCategory).order_by(KnowledgeCategory.name.asc()).all()
+    categories = db.query(KnowledgeCategory).order_by(KnowledgeCategory.name.asc()).all()
+    for cat in categories:
+        cat.articles_count = len(cat.articles)
+    return categories
 
 @router.post("/categories", response_model=KnowledgeCategoryResponse, status_code=status.HTTP_201_CREATED)
 def create_category(
@@ -54,7 +58,50 @@ def create_category(
     db.add(category)
     db.commit()
     db.refresh(category)
+    category.articles_count = 0
     return category
+
+@router.put("/categories/{category_id}", response_model=KnowledgeCategoryResponse)
+def update_category(
+    category_id: int,
+    payload: KnowledgeCategoryUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("knowledge:write")),
+):
+    category = db.query(KnowledgeCategory).filter(KnowledgeCategory.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoria não encontrada")
+
+    if payload.name is not None and payload.name.strip() != category.name:
+        existing = db.query(KnowledgeCategory).filter(KnowledgeCategory.name == payload.name.strip()).first()
+        if existing:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Categoria com este nome já existe")
+        category.name = payload.name.strip()
+
+    if payload.description is not None:
+        category.description = payload.description
+    if payload.color is not None:
+        category.color = payload.color
+
+    db.commit()
+    db.refresh(category)
+    category.articles_count = len(category.articles)
+    return category
+
+@router.delete("/categories/{category_id}")
+def delete_category(
+    category_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("knowledge:write")),
+):
+    category = db.query(KnowledgeCategory).filter(KnowledgeCategory.id == category_id).first()
+    if not category:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoria não encontrada")
+
+    articles_affected = len(category.articles)
+    db.delete(category)
+    db.commit()
+    return {"message": "Categoria removida com sucesso", "articles_affected": articles_affected}
 
 # --- Tags Endpoints ---
 

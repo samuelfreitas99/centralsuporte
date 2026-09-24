@@ -229,8 +229,14 @@ class KnowledgeCategoryBase(BaseModel):
 class KnowledgeCategoryCreate(KnowledgeCategoryBase):
     pass
 
+class KnowledgeCategoryUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    color: Optional[str] = None
+
 class KnowledgeCategoryResponse(KnowledgeCategoryBase):
     id: int
+    articles_count: Optional[int] = 0
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
