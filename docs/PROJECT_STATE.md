@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 1 (Autenticação) em andamento. Endpoints de autenticação JWT, gestão de usuários, verificação de perfis/permissões e suíte de testes backend concluídos e operacionais.
-**Fase atual**: Fase 1 (Autenticação).
-**Última implementação**: Implementação de endpoints de autenticação JWT (`/auth/login`, `/auth/me`), gestão de usuários (`/users`), listagem de perfis (`/roles`), restrições de permissões no backend e testes automatizados (pytest).
-**Último commit**: "feat: add login, auth, and user management backend endpoints"
-**Próxima tarefa**: Fase 1 — Páginas de login e hooks de autenticação (Frontend).
+**Estado atual**: Fase 1 (Autenticação) concluída. Autenticação local JWT ponta a ponta validada e operacional no Backend (FastAPI/Postgres) e Frontend (React/Vite) com proteção de rotas, verificação de perfis/permissões e suíte de testes automatizados completa.
+**Fase atual**: Fase 1 concluída. Próxima: Fase 2 (Design System).
+**Última implementação**: Interface e fluxo de autenticação no frontend: páginas de login com feedback visual e tratamento de erros, context e hooks (`useAuth`), proteção de rotas com controle de perfis/permissões (`ProtectedRoute`), view autenticada com logout e testes automatizados (`vitest`).
+**Último commit**: "feat: add frontend login page, auth hooks, route protection, and vitest tests"
+**Próxima tarefa**: Fase 2 — Design System (Configuração do shadcn/ui e variáveis Tailwind).
 **Bloqueios**: Nenhum.
-**Pendências**: Páginas de login e hooks no Frontend, proteção de rotas no Frontend, testes vitest.
-**Testes**: 7 testes automatizados de autenticação, ciclo de vida de usuário e verificação de permissões executados e aprovados via pytest.
+**Pendências**: Iniciar Fase 2.
+**Testes**: 7 testes de backend (pytest) e 8 testes de frontend (vitest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Autenticação local JWT com expiração configurável, senhas protegidas com bcrypt e verificação de permissões (`require_permission`) implementada diretamente no backend.
+**Decisões recentes**: Sessão JWT mantida em localStorage com validação contínua no backend (`/auth/me`), lembrete visual contínuo da regra OTRS (Central como ferramenta complementar de operação interna).

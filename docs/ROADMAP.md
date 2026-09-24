@@ -23,10 +23,10 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 **Checkpoints:**
 - [x] Implementar migrations e models do banco de dados.
 - [x] Endpoints de login e gestão de usuários (Backend).
-- [ ] Páginas de login e hooks de autenticação (Frontend).
-- [ ] Proteção de rotas no Frontend e validação de tokens no Backend.
-- [ ] Testes automatizados (pytest e vitest).
-- [ ] Atualizar `PROJECT_STATE` e documentar a fase em `walkthrough`.
+- [x] Páginas de login e hooks de autenticação (Frontend).
+- [x] Proteção de rotas no Frontend e validação de tokens no Backend.
+- [x] Testes automatizados (pytest e vitest).
+- [x] Atualizar `PROJECT_STATE` e documentar a fase em `walkthrough`.
 
 ---
 
