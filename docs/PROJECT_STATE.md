@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 2 (Design System) iniciada. Tailwind CSS v4 configurado com `@tailwindcss/vite`, variáveis CSS e tokens de tema (Dark/Light) integrados, utilitário `cn` configurado e base do shadcn/ui estabelecida.
+**Estado atual**: Fase 2 (Design System) em andamento. Componentes base (`Button`, `Input`, `Card`, `Dialog`, `Badge`) implementados segundo o padrão shadcn/ui com acessibilidade Radix UI, estilizados via Tailwind CSS v4 e validados por testes unitários.
 **Fase atual**: Fase 2 (Design System).
-**Última implementação**: Configuração do Tailwind CSS v4 com `@tailwindcss/vite`, definição de variáveis de tema no `src/index.css`, configuração do `components.json`, aliases de path `@/*` e utilitário `cn` (`src/lib/utils.ts`).
-**Último commit**: "feat: configure Tailwind CSS v4 and shadcn/ui foundation"
-**Próxima tarefa**: Fase 2 — Implementação de componentes base (Buttons, Inputs, Cards, Modals).
+**Última implementação**: Implementação dos componentes base do design system (`Button`, `Input`, `Card`, `Dialog`, `Badge`) com suporte a variantes (CVA), acessibilidade e testes automatizados de renderização e interação (`vitest`).
+**Último commit**: "feat: implement shadcn base components (Button, Input, Card, Dialog, Badge)"
+**Próxima tarefa**: Fase 2 — Criação do Layout principal (`Sidebar`, `Header`, `Container`).
 **Bloqueios**: Nenhum.
-**Pendências**: Componentes base, Layout principal (Sidebar, Header, Container) e testes de renderização.
-**Testes**: 8 testes de frontend (vitest) e 7 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Layout principal (`Sidebar`, `Header`, `Container`), navegação e alternância de temas.
+**Testes**: 15 testes de frontend (vitest) e 7 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Uso do Tailwind CSS v4 moderno conforme definido com o usuário, eliminando arquivos legados de configuração e integrando diretamente via Vite e CSS variables.
+**Decisões recentes**: Variantes de componentes isoladas para compatibilidade com Fast Refresh do React/Vite, uso de primitivas Radix UI para diálogos acessíveis.
