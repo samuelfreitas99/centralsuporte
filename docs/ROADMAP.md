@@ -22,7 +22,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Controle de sessão e perfis de usuário (Admin, Gestor, Técnico, Consulta).
 **Checkpoints:**
 - [x] Implementar migrations e models do banco de dados.
-- [ ] Endpoints de login e gestão de usuários (Backend).
+- [x] Endpoints de login e gestão de usuários (Backend).
 - [ ] Páginas de login e hooks de autenticação (Frontend).
 - [ ] Proteção de rotas no Frontend e validação de tokens no Backend.
 - [ ] Testes automatizados (pytest e vitest).
