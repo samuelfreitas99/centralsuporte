@@ -746,3 +746,51 @@ class AttachmentResponse(AttachmentBase):
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 
+
+# --- Search & Reports Schemas (Phase 11) ---
+
+class SearchResultItem(BaseModel):
+    id: int
+    entity_type: str  # 'knowledge', 'command', 'attendance', 'equipment', 'maintenance', 'task'
+    title: str
+    snippet: str
+    badge: Optional[str] = None
+    created_at: Optional[datetime] = None
+    url_tab: str
+    metadata: dict = {}
+
+class GlobalSearchResponse(BaseModel):
+    query: str
+    total_results: int
+    results: List[SearchResultItem]
+
+class RecurrentEquipmentIssue(BaseModel):
+    equipment_id: int
+    hostname: Optional[str] = None
+    patrimony: Optional[str] = None
+    store_name: Optional[str] = None
+    total_incidents: int
+    attendances_count: int
+    maintenances_count: int
+
+class TechnicianPerformanceMetric(BaseModel):
+    technician_id: int
+    username: str
+    attendances_count: int
+    maintenances_count: int
+    total_actions: int
+
+class OperationalSummaryReport(BaseModel):
+    period_days: int
+    attendances_total: int
+    attendances_resolved: int
+    attendances_in_progress: int
+    resolution_rate: float
+    maintenances_total: int
+    maintenances_preventive: int
+    maintenances_corrective: int
+    maintenances_total_cost: float
+    recurrent_equipment: List[RecurrentEquipmentIssue]
+    top_technicians: List[TechnicianPerformanceMetric]
+
+

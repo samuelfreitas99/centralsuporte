@@ -9,6 +9,7 @@ import {
   Server,
   FolderArchive,
   Users,
+  Search,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -21,6 +22,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'operacional' },
+  { id: 'search-reports', label: 'Pesquisa & Relatórios', icon: Search, section: 'operacional' },
   { id: 'tasks', label: 'Tarefas e Checklists', icon: CheckSquare, section: 'operacional' },
   { id: 'maintenances', label: 'Manutenções', icon: Wrench, section: 'operacional' },
   { id: 'knowledge', label: 'Base de Conhecimento', icon: BookOpen, section: 'operacional' },

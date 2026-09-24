@@ -35,4 +35,10 @@
 - **Contexto**: Resguardar evidências técnicas, prints com dados de clientes/sistemas e notas fiscais de equipamentos, em estrita conformidade com as seções 33 e 34 do `PRODUCT_SPEC.md`.
 - **Consequências**: Segurança ponta a ponta sem vazamentos acidentais por tentativa de adivinhação de URLs ou caminhos no servidor.
 
+### 2026-09-24: Mecanismo Unificado de Busca Global e Métricas de Reincidência (Fase 11)
+- **Decisão**: A busca global opera via endpoint único (`/search/global`) com consultas multi-entidade (artigos de conhecimento, comandos rápidos, atendimentos, equipamentos, manutenções e tarefas/checklists) em PostgreSQL através de correspondência flexível (ILIKE com normalização de termos e filtros por loja/tipo de entidade), devolvendo payloads padronizados (`SearchResultItem`) com badges de contexto e rotas de módulo de destino. O módulo de relatórios operacionais consolida taxas de resolução, custos de manutenção, produtividade técnica e identificação automatizada de ativos crônicos no parque de TI com geração de exportação em streaming CSV compatível com suítes de escritório (UTF-8 com BOM).
+- **Contexto**: Elimina a necessidade de o analista de suporte pesquisar individualmente em cada módulo do sistema para localizar soluções técnicas já aplicadas anteriormente ou identificar equipamentos problemáticos recorrentes.
+- **Consequências**: Facilita a tomada de decisão preventiva e agiliza substancialmente o diagnóstico de falhas operacionais pela equipe de TI.
+
+
 

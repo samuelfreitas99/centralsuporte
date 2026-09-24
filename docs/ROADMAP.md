@@ -151,12 +151,16 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ## Fase 11 — Pesquisa e Relatórios
 **Entregas principais:**
-- Motor global utilizando Full Text Search nativo do PostgreSQL.
-- Filtros por loja, equipamento, tipo, tags ou técnico.
+- Motor global de busca unificada abrangendo artigos de conhecimento, comandos rápidos, atendimentos, equipamentos, manutenções e tarefas.
+- Filtros rápidos por tipo de entidade e por unidade/loja.
+- Relatórios operacionais consolidados (taxa de resolução, custos de manutenção, produtividade técnica).
+- Deteção e ranking de reincidência de falhas no parque de TI (equipamentos crônicos).
+- Exportação de relatórios em fluxo CSV formatado.
 **Checkpoints:**
-- [ ] Criação dos índices Full Text no PostgreSQL.
-- [ ] Tela central de busca no Frontend.
-- [ ] Testes de performance nas buscas.
+- [x] Endpoints unificados de busca global (`/search/global`) e relatórios operacionais (`/reports/summary`, `/reports/export`).
+- [x] Tela central de busca e relatórios no Frontend (`SearchAndReportsPage.tsx`) com navegação direta para os módulos.
+- [x] Exportação de dados operacionais em formato CSV e KPIs de reincidência de falhas.
+- [x] Testes automatizados (backend pytest e frontend vitest).
 
 ---
 

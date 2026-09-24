@@ -1,24 +1,26 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 10 (Arquivos e Anexos) concluída com sucesso. Sistema pronto para a Fase 11 (Pesquisa Global e Relatórios).
-**Fase atual**: Fase 10 concluída -> Preparação para Fase 11 (Pesquisa Global e Relatórios).
+**Estado atual**: Fase 11 (Pesquisa Global e Relatórios Operacionais) concluída com sucesso. Sistema pronto para a Fase 12 (Auditoria e Segurança).
+**Fase atual**: Fase 11 concluída -> Preparação para Fase 12 (Auditoria e Segurança / Arquitetura do Cofre de Senhas).
 **Última implementação**: 
-- **Fase 10 — Arquivos e Anexos (`AttachmentManager.tsx`, `attachmentService.ts`, backend `routers/attachments.py`)**:
-  - **Armazenamento e Modelo Estruturado**: Entidade `attachments` com metadados estruturados (nome original, nome físico com UUID, tamanho em bytes, MIME type, hash SHA-256 e uploader).
-  - **Segurança de Acesso**: Proteção contra path traversal e isolamento de arquivos em `/app/uploads` (sem exposição estática desprotegida). Download e visualização inline (preview) protegidos por autenticação JWT e checagem de permissões.
-  - **Componente Reutilizável `AttachmentManager`**: Upload drag & drop com validação de tamanho (25MB), barra de status, listagem detalhada com badges de extensão e modal lightbox de pré-visualização para imagens e PDFs.
-  - **Integração com Entidades Operacionais**: Integrado diretamente ao modal de apontamentos de Atendimentos (`AttendancePage`), linha do tempo de Equipamentos (`InfrastructurePage`) e manutenções técnicas (`MaintenancePage`).
+- **Fase 11 — Pesquisa Global e Relatórios Operacionais (`SearchAndReportsPage.tsx`, `searchService.ts`, `reportsService.ts`, routers `search.py` e `reports.py`)**:
+  - **Pesquisa Unificada Multi-Entidade**: Busca unificada em PostgreSQL abrangendo Artigos de Conhecimento, Comandos Rápidos, Atendimentos OTRS, Equipamentos, Manutenções e Tarefas/Checklists, com normalização de termos, filtros dinâmicos por tipo e por loja.
+  - **Relatórios Operacionais e KPIs**: Taxa de resolução de atendimentos, total de chamados vinculados, custos consolidados de manutenção e produtividade da equipe técnica por técnico.
+  - **Detecção de Reincidência de Falhas no Parque de TI**: Ranking de ativos problemáticos com múltiplos incidentes e manutenções no período, sinalizando ativos críticos para intervenção preventiva.
+  - **Exportação de Relatórios em CSV**: Streaming direto de relatório consolidado formatado em CSV (UTF-8 com BOM para Excel/Calc).
+  - **Interface Ergonomicamente Alinhada**: Navegação integrada via menu lateral (`Pesquisa & Relatórios`), cards com badges semânticos e navegação contextual rápida com 1 clique para o módulo de origem.
 - **Testes Automatizados**:
-  - 71 testes de frontend (Vitest) 100% aprovados (13 arquivos de teste).
-  - 32 testes de backend (Pytest) 100% aprovados.
+  - 75 testes de frontend (Vitest) 100% aprovados (14 arquivos de teste).
+  - 35 testes de backend (Pytest) 100% aprovados.
   - Build de produção (`tsc -b && vite build`) validado sem erros.
 **Último commit**: Pendente de commit desta rodada.
-**Próxima tarefa**: Fase 11 — Pesquisa e Relatórios (motor global de Full-Text Search no PostgreSQL, filtros avançados por loja/equipamento/técnico e tela central de pesquisa).
+**Próxima tarefa**: Fase 12 — Auditoria e Segurança (planejamento da arquitetura de segurança do Cofre de Senhas, trilha de auditoria `audit_logs` e proteção avançada de rotas).
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 11 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
-**Testes**: 71 testes de frontend (vitest) e 32 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Iniciar Fase 12 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
+**Testes**: 75 testes de frontend (vitest) e 35 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Todo arquivo físico anexado é protegido por endpoint autenticado com validação de permissão (`attachment:read`), sem rotas estáticas públicas.
-- Metadados incluem hash SHA-256 e nomes físicos sanitizados com UUID.
+- Mecanismo unificado de busca global com payload padronizado e navegação direta para os módulos de destino.
+- Relatórios operacionais consolidados e detecção de reincidência de falhas no parque de TI.
+
 

@@ -7,6 +7,7 @@ import { CommandsPage } from '@/pages/CommandsPage';
 import { AttendancePage } from '@/pages/AttendancePage';
 import { InfrastructurePage } from '@/pages/InfrastructurePage';
 import { MaintenancePage } from '@/pages/MaintenancePage';
+import { SearchAndReportsPage } from '@/pages/SearchAndReportsPage';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { NAV_ITEMS } from './layout/nav-items';
@@ -22,6 +23,8 @@ export const AuthenticatedView: React.FC = () => {
     <AppLayout currentTab={currentTab} onSelectTab={setCurrentTab}>
       {currentTab === 'dashboard' ? (
         <DashboardPage onSelectTab={setCurrentTab} />
+      ) : currentTab === 'search-reports' ? (
+        <SearchAndReportsPage onSelectTab={setCurrentTab} />
       ) : currentTab === 'tasks' ? (
         <TasksPage />
       ) : currentTab === 'maintenances' ? (
