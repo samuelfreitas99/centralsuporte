@@ -180,9 +180,14 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ## Fase 13 — Automação
 **Entregas principais:**
-- Regras internas reativas (lembretes de tarefas, alertas pontuais).
+- Regras internas reativas (lembretes de tarefas, alertas de manutenção preventiva e detecção de equipamentos crônicos).
+- Agendador assíncrono nativo em background (`asyncio` loop no lifespan do FastAPI) com isolamento total e zero overhead no servidor compartilhado.
+- Interface de notificações no Header (`NotificationsDropdown.tsx`) com badge de pendências, execução manual ("Verificar Regras") e resolução em 1 clique.
 **Checkpoints:**
-- [ ] Tarefas assíncronas/cron jobs (ex: via Celery ou APScheduler) para enviar lembretes aos técnicos ou gerar alertas.
+- [x] Motor de automação reativa assíncrono (`automation.py`) avaliando tarefas vencidas, manutenções preventivas e equipamentos crônicos com idempotência estrita (24h/48h).
+- [x] Endpoints protegidos `/automation/status`, `/automation/rules` e `/automation/trigger`.
+- [x] Interface de notificações no Header com animações `motion/react`, contagem de não lidos e disparo manual para administradores e gestores.
+- [x] Testes automatizados (backend pytest e frontend vitest) cobrindo regras, idempotência e componentes UI.
 
 ---
 

@@ -4,6 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sun, Moon, LogOut, Menu, ShieldCheck, Terminal } from 'lucide-react';
+import { NotificationsDropdown } from './NotificationsDropdown';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -48,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* User Info Capsule */}
         {user && (
           <div className="hidden sm:flex items-center gap-2.5 rounded-xl border border-border/60 bg-muted/30 px-3 py-1.5 text-xs">
@@ -62,6 +63,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar }) => {
             </Badge>
           </div>
         )}
+
+        {/* Notifications & Reactive Rules Dropdown */}
+        <NotificationsDropdown />
 
         {/* Theme Toggle */}
         <Button

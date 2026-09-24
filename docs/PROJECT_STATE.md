@@ -1,27 +1,27 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12 (Auditoria e Segurança) concluída com sucesso. Sistema pronto para a Fase 13 (Automação).
-**Fase atual**: Fase 12 concluída -> Preparação para Fase 13 (Automação: tarefas assíncronas, lembretes de tarefas e alertas pontuais).
+**Estado atual**: Fase 13 (Automação) concluída com sucesso. Sistema pronto para a Fase 14 (Integrações Futuras) ou Fase 15 (Polimento e Estabilização).
+**Fase atual**: Fase 13 concluída -> Preparação para Fase 14 / Fase 15.
 **Última implementação**: 
-- **Fase 12 — Auditoria e Segurança (`AuditLogsPage.tsx`, `auditService.ts`, `audit.py`, `models.py`, `alembic/versions/b27185a17c87`)**:
-  - **Trilhas de Auditoria Imutáveis**: Entidade `audit_logs` no PostgreSQL com índices otimizados por data, ação, usuário e entidade. Registro de eventos de autenticação (`LOGIN`, `LOGIN_FAILED`, `LOGIN_BLOCKED`) e ciclo de vida de usuários (`CREATE`, `UPDATE`, `DELETE`).
-  - **Sanitização Recursiva de Segredos**: Mecanismo `sanitize_audit_data` que mascara recursivamente chaves sensíveis (`password`, `token`, `secret`, `credentials`) como `[REDACTED]`, garantindo que dados confidenciais nunca vazem nos logs.
-  - **Segurança de Acesso RBAC**: Endpoints `/audit-logs` estritamente protegidos pela permissão `audit:read` (concedida a Administrador e Gestor).
-  - **Especificação Arquitetural do Cofre de Senhas**: Diretrizes mandatórias formalizadas em `docs/DECISIONS.md` exigindo Envelope Encryption com AES-256-GCM, chave segregada fora do repositório (`CENTRAL_VAULT_KEY`), auditoria compulsória de revelação de senha (`PASSWORD_REVEAL`) e separação de credenciais pessoais vs departamentais.
-  - **Interface de Auditoria no Frontend**: Página `AuditLogsPage.tsx` com filtros combinados, visualização por badges de ação semânticos, paginação e modal para inspeção do payload JSON sanitizado com cópia em 1 clique.
+- **Fase 13 — Automação (`automation.py`, `routers/automation.py`, `NotificationsDropdown.tsx`, `automationService.ts`, `Header.tsx`)**:
+  - **Motor de Regras Reativas**: Avaliação periódica e sob demanda de tarefas vencidas/próximas ao vencimento (24h), manutenções preventivas agendadas (janela de 3 dias) e detecção de equipamentos com falhas crônicas (>= 3 manutenções em 30 dias).
+  - **Idempotência Estrita**: Mecanismo inteligente de desduplicação (janela de 24h a 48h) impedindo alertas e lembretes redundantes caso já exista lembrete pendente para a mesma entidade.
+  - **Agendador Assíncrono Nativo em Background**: Loop assíncrono leve gerenciado no ciclo de vida lifespan do FastAPI (`start_automation_scheduler` / `stop_automation_scheduler`) sem necessidade de brokers externos (Celery/Redis), respeitando a regra mandatória de servidor compartilhado sem overhead.
+  - **Endpoints de Automação**: `/automation/status`, `/automation/rules` e `/automation/trigger` com auditoria e controle de acesso RBAC.
+  - **Interface de Notificações no Header**: Componente `NotificationsDropdown.tsx` integrado ao `Header.tsx` com contagem dinâmica de alertas pendentes, animações `motion/react`, visualização detalhada por severidade, disparo manual ("Verificar Regras") para admins/gestores e resolução/dispensa com 1 clique.
 - **Testes Automatizados**:
-  - 79 testes de frontend (Vitest) 100% aprovados (15 arquivos de teste).
-  - 40 testes de backend (Pytest) 100% aprovados.
+  - 83 testes de frontend (Vitest) 100% aprovados (16 arquivos de teste).
+  - 44 testes de backend (Pytest) 100% aprovados.
   - Build de produção (`tsc -b && vite build`) validado sem erros.
 **Último commit**: Pendente de commit desta rodada.
-**Próxima tarefa**: Fase 13 — Automação (regras internas reativas, lembretes de tarefas, alertas pontuais e jobs assíncronos conforme `ROADMAP.md`).
+**Próxima tarefa**: Fase 14 — Integrações Futuras (estudo de viabilidade de integrações OTRS/AD/UniFi) ou Fase 15 — Polimento Final & Estabilização do MVP.
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 13 conforme `ROADMAP.md` e `PRODUCT_SPEC.md`.
-**Testes**: 79 testes de frontend (vitest) e 40 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Alinhamento com usuário sobre avanço para Fase 14 (estudo de viabilidade de integrações externas) ou Fase 15 (polimento, acessibilidade e consolidação do MVP).
+**Testes**: 83 testes de frontend (vitest) e 44 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Trilha de auditoria imutável com sanitização recursiva de senhas e segredos.
-- Arquitetura de segurança do Cofre de Senhas especificada com AES-256-GCM e auditoria obrigatória.
+- Motor de regras reativas assíncrono interno via lifespan do FastAPI com idempotência estrita (evitando brokers externos em servidor compartilhado).
+- Interface de notificações reativas no Header com suporte a resolução imediata e trigger manual.
 
 
 

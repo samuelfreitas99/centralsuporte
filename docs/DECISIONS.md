@@ -55,6 +55,7 @@
 - **Contexto**: O cofre de senhas armazenará credenciais de infraestrutura crítica (switches, roteadores de borda, firewalls e bancos de dados da rede de lojas).
 - **Consequências**: Garante segurança de nível institucional antes do desenvolvimento de qualquer interface gráfica ou funcionalidade de credenciais.
 
-
-
-
+### 2026-09-24: Mecanismo de Automação e Regras Reativas Leves (Fase 13)
+- **Decisão**: A automação interna e agendamento de regras reativas (alertas de tarefas vencidas/próximas, lembretes de manutenções preventivas programadas e detecção preventiva de equipamentos crônicos) foi implementada como um worker assíncrono nativo gerenciado no ciclo de vida (`lifespan`) do FastAPI/AnyIO em vez de acoplar Celery/Redis ou mensagerias externas. O disparo das regras inclui salvaguarda de idempotência de 24 horas para tarefas e 48 horas para manutenções agendadas, prevenindo alertas redundantes. Adicionalmente, disponibilizou-se o endpoint `POST /automation/trigger` para verificação sob demanda disparável diretamente pela interface gráfica através do componente `NotificationsDropdown`.
+- **Contexto**: Respeito estrito à regra crítica de servidor compartilhado de `AGENTS.md` (sem adição de containers pesados de mensageria nem consumo excessivo de memória do host Ubuntu), entregando os requisitos das seções 40 e 41 do `PRODUCT_SPEC.md`.
+- **Consequências**: Operação autônoma, leve e resiliente com zero dependência de serviços externos, garantindo que o analista de suporte seja alertado tempestivamente sobre prazos iminentes.

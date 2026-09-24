@@ -4,7 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import SessionLocal
 from app.initial_data import init_db_data
-from app.routers import auth, users, tasks, checklists, reminders, calendar, knowledge, commands, responses, attendances, infrastructure, maintenances, attachments, search, reports, audit
+from app.routers import auth, users, tasks, checklists, reminders, calendar, knowledge, commands, responses, attendances, infrastructure, maintenances, attachments, search, reports, audit, automation
+from app.services.automation import start_automation_scheduler, stop_automation_scheduler
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -14,8 +15,12 @@ async def lifespan(app: FastAPI):
         init_db_data(db)
     finally:
         db.close()
+
+    # Start background reactive rules scheduler
+    start_automation_scheduler(interval_minutes=60)
     yield
-    # Shutdown logic if any
+    # Shutdown logic
+    stop_automation_scheduler()
 
 app = FastAPI(
     title="Central Operacional do Suporte Técnico API",
@@ -47,6 +52,7 @@ app.include_router(attachments.router)
 app.include_router(search.router)
 app.include_router(reports.router)
 app.include_router(audit.router)
+app.include_router(automation.router)
 
 @app.get("/health")
 def health_check():

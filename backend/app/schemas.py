@@ -817,4 +817,36 @@ class AuditLogListResponse(BaseModel):
     results: List[AuditLogItem]
 
 
+# --- Automation Schemas (Phase 13) ---
+
+class AutomationRuleItem(BaseModel):
+    id: str
+    name: str
+    description: str
+    category: str
+    frequency: str
+    is_active: bool
+
+
+class AutomationTriggerResponse(BaseModel):
+    executed_at: str
+    tasks_evaluated: int
+    task_reminders_created: int
+    maintenances_evaluated: int
+    maintenance_reminders_created: int
+    equipment_alerts_created: int
+    total_created: int
+    error: Optional[str] = None
+
+
+class AutomationStatusResponse(BaseModel):
+    status: str
+    interval_minutes: int
+    last_run_at: Optional[str] = None
+    run_count: int
+    last_stats: dict = {}
+    active_rules_count: int
+
+
+
 
