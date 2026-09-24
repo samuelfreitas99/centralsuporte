@@ -1,0 +1,221 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { AttendancePage } from '@/pages/AttendancePage';
+import { AuthContext } from '@/context/AuthContextDef';
+import { ToastProvider } from '@/components/ui/Toast';
+import { attendanceService } from '@/services/attendanceService';
+import type { AuthContextType } from '@/types/auth';
+import type { AttendanceItem } from '@/types/attendance';
+
+vi.mock('@/services/attendanceService');
+
+const mockUserAuth: AuthContextType = {
+  user: {
+    id: 1,
+    username: 'tecnico_joao',
+    email: 'joao@centralsuporte.local',
+    is_active: true,
+    role: { id: 2, name: 'Técnico', permissions: [] },
+  },
+  token: 'mock-token',
+  isAuthenticated: true,
+  isLoading: false,
+  login: vi.fn(),
+  logout: vi.fn(),
+  hasPermission: vi.fn().mockReturnValue(true),
+  hasRole: vi.fn().mockReturnValue(true),
+};
+
+const mockAttendances: AttendanceItem[] = [
+  {
+    id: 1,
+    title: 'Falha Spooler de Impressão PDV 02',
+    otrs_ticket: '202609240099',
+    otrs_url: 'https://otrs.empresa.local/otrs/index.pl?Ticket=99',
+    requester_name: 'Gerente Carlos',
+    technician_id: 1,
+    technician: { id: 1, username: 'tecnico_joao', role: { id: 2, name: 'Técnico' } },
+    status: 'em_andamento',
+    equipment_name: 'PDV 02 - Caixa Central',
+    store_department: 'Loja 02',
+    problem_description: 'Impressora não responde aos comandos do PDV',
+    symptoms: 'Fila travada com cupom preso',
+    diagnosis: 'Serviço Spooler travado com arquivo corrompido',
+    cause: 'Queda de energia',
+    solution: 'Limpar fila e reiniciar serviço spooler',
+    commands_used: 'net stop spooler && net start spooler',
+    internal_notes: 'Orientado o operador',
+    knowledge_article_id: null,
+    notes: [
+      {
+        id: 10,
+        attendance_id: 1,
+        author_id: 1,
+        author: { id: 1, username: 'tecnico_joao', role: { id: 2, name: 'Técnico' } },
+        note: 'Primeiro teste realizado com sucesso',
+        created_at: '2026-09-24T10:15:00Z',
+      },
+    ],
+    created_at: '2026-09-24T10:00:00Z',
+    updated_at: '2026-09-24T10:00:00Z',
+  },
+  {
+    id: 2,
+    title: 'Troca de Teclado PDV 01',
+    otrs_ticket: null,
+    otrs_url: null,
+    requester_name: 'Supervisora Ana',
+    technician_id: 1,
+    technician: { id: 1, username: 'tecnico_joao', role: { id: 2, name: 'Técnico' } },
+    status: 'resolvido',
+    equipment_name: 'PDV 01',
+    store_department: 'Loja 01',
+    problem_description: 'Teclas numéricas falhando',
+    symptoms: 'Não digita o número 5',
+    diagnosis: 'Membrana danificada por líquido',
+    cause: 'Café derramado',
+    solution: 'Substituído por teclado reserva do estoque',
+    commands_used: null,
+    internal_notes: 'Teclado antigo descartado',
+    knowledge_article_id: 15,
+    notes: [],
+    created_at: '2026-09-24T09:00:00Z',
+    updated_at: '2026-09-24T09:30:00Z',
+  },
+];
+
+function renderAttendancePage(auth = mockUserAuth) {
+  return render(
+    <AuthContext.Provider value={auth}>
+      <ToastProvider>
+        <AttendancePage />
+      </ToastProvider>
+    </AuthContext.Provider>
+  );
+}
+
+describe('AttendancePage (Phase 7)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    Object.defineProperty(navigator, 'clipboard', {
+      value: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    vi.mocked(attendanceService.getAttendances).mockResolvedValue(mockAttendances);
+    vi.mocked(attendanceService.convertToKnowledge).mockResolvedValue({
+      id: 20,
+      title: 'Procedimento: Falha Spooler de Impressão PDV 02',
+      status: 'rascunho',
+    });
+    vi.mocked(attendanceService.addNote).mockResolvedValue({
+      id: 11,
+      attendance_id: 1,
+      author_id: 1,
+      author: { id: 1, username: 'tecnico_joao', role: { id: 2, name: 'Técnico' } },
+      note: 'Nota de acompanhamento do chamado',
+      created_at: '2026-09-24T10:30:00Z',
+    });
+  });
+
+  it('renders page header, Phase 7 badge, and OTRS boundary banner', async () => {
+    renderAttendancePage();
+
+    expect(screen.getByText('Atendimentos Internos')).toBeInTheDocument();
+    expect(screen.getByText('Fase 7')).toBeInTheDocument();
+    expect(screen.getByText('Integração Oficial com OTRS')).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
+    });
+  });
+
+  it('displays attendances with OTRS ticket reference, status, and equipment', async () => {
+    renderAttendancePage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Chamado #202609240099')).toBeInTheDocument();
+      expect(screen.getByText('PDV 02 - Caixa Central')).toBeInTheDocument();
+      expect(screen.getAllByText('Em Andamento').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('Resolvido').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('net stop spooler && net start spooler')).toBeInTheDocument();
+    });
+  });
+
+  it('allows 1-click copy of commands used during attendance', async () => {
+    renderAttendancePage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
+    });
+
+    const copyBtn = screen.getByRole('button', { name: /copiar/i });
+    fireEvent.click(copyBtn);
+
+    await waitFor(() => {
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith('net stop spooler && net start spooler');
+      expect(screen.getByText('Copiado!')).toBeInTheDocument();
+    });
+  });
+
+  it('converts attendance to knowledge draft and updates status', async () => {
+    renderAttendancePage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
+    });
+
+    const convertBtn = screen.getByRole('button', { name: /salvar como conhecimento/i });
+    fireEvent.click(convertBtn);
+
+    await waitFor(() => {
+      expect(attendanceService.convertToKnowledge).toHaveBeenCalledWith(1);
+      expect(screen.getAllByText(/salvo na base de conhecimento/i).length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('opens technical notes modal, displays existing notes, and submits new note', async () => {
+    renderAttendancePage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
+    });
+
+    const notesBtn = screen.getByRole('button', { name: /notas \(1\)/i });
+    fireEvent.click(notesBtn);
+
+    expect(screen.getByText('Notas Técnicas Internas')).toBeInTheDocument();
+    expect(screen.getByText('Primeiro teste realizado com sucesso')).toBeInTheDocument();
+
+    const noteInput = screen.getByPlaceholderText(/realizado teste após reinicialização/i);
+    fireEvent.change(noteInput, { target: { value: 'Nota de acompanhamento do chamado' } });
+
+    const sendBtn = screen.getByRole('button', { name: /adicionar nota/i });
+    fireEvent.click(sendBtn);
+
+    await waitFor(() => {
+      expect(attendanceService.addNote).toHaveBeenCalledWith(1, 'Nota de acompanhamento do chamado');
+    });
+  });
+
+  it('opens and closes new attendance modal', async () => {
+    renderAttendancePage();
+
+    const newBtn = screen.getByRole('button', { name: /novo atendimento/i });
+    fireEvent.click(newBtn);
+
+    expect(screen.getByText('Novo Atendimento Técnico')).toBeInTheDocument();
+    expect(screen.getByText(/título do atendimento \/ problema \*/i)).toBeInTheDocument();
+
+    const cancelBtn = screen.getByRole('button', { name: /cancelar/i });
+    fireEvent.click(cancelBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Novo Atendimento Técnico')).not.toBeInTheDocument();
+    });
+  });
+});

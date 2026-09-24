@@ -83,6 +83,10 @@ class User(Base):
     authored_commands = relationship("Command", foreign_keys="Command.author_id", back_populates="author")
     authored_responses = relationship("StandardResponse", foreign_keys="StandardResponse.author_id", back_populates="author")
 
+    # Relationships for Phase 7 (Attendances)
+    attendances = relationship("Attendance", foreign_keys="Attendance.technician_id", back_populates="technician")
+    attendance_notes = relationship("AttendanceNote", foreign_keys="AttendanceNote.author_id", back_populates="author")
+
 class Task(Base):
     __tablename__ = "tasks"
     
@@ -271,4 +275,49 @@ class StandardResponse(Base):
     
     # Relationships
     author = relationship("User", foreign_keys=[author_id], back_populates="authored_responses")
+
+
+# --- Phase 7 (Atendimentos Internos) ---
+
+class Attendance(Base):
+    __tablename__ = "attendances"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False, index=True)
+    otrs_ticket = Column(String(64), nullable=True, index=True)
+    otrs_url = Column(String(512), nullable=True)
+    requester_name = Column(String(255), nullable=True)
+    technician_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False, index=True)
+    status = Column(String(32), default="em_andamento", nullable=False, index=True)  # em_andamento, resolvido, cancelado
+    equipment_name = Column(String(255), nullable=True)
+    store_department = Column(String(255), nullable=True)
+    problem_description = Column(Text, nullable=True)
+    symptoms = Column(Text, nullable=True)
+    diagnosis = Column(Text, nullable=True)
+    cause = Column(Text, nullable=True)
+    solution = Column(Text, nullable=True)
+    commands_used = Column(Text, nullable=True)
+    internal_notes = Column(Text, nullable=True)
+    knowledge_article_id = Column(Integer, ForeignKey('knowledge_articles.id', ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    technician = relationship("User", foreign_keys=[technician_id], back_populates="attendances")
+    knowledge_article = relationship("KnowledgeArticle", foreign_keys=[knowledge_article_id])
+    notes = relationship("AttendanceNote", back_populates="attendance", cascade="all, delete-orphan", order_by="AttendanceNote.created_at.asc()")
+
+
+class AttendanceNote(Base):
+    __tablename__ = "attendance_notes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    attendance_id = Column(Integer, ForeignKey('attendances.id', ondelete="CASCADE"), nullable=False, index=True)
+    author_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False)
+    note = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    attendance = relationship("Attendance", back_populates="notes")
+    author = relationship("User", foreign_keys=[author_id], back_populates="attendance_notes")
 

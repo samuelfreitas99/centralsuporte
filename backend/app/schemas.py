@@ -384,3 +384,65 @@ class StandardResponseResponse(StandardResponseBase):
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- Phase 7: Atendimentos Internos Schemas ---
+
+class AttendanceNoteCreate(BaseModel):
+    note: str
+
+class AttendanceNoteResponse(BaseModel):
+    id: int
+    attendance_id: int
+    author_id: int
+    author: Optional[UserSimpleResponse] = None
+    note: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class AttendanceBase(BaseModel):
+    title: str
+    otrs_ticket: Optional[str] = None
+    otrs_url: Optional[str] = None
+    requester_name: Optional[str] = None
+    status: str = "em_andamento"
+    equipment_name: Optional[str] = None
+    store_department: Optional[str] = None
+    problem_description: Optional[str] = None
+    symptoms: Optional[str] = None
+    diagnosis: Optional[str] = None
+    cause: Optional[str] = None
+    solution: Optional[str] = None
+    commands_used: Optional[str] = None
+    internal_notes: Optional[str] = None
+
+class AttendanceCreate(AttendanceBase):
+    technician_id: Optional[int] = None
+
+class AttendanceUpdate(BaseModel):
+    title: Optional[str] = None
+    otrs_ticket: Optional[str] = None
+    otrs_url: Optional[str] = None
+    requester_name: Optional[str] = None
+    technician_id: Optional[int] = None
+    status: Optional[str] = None
+    equipment_name: Optional[str] = None
+    store_department: Optional[str] = None
+    problem_description: Optional[str] = None
+    symptoms: Optional[str] = None
+    diagnosis: Optional[str] = None
+    cause: Optional[str] = None
+    solution: Optional[str] = None
+    commands_used: Optional[str] = None
+    internal_notes: Optional[str] = None
+
+class AttendanceResponse(AttendanceBase):
+    id: int
+    technician_id: int
+    technician: Optional[UserSimpleResponse] = None
+    knowledge_article_id: Optional[int] = None
+    notes: List[AttendanceNoteResponse] = []
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+

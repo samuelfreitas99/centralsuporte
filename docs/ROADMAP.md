@@ -101,10 +101,10 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Entidades: `attendances`, `attendance_notes`, `attendance_attachments`.
 - Funcionalidades: Associação manual com #chamado OTRS, registro de diagnóstico, comandos utilizados, equipamentos, e ação "Salvar como conhecimento".
 **Checkpoints:**
-- [ ] Regra Crítica: Garantir que não duplique a funcionalidade de chamados do OTRS.
-- [ ] Endpoints de criação/leitura.
-- [ ] Conversão automática de atendimento em rascunho de conhecimento.
-- [ ] Testes de fluxo completo de registro.
+- [x] Regra Crítica: Garantir que não duplique a funcionalidade de chamados do OTRS.
+- [x] Endpoints de criação/leitura.
+- [x] Conversão automática de atendimento em rascunho de conhecimento.
+- [x] Testes de fluxo completo de registro.
 
 ---
 
