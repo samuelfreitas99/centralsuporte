@@ -23,6 +23,7 @@ INITIAL_PERMISSIONS = [
     {"name": "attachment:read", "description": "Visualizar e baixar anexos"},
     {"name": "attachment:upload", "description": "Fazer upload de anexos"},
     {"name": "attachment:delete", "description": "Excluir arquivos e anexos"},
+    {"name": "audit:read", "description": "Consultar trilhas e logs de auditoria do sistema"},
 ]
 
 ROLE_PERMISSIONS_MAP = {
@@ -31,7 +32,7 @@ ROLE_PERMISSIONS_MAP = {
         "users:read", "roles:read", "knowledge:read", "knowledge:write",
         "attendance:read", "attendance:write", "equipment:read", "equipment:write",
         "tasks:read", "tasks:write", "maintenance:read", "maintenance:write",
-        "attachment:read", "attachment:upload", "attachment:delete"
+        "attachment:read", "attachment:upload", "attachment:delete", "audit:read"
     ],
     "Técnico": [
         "knowledge:read", "knowledge:write", "attendance:read", "attendance:write",

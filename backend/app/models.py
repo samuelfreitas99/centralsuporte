@@ -528,3 +528,24 @@ class Attachment(Base):
 
     # Relationships
     uploader = relationship("User")
+
+
+# --- Phase 12 (Auditoria e Segurança) ---
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True, index=True)
+    username = Column(String(50), nullable=True, index=True)
+    action = Column(String(50), nullable=False, index=True)  # CREATE, UPDATE, DELETE, LOGIN, STATUS_CHANGE, PERMISSION_CHANGE
+    entity_type = Column(String(50), nullable=False, index=True)  # user, role, attendance, equipment, maintenance, knowledge, task, credential, system
+    entity_id = Column(Integer, nullable=True, index=True)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(String(255), nullable=True)
+    details = Column(Text, nullable=True)  # JSON-encoded sanitized metadata
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False, index=True)
+
+    # Relationships
+    user = relationship("User")
+

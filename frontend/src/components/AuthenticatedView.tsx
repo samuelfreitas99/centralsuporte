@@ -8,6 +8,7 @@ import { AttendancePage } from '@/pages/AttendancePage';
 import { InfrastructurePage } from '@/pages/InfrastructurePage';
 import { MaintenancePage } from '@/pages/MaintenancePage';
 import { SearchAndReportsPage } from '@/pages/SearchAndReportsPage';
+import { AuditLogsPage } from '@/pages/AuditLogsPage';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { NAV_ITEMS } from './layout/nav-items';
@@ -37,6 +38,8 @@ export const AuthenticatedView: React.FC = () => {
         <AttendancePage />
       ) : currentTab === 'equipment' ? (
         <InfrastructurePage />
+      ) : currentTab === 'audit' ? (
+        <AuditLogsPage />
       ) : (
         <div className="space-y-6">
           <div className="flex items-center gap-3">

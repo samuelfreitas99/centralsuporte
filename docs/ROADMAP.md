@@ -166,14 +166,15 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ## Fase 12 — Auditoria e Segurança
 **Entregas principais:**
-- Controle avançado e trilhas de auditoria.
-- Planejamento e revisão de arquitetura de segurança para o futuro **Cofre de Senhas** (armazenamento de senhas sem logs/texto puro, com criptografia adequada).
-- Entidades: `audit_logs`.
-- Funcionalidades: Logs automáticos de alterações sensíveis, bloqueio de soft-deletes onde aplicável e revisão robusta de regras no backend.
+- Controle avançado e trilhas de auditoria imutáveis.
+- Planejamento e revisão de arquitetura de segurança para o futuro **Cofre de Senhas** (Envelope Encryption AES-256-GCM, chaves segregadas, auditoria de revelação).
+- Entidades: `audit_logs` no PostgreSQL com índices por data, ação, usuário e entidade.
+- Funcionalidades: Sanitização recursiva de senhas/tokens, logs automáticos de login/falhas e operações em usuários, endpoints protegidos por permissão `audit:read`, e interface de inspeção no frontend (`AuditLogsPage.tsx`).
 **Checkpoints:**
-- [ ] Revisão arquitetural documentada em `DECISIONS.md` para o Cofre.
-- [ ] Implementação de middlewares de auditoria.
-- [ ] Revisão geral de proteção de rotas e segurança (backend).
+- [x] Revisão arquitetural documentada em `DECISIONS.md` para o Cofre de Senhas.
+- [x] Implementação de serviço de auditoria com sanitização de segredos e endpoints `/audit-logs`.
+- [x] Tela de visualização, filtros e inspeção de logs no Frontend (`AuditLogsPage.tsx`).
+- [x] Testes automatizados (backend pytest e frontend vitest).
 
 ---
 

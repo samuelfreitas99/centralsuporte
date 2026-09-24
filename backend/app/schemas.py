@@ -794,3 +794,27 @@ class OperationalSummaryReport(BaseModel):
     top_technicians: List[TechnicianPerformanceMetric]
 
 
+# --- Audit Logs Schemas (Phase 12) ---
+
+class AuditLogItem(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    username: Optional[str] = None
+    action: str
+    entity_type: str
+    entity_id: Optional[int] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    details: Optional[str] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AuditLogListResponse(BaseModel):
+    total: int
+    page: int
+    limit: int
+    results: List[AuditLogItem]
+
+
+

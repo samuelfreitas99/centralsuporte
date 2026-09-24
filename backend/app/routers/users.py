@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import User, Role
 from app.schemas import UserCreate, UserUpdate, UserResponse, RoleResponse
 from app.auth import get_password_hash, require_permission, get_current_active_user
+from app.services.audit import record_audit_log
 
 router = APIRouter(tags=["Gestão de Usuários"])
 
@@ -22,7 +23,7 @@ def list_users(
 def create_user(
     user_in: UserCreate, 
     db: Session = Depends(get_db),
-    _: User = Depends(require_permission("users:write"))
+    current_user: User = Depends(require_permission("users:write"))
 ):
     # Check if username already exists
     if db.query(User).filter(User.username == user_in.username).first():
@@ -37,6 +38,7 @@ def create_user(
             detail="E-mail já cadastrado"
         )
     # Check role if provided
+    role_name = None
     if user_in.role_id is not None:
         role = db.query(Role).filter(Role.id == user_in.role_id).first()
         if not role:
@@ -44,6 +46,7 @@ def create_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Perfil com ID {user_in.role_id} não encontrado"
             )
+        role_name = role.name
 
     new_user = User(
         username=user_in.username,
@@ -53,6 +56,22 @@ def create_user(
         role_id=user_in.role_id
     )
     db.add(new_user)
+    db.flush()
+
+    record_audit_log(
+        db=db,
+        action="CREATE",
+        entity_type="user",
+        entity_id=new_user.id,
+        user=current_user,
+        details={
+            "username": new_user.username,
+            "email": new_user.email,
+            "role": role_name,
+            "is_active": new_user.is_active,
+        },
+    )
+
     db.commit()
     db.refresh(new_user)
     return new_user
@@ -85,6 +104,8 @@ def update_user(
             detail="Usuário não encontrado"
         )
 
+    updated_fields = {}
+
     # If updating email, ensure it's not taken by another user
     if user_in.email and user_in.email != user.email:
         existing = db.query(User).filter(User.email == user_in.email).first()
@@ -94,9 +115,11 @@ def update_user(
                 detail="E-mail já cadastrado por outro usuário"
             )
         user.email = user_in.email
+        updated_fields["email"] = user_in.email
 
     if user_in.password is not None:
         user.hashed_password = get_password_hash(user_in.password)
+        updated_fields["password_changed"] = True
 
     if user_in.role_id is not None:
         role = db.query(Role).filter(Role.id == user_in.role_id).first()
@@ -106,6 +129,7 @@ def update_user(
                 detail=f"Perfil com ID {user_in.role_id} não encontrado"
             )
         user.role_id = user_in.role_id
+        updated_fields["role"] = role.name
 
     if user_in.is_active is not None:
         # Prevent self-deactivation if current user is editing themselves
@@ -115,6 +139,16 @@ def update_user(
                 detail="Não é permitido desativar o próprio usuário logado"
             )
         user.is_active = user_in.is_active
+        updated_fields["is_active"] = user_in.is_active
+
+    record_audit_log(
+        db=db,
+        action="UPDATE",
+        entity_type="user",
+        entity_id=user.id,
+        user=current_user,
+        details={"username": user.username, "updated_fields": updated_fields},
+    )
 
     db.commit()
     db.refresh(user)
@@ -138,8 +172,18 @@ def delete_user(
             detail="Não é permitido excluir o próprio usuário logado"
         )
     
-    # Soft delete / deactivate is safer for audit trails, but allow delete or deactivate
+    deleted_username = user.username
     db.delete(user)
+
+    record_audit_log(
+        db=db,
+        action="DELETE",
+        entity_type="user",
+        entity_id=user_id,
+        user=current_user,
+        details={"deleted_username": deleted_username},
+    )
+
     db.commit()
     return {"message": "Usuário excluído com sucesso"}
 

@@ -40,5 +40,21 @@
 - **Contexto**: Elimina a necessidade de o analista de suporte pesquisar individualmente em cada módulo do sistema para localizar soluções técnicas já aplicadas anteriormente ou identificar equipamentos problemáticos recorrentes.
 - **Consequências**: Facilita a tomada de decisão preventiva e agiliza substancialmente o diagnóstico de falhas operacionais pela equipe de TI.
 
+### 2026-09-24: Trilhas de Auditoria e Sanitização Recursiva de Metadados (Fase 12)
+- **Decisão**: Criação da entidade imutável `audit_logs` no PostgreSQL com índices otimizados por data, ação, usuário e entidade. Todas as operações críticas (criação, edição e exclusão de contas de usuário, login, login com falha, bloqueios de segurança e alterações de permissões) disparam registros automáticos via helper `record_audit_log`. Os metadados transitados passam por sanitização recursiva (`sanitize_audit_data`) que substitui senhas, hashes, chaves de API e tokens por `[REDACTED]` antes de qualquer persistência. A consulta dos registros é estritamente restrita a usuários com permissão `audit:read` (perfis Administrador e Gestor).
+- **Contexto**: Cumprimento estrito da Seção 38 do `PRODUCT_SPEC.md` para governança, conformidade interna e rastreabilidade total de incidentes operacionais.
+- **Consequências**: Histórico confiável e à prova de adulterações acidentais, sem risco de vazamento de credenciais na própria trilha de auditoria.
+
+### 2026-09-24: Especificação Arquitetural de Segurança para o Futuro Cofre de Senhas (Fase 12)
+- **Decisão**: Ficam formalmente estabelecidos os seguintes pré-requisitos técnicos mandatórios e irrevogáveis para qualquer implementação futura do módulo de Cofre de Senhas:
+  1. **Criptografia Simétrica Autenticada (Envelope Encryption / AES-256-GCM)**: O texto plano de senhas e segredos JAMAIS será salvo no PostgreSQL. Toda credencial será cifrada com AES-256-GCM gerando ciphertext, initialization vector (nonce de 96 bits) e authentication tag (128 bits) para validação de integridade.
+  2. **Segregação de Chave Mestra**: A chave mestra de decifragem (`CENTRAL_VAULT_KEY`) deve ser provisionada exclusivamente via variável de ambiente no servidor ou injetada por cofre externo dedicado (KMS/Vault), sendo expressamente proibido seu armazenamento no código-fonte, banco ou repositório Git.
+  3. **Trilha Obrigatória de Revelação (`PASSWORD_REVEAL`)**: Toda descriptografia com revelação de senha no frontend exigirá chamada explícita autenticada que automaticamente registrará um log imutável de auditoria (`action="PASSWORD_REVEAL"`), contendo ID do usuário, identificador do ativo, timestamp e endereço IP.
+  4. **Segregação entre Credenciais Privadas e Compartilhadas**: O cofre deverá diferenciar estritamente senhas particulares do técnico (privadas) de credenciais departamentais (compartilhadas por equipe/loja).
+  5. **Higienização Geral de Logs**: Fica estritamente vedada a exibição de senhas em logs de aplicação, mensagens HTTP de erro, respostas de exceção ou dumps de memória.
+- **Contexto**: O cofre de senhas armazenará credenciais de infraestrutura crítica (switches, roteadores de borda, firewalls e bancos de dados da rede de lojas).
+- **Consequências**: Garante segurança de nível institucional antes do desenvolvimento de qualquer interface gráfica ou funcionalidade de credenciais.
+
+
 
 

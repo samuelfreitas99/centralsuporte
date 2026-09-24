@@ -10,6 +10,7 @@ import {
   FolderArchive,
   Users,
   Search,
+  ShieldAlert,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -31,4 +32,5 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'equipment', label: 'Infraestrutura & Parque', icon: Server, section: 'sistema' },
   { id: 'files', label: 'Arquivos e Docs', icon: FolderArchive, section: 'sistema' },
   { id: 'users', label: 'Usuários e Perfis', icon: Users, permission: 'users:read', section: 'sistema' },
+  { id: 'audit', label: 'Auditoria & Logs', icon: ShieldAlert, permission: 'audit:read', section: 'sistema' },
 ];
