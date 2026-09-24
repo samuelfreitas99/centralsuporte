@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text, desc
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -18,6 +18,23 @@ task_assignments = Table(
     Column('task_id', Integer, ForeignKey('tasks.id', ondelete="CASCADE"), primary_key=True),
     Column('user_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
     Column('assigned_at', DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+)
+
+# Association table for many-to-many relationship between KnowledgeArticle and KnowledgeTag
+article_tags = Table(
+    'article_tags',
+    Base.metadata,
+    Column('article_id', Integer, ForeignKey('knowledge_articles.id', ondelete="CASCADE"), primary_key=True),
+    Column('tag_id', Integer, ForeignKey('knowledge_tags.id', ondelete="CASCADE"), primary_key=True)
+)
+
+# Association table for many-to-many relationship between User and KnowledgeArticle (favorites)
+article_favorites = Table(
+    'article_favorites',
+    Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
+    Column('article_id', Integer, ForeignKey('knowledge_articles.id', ondelete="CASCADE"), primary_key=True),
+    Column('created_at', DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 )
 
 class Permission(Base):
@@ -57,6 +74,10 @@ class User(Base):
     created_checklists = relationship("Checklist", back_populates="creator")
     reminders = relationship("Reminder", back_populates="user")
     calendar_events = relationship("CalendarEvent", back_populates="user")
+
+    # Relationships for Phase 5 (Knowledge)
+    authored_articles = relationship("KnowledgeArticle", foreign_keys="KnowledgeArticle.author_id", back_populates="author")
+    favorite_articles = relationship("KnowledgeArticle", secondary=article_favorites, back_populates="favorited_by")
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -142,3 +163,68 @@ class CalendarEvent(Base):
     
     # Relationships
     user = relationship("User", back_populates="calendar_events")
+
+# --- Phase 5 (Knowledge Base) Models ---
+
+class KnowledgeCategory(Base):
+    __tablename__ = "knowledge_categories"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), unique=True, index=True, nullable=False)
+    description = Column(String(255), nullable=True)
+    color = Column(String(20), default="#3b82f6", nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    articles = relationship("KnowledgeArticle", back_populates="category")
+
+class KnowledgeTag(Base):
+    __tablename__ = "knowledge_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, index=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    articles = relationship("KnowledgeArticle", secondary=article_tags, back_populates="tags")
+
+class KnowledgeArticle(Base):
+    __tablename__ = "knowledge_articles"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False, index=True)
+    summary = Column(String(500), nullable=True)
+    content = Column(Text, nullable=False)
+    problem = Column(Text, nullable=True)
+    solution = Column(Text, nullable=True)
+    commands = Column(Text, nullable=True)
+    category_id = Column(Integer, ForeignKey('knowledge_categories.id', ondelete="SET NULL"), nullable=True)
+    author_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False)
+    status = Column(String(20), default="rascunho", nullable=False)  # rascunho, publicado, arquivado
+    visibility = Column(String(20), default="equipe", nullable=False)  # privado, equipe, todos
+    views_count = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    category = relationship("KnowledgeCategory", back_populates="articles")
+    author = relationship("User", foreign_keys=[author_id], back_populates="authored_articles")
+    tags = relationship("KnowledgeTag", secondary=article_tags, back_populates="articles")
+    versions = relationship("KnowledgeVersion", back_populates="article", cascade="all, delete-orphan", order_by="desc(KnowledgeVersion.version_number)")
+    favorited_by = relationship("User", secondary=article_favorites, back_populates="favorite_articles")
+
+class KnowledgeVersion(Base):
+    __tablename__ = "knowledge_versions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    article_id = Column(Integer, ForeignKey('knowledge_articles.id', ondelete="CASCADE"), nullable=False)
+    version_number = Column(Integer, nullable=False)
+    title = Column(String(255), nullable=False)
+    content = Column(Text, nullable=False)
+    change_summary = Column(String(255), nullable=True)
+    editor_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    article = relationship("KnowledgeArticle", back_populates="versions")
+    editor = relationship("User", foreign_keys=[editor_id])

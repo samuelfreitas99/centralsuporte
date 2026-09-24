@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 4 (Organização: Tarefas, Checklists, Calendário) 100% concluída. Suporte a acesso e login externo via IP do servidor (`http://10.0.29.220:5173`) configurado e validado.
-**Fase atual**: Fase 4 concluída. Próxima: Fase 5 (Conhecimento).
-**Última implementação**: Implementação de testes de fluxo ponta a ponta (`test_full_operational_organization_flow`) no backend e testes unitários de resolução de IP no frontend. Configuração de rede e Vite (`allowedHosts: true`, host `0.0.0.0`, resolução dinâmica de API por `window.location.hostname`) permitindo que qualquer máquina acesse o sistema através de `http://10.0.29.220:5173` comunicando com o backend em `http://10.0.29.220:8088`.
-**Último commit**: "feat: complete Phase 4 tests and configure network IP access for 10.0.29.220" (f935591)
-**Próxima tarefa**: Fase 5 — Conhecimento — Migrations, models e versionamento do conteúdo.
+**Estado atual**: Fase 5 (Conhecimento) iniciada. Primeiro checkpoint concluído com definição dos models relacionais, sistema de versionamento de conteúdo, tags, categorias e artigos favoritos, com migração Alembic aplicada no PostgreSQL.
+**Fase atual**: Fase 5 — Conhecimento.
+**Última implementação**: Criação dos models da Base de Conhecimento (`KnowledgeCategory`, `KnowledgeTag`, `article_tags`, `article_favorites`, `KnowledgeArticle`, `KnowledgeVersion`) permitindo documentação estruturada (problema, sintomas, diagnóstico, solução, comandos), versionamento ordenado decrescente por versão e integridade referencial. Aplicação da migration `547f5c06cda8` e testes de integração com 100% de aprovação.
+**Último commit**: "feat: add knowledge base models, tags, categories, favorites, and versioning" (c4f74cd)
+**Próxima tarefa**: Fase 5 — Conhecimento — Criação da interface de visualização e edição de artigos (com endpoints de backend de suporte).
 **Bloqueios**: Nenhum.
-**Pendências**: Iniciar Fase 5 (Base de Conhecimento Técnico com artigos, categorias e controle de versões).
-**Testes**: 34 testes de frontend (vitest) e 14 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
+**Pendências**: Implementar endpoints e interfaces de visualização, editor e listagem de artigos de conhecimento.
+**Testes**: 34 testes de frontend (vitest) e 15 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Resolução dinâmica do host da API no frontend (`getApiBase`) para evitar fixação de `localhost` em hardcode, permitindo tanto desenvolvimento local quanto acesso via IP da rede corporativa (`10.0.29.220`).
+**Decisões recentes**: Estratégia de versionamento imutável por linha (`KnowledgeVersion`) registrando número sequencial da versão, conteúdo histórico, resumo da alteração e técnico editor, garantindo auditoria e preservação do conhecimento técnico.
