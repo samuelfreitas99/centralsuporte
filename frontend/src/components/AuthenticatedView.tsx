@@ -20,7 +20,7 @@ export const AuthenticatedView: React.FC = () => {
   return (
     <AppLayout currentTab={currentTab} onSelectTab={setCurrentTab}>
       {currentTab === 'dashboard' ? (
-        <DashboardPage />
+        <DashboardPage onSelectTab={setCurrentTab} />
       ) : currentTab === 'tasks' ? (
         <TasksPage />
       ) : currentTab === 'knowledge' ? (

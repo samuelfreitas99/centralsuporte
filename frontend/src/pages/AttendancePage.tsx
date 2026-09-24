@@ -649,140 +649,159 @@ export const AttendancePage: React.FC = () => {
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-3 text-sm">
-              {/* Title */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Título do Atendimento / Problema *
-                </label>
-                <Input
-                  value={attendanceForm.title}
-                  onChange={(e) => setAttendanceForm({ ...attendanceForm, title: e.target.value })}
-                  placeholder="Ex: Travamento Spooler de Impressão PDV 02"
-                  required
-                />
-              </div>
+            <div className="space-y-4 text-sm max-h-[70vh] overflow-y-auto pr-1">
+              {/* Seção 1: Identificação & Chamado */}
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  1. Identificação do Atendimento & Chamado Oficial
+                </p>
 
-              {/* OTRS Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Número do Chamado OTRS (Opcional)
+                    Título do Atendimento / Problema *
                   </label>
                   <Input
-                    value={attendanceForm.otrs_ticket || ''}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, otrs_ticket: e.target.value })}
-                    placeholder="Ex: 20260924001 ou #12345"
+                    value={attendanceForm.title}
+                    onChange={(e) => setAttendanceForm({ ...attendanceForm, title: e.target.value })}
+                    placeholder="Ex: Travamento Spooler de Impressão PDV 02"
+                    required
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Link do Chamado no OTRS (Opcional)
-                  </label>
-                  <Input
-                    value={attendanceForm.otrs_url || ''}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, otrs_url: e.target.value })}
-                    placeholder="https://otrs.empresa.local/otrs/index.pl?..."
-                  />
-                </div>
-              </div>
 
-              {/* Requester, Equipment and Status Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Solicitante / Contato
-                  </label>
-                  <Input
-                    value={attendanceForm.requester_name || ''}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, requester_name: e.target.value })}
-                    placeholder="Ex: Gerente Carlos"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Número do Chamado OTRS (Opcional)
+                    </label>
+                    <Input
+                      value={attendanceForm.otrs_ticket || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, otrs_ticket: e.target.value })}
+                      placeholder="Ex: 20260924001 ou #12345"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Link do Chamado no OTRS (Opcional)
+                    </label>
+                    <Input
+                      value={attendanceForm.otrs_url || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, otrs_url: e.target.value })}
+                      placeholder="https://otrs.empresa.local/otrs/index.pl?..."
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Equipamento / PDV
-                  </label>
-                  <Input
-                    value={attendanceForm.equipment_name || ''}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, equipment_name: e.target.value })}
-                    placeholder="Ex: PDV 02 - Bematech"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Status do Atendimento
-                  </label>
-                  <select
-                    value={attendanceForm.status || 'em_andamento'}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                  >
-                    <option value="em_andamento">Em Andamento</option>
-                    <option value="resolvido">Resolvido</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Solicitante / Contato
+                    </label>
+                    <Input
+                      value={attendanceForm.requester_name || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, requester_name: e.target.value })}
+                      placeholder="Ex: Gerente Carlos"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Status do Atendimento
+                    </label>
+                    <select
+                      value={attendanceForm.status || 'em_andamento'}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value })}
+                      className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                    >
+                      <option value="em_andamento">Em Andamento</option>
+                      <option value="resolvido">Resolvido</option>
+                      <option value="cancelado">Cancelado</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              {/* Store / Department */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Loja / Departamento
-                </label>
-                <Input
-                  value={attendanceForm.store_department || ''}
-                  onChange={(e) => setAttendanceForm({ ...attendanceForm, store_department: e.target.value })}
-                  placeholder="Ex: Loja 04 - Centro / Caixa"
-                />
+              {/* Seção 2: Localização & Equipamento */}
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  2. Localização & Equipamento Afetado
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Equipamento / PDV
+                    </label>
+                    <Input
+                      value={attendanceForm.equipment_name || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, equipment_name: e.target.value })}
+                      placeholder="Ex: PDV 02 - Bematech"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Loja / Departamento
+                    </label>
+                    <Input
+                      value={attendanceForm.store_department || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, store_department: e.target.value })}
+                      placeholder="Ex: Loja 04 - Centro / Caixa"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Diagnosis and Cause */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Seção 3: Diagnóstico & Resolução */}
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  3. Diagnóstico Técnico & Resolução
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Diagnóstico Técnico
+                    </label>
+                    <textarea
+                      value={attendanceForm.diagnosis || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, diagnosis: e.target.value })}
+                      rows={3}
+                      placeholder="Como o problema foi identificado, testes executados..."
+                      className="w-full rounded-lg border border-border/80 bg-background/60 p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-foreground mb-1 block">
+                      Causa Raiz
+                    </label>
+                    <textarea
+                      value={attendanceForm.cause || ''}
+                      onChange={(e) => setAttendanceForm({ ...attendanceForm, cause: e.target.value })}
+                      rows={3}
+                      placeholder="Origem do problema quando conhecida..."
+                      className="w-full rounded-lg border border-border/80 bg-background/60 p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Diagnóstico Técnico
+                    Procedimento de Solução
                   </label>
                   <textarea
-                    value={attendanceForm.diagnosis || ''}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, diagnosis: e.target.value })}
+                    value={attendanceForm.solution || ''}
+                    onChange={(e) => setAttendanceForm({ ...attendanceForm, solution: e.target.value })}
                     rows={3}
-                    placeholder="Como o problema foi identificado, testes executados..."
-                    className="w-full rounded-lg border border-border/80 bg-background/60 p-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Causa Raiz
-                  </label>
-                  <textarea
-                    value={attendanceForm.cause || ''}
-                    onChange={(e) => setAttendanceForm({ ...attendanceForm, cause: e.target.value })}
-                    rows={3}
-                    placeholder="Origem do problema quando conhecida..."
-                    className="w-full rounded-lg border border-border/80 bg-background/60 p-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
+                    placeholder="O que foi realizado passo a passo para solucionar..."
+                    className="w-full rounded-lg border border-border/80 bg-background/60 p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
                   />
                 </div>
               </div>
 
-              {/* Solution */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Procedimento de Solução
-                </label>
-                <textarea
-                  value={attendanceForm.solution || ''}
-                  onChange={(e) => setAttendanceForm({ ...attendanceForm, solution: e.target.value })}
-                  rows={3}
-                  placeholder="O que foi realizado passo a passo para solucionar..."
-                  className="w-full rounded-lg border border-border/80 bg-background/60 p-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
-                />
-              </div>
-
-              {/* Commands Used */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block flex items-center justify-between">
-                  <span>Comandos Utilizados (Terminal)</span>
+              {/* Seção 4: Comandos de Terminal */}
+              <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-2">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    4. Comandos Utilizados (Terminal)
+                  </span>
                   <span className="text-[11px] text-muted-foreground font-normal">Para consulta e reutilização futura</span>
                 </label>
                 <textarea
@@ -790,7 +809,7 @@ export const AttendancePage: React.FC = () => {
                   onChange={(e) => setAttendanceForm({ ...attendanceForm, commands_used: e.target.value })}
                   rows={2}
                   placeholder="Ex: net stop spooler && del /Q /F %systemroot%\System32\Spool\Printers\* && net start spooler"
-                  className="w-full rounded-xl border border-border/80 bg-slate-950 p-2.5 font-mono text-xs text-blue-300 focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed"
+                  className="w-full rounded-lg border border-border/80 bg-card p-2.5 font-mono text-xs text-primary focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed"
                 />
               </div>
             </div>

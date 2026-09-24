@@ -6,18 +6,18 @@ export const badgeVariants = cva(
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary/20 text-primary border border-primary/30 font-semibold',
+          'border-transparent bg-primary/15 text-primary border border-primary/25 font-semibold',
         secondary:
           'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
         destructive:
-          'border-transparent bg-destructive/15 text-red-400 border border-destructive/30 font-medium',
+          'border-transparent bg-destructive/15 text-destructive border border-destructive/30 font-medium',
         outline: 'border-border/80 text-foreground',
         success:
-          'border-transparent bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-medium',
+          'border-transparent bg-success/15 text-success border border-success/30 font-medium',
         warning:
-          'border-transparent bg-amber-500/15 text-amber-400 border border-amber-500/30 font-medium',
+          'border-transparent bg-warning/15 text-warning border border-warning/30 font-medium',
         info:
-          'border-transparent bg-sky-500/15 text-sky-400 border border-sky-500/30 font-medium',
+          'border-transparent bg-info/15 text-info border border-info/30 font-medium',
       },
     },
     defaultVariants: {

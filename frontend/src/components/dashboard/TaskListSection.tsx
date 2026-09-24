@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckSquare, AlertCircle } from 'lucide-react';
+import { CheckSquare, AlertCircle, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import type { DashboardTask, TaskPriority } from '@/types/dashboard';
 
 interface TaskListSectionProps {
   initialTasks: DashboardTask[];
+  onNavigateToTasks?: () => void;
 }
 
-export const TaskListSection: React.FC<TaskListSectionProps> = ({ initialTasks }) => {
+export const TaskListSection: React.FC<TaskListSectionProps> = ({ initialTasks, onNavigateToTasks }) => {
   const [tasks, setTasks] = useState<DashboardTask[]>(initialTasks);
 
   const toggleTask = (id: string) => {
@@ -38,18 +40,31 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ initialTasks }
   };
 
   return (
-    <Card className="h-full border-border/80 bg-card/75 backdrop-blur-md">
+    <Card className="h-full border-border/70 bg-card/70 backdrop-blur-md">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
               <CheckSquare className="h-4 w-4" />
             </div>
             <CardTitle className="font-heading text-lg">Minhas Tarefas do Turno</CardTitle>
           </div>
-          <Badge variant="secondary" className="font-mono text-xs">
-            {tasks.filter((t) => t.status !== 'concluida').length} pendentes
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="font-mono text-xs">
+              {tasks.filter((t) => t.status !== 'concluida').length} pendentes
+            </Badge>
+            {onNavigateToTasks && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onNavigateToTasks}
+                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer"
+              >
+                <span>Ver todas</span>
+                <ArrowRight className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
         <CardDescription>
           Atividades operacionais prioritárias para o suporte técnico:
