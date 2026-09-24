@@ -18,32 +18,32 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
 }) => {
   const variantStyles = {
-    default: 'text-foreground',
-    primary: 'text-primary',
-    warning: 'text-amber-500',
-    success: 'text-emerald-500',
+    default: 'text-slate-300',
+    primary: 'text-blue-400',
+    warning: 'text-amber-400',
+    success: 'text-emerald-400',
   };
 
   const bgStyles = {
-    default: 'bg-muted/50 border-border',
-    primary: 'bg-primary/10 border-primary/20',
-    warning: 'bg-amber-500/10 border-amber-500/20',
-    success: 'bg-emerald-500/10 border-emerald-500/20',
+    default: 'bg-slate-800/60 border-slate-700/50 shadow-slate-900/40',
+    primary: 'bg-blue-600/15 border-blue-500/30 shadow-blue-900/30',
+    warning: 'bg-amber-500/15 border-amber-500/30 shadow-amber-900/30',
+    success: 'bg-emerald-500/15 border-emerald-500/30 shadow-emerald-900/30',
   };
 
   return (
-    <Card className="transition-all duration-200 hover:shadow-md">
+    <Card className="border-border/80 bg-card/75 backdrop-blur-md transition-all duration-200 hover:border-blue-500/30 hover:shadow-lg hover:-translate-y-0.5">
       <CardContent className="p-5 flex items-center justify-between">
         <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
             {title}
           </p>
-          <div className="text-3xl font-bold tracking-tight text-foreground">
+          <div className="text-3xl font-heading font-bold tracking-tight text-foreground">
             {value}
           </div>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
+          <p className="text-xs text-muted-foreground/80">{subtitle}</p>
         </div>
-        <div className={cn('flex h-12 w-12 items-center justify-center rounded-xl border', bgStyles[variant])}>
+        <div className={cn('flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner', bgStyles[variant])}>
           <Icon className={cn('h-6 w-6', variantStyles[variant])} />
         </div>
       </CardContent>

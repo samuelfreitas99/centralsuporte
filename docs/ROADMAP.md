@@ -90,8 +90,8 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Entidades: `commands`, `standard_responses`.
 **Checkpoints:**
 - [x] Implementação do CRUD no backend.
-- [ ] Implementação das telas focadas em rápida pesquisa e ação de "Copiar para área de transferência".
-- [ ] Testes na API e UI.
+- [x] Implementação das telas focadas em rápida pesquisa e ação de "Copiar para área de transferência".
+- [x] Testes na API e UI.
 
 ---
 

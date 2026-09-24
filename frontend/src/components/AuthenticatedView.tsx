@@ -3,10 +3,11 @@ import { AppLayout } from './layout/AppLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { TasksPage } from '@/pages/TasksPage';
 import { KnowledgePage } from '@/pages/KnowledgePage';
+import { CommandsPage } from '@/pages/CommandsPage';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { NAV_ITEMS } from './layout/nav-items';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const AuthenticatedView: React.FC = () => {
@@ -22,6 +23,8 @@ export const AuthenticatedView: React.FC = () => {
         <TasksPage />
       ) : currentTab === 'knowledge' ? (
         <KnowledgePage />
+      ) : currentTab === 'commands' ? (
+        <CommandsPage />
       ) : (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
@@ -29,32 +32,35 @@ export const AuthenticatedView: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setCurrentTab('dashboard')}
-              className="flex items-center gap-1.5"
+              className="flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Voltar ao Dashboard</span>
             </Button>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold text-foreground">{activeNavItem?.label}</span>
-              <Badge variant="secondary">Módulo Operacional</Badge>
+              <span className="text-xl font-bold text-foreground font-heading">{activeNavItem?.label}</span>
+              <Badge variant="secondary" className="flex items-center gap-1">
+                <Clock className="h-3 w-3 text-blue-400" />
+                <span>Roadmap Futuro</span>
+              </Badge>
             </div>
           </div>
 
-          <Card>
+          <Card className="border-border/80 bg-card/75 backdrop-blur-md">
             <CardHeader>
-              <CardTitle>{activeNavItem?.label}</CardTitle>
+              <CardTitle className="font-heading">{activeNavItem?.label}</CardTitle>
               <CardDescription>
-                Este módulo está programado no Roadmap e será integrado nas próximas fases.
+                Este módulo está programado no Roadmap e será integrado sequencialmente nas próximas fases.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-muted-foreground">
               <p>
-                A Central Operacional do Suporte Técnico está sendo implementada de forma incremental, garantindo qualidade, segurança e testes rigorosos a cada fase.
+                A Central Operacional do Suporte Técnico está sendo implementada de forma incremental e robusta, garantindo qualidade, ergonomia de uso e alinhamento com a equipe de TI.
               </p>
-              <div className="rounded-lg border border-border bg-muted/30 p-4">
-                <p className="font-semibold text-foreground mb-1">Diretriz Arquitetural:</p>
-                <p>
-                  Informações operacionais, comandos, checklists e procedimentos serão armazenados aqui para apoiar o técnico no dia a dia, mantendo o OTRS como sistema oficial de chamados.
+              <div className="rounded-xl border border-blue-500/20 bg-blue-950/20 p-4">
+                <p className="font-semibold text-slate-200 mb-1">Diretriz Arquitetural:</p>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  O OTRS permanece como fonte oficial para abertura, comunicação e fechamento de chamados. A Central armazena diagnósticos, inventário, procedimentos operacionais e comandos para uso imediato dos analistas de suporte.
                 </p>
               </div>
             </CardContent>

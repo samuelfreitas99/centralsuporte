@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'motion/react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { TaskListSection } from '@/components/dashboard/TaskListSection';
@@ -16,7 +17,12 @@ import { CheckSquare, Clock, Bell, Headset, ExternalLink } from 'lucide-react';
 
 export const DashboardPage: React.FC = () => {
   return (
-    <div className="space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25 }}
+      className="space-y-6"
+    >
       {/* 1. Technical Shift Greeting and Status */}
       <DashboardHeader />
 
@@ -68,17 +74,17 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* 4. OTRS Boundary Disclaimer Banner */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-xl border border-border/80 bg-muted/30 p-4 text-xs text-muted-foreground">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-blue-500/20 bg-blue-950/20 p-4 text-xs text-muted-foreground backdrop-blur-md">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-foreground flex items-center gap-1.5">
+          <span className="font-semibold text-slate-200 flex items-center gap-1.5">
             <span>Integração Oficial com OTRS</span>
-            <ExternalLink className="h-3.5 w-3.5 text-primary" />
+            <ExternalLink className="h-3.5 w-3.5 text-blue-400" />
           </span>
           <span>—</span>
           <span>Abertura, SLA, histórico do cliente e fechamento ocorrem exclusivamente no OTRS.</span>
         </div>
-        <span className="font-mono text-[11px] text-primary shrink-0">Central Operacional v1.0</span>
+        <span className="font-mono text-[11px] text-blue-400 shrink-0 font-semibold">Central Operacional v1.0</span>
       </div>
-    </div>
+    </motion.div>
   );
 };

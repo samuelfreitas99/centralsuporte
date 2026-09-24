@@ -1,5 +1,6 @@
 import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './components/ui/Toast';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthenticatedView } from './components/AuthenticatedView';
 
@@ -7,9 +8,11 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <ProtectedRoute>
-          <AuthenticatedView />
-        </ProtectedRoute>
+        <ToastProvider>
+          <ProtectedRoute>
+            <AuthenticatedView />
+          </ProtectedRoute>
+        </ToastProvider>
       </AuthProvider>
     </ThemeProvider>
   );

@@ -38,50 +38,53 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ initialTasks }
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full border-border/80 bg-card/75 backdrop-blur-md">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="h-5 w-5 text-primary" />
-            <CardTitle>Minhas Tarefas do Turno</CardTitle>
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/15 text-blue-400 border border-blue-500/30">
+              <CheckSquare className="h-4 w-4" />
+            </div>
+            <CardTitle className="font-heading text-lg">Minhas Tarefas do Turno</CardTitle>
           </div>
           <Badge variant="secondary" className="font-mono text-xs">
             {tasks.filter((t) => t.status !== 'concluida').length} pendentes
           </Badge>
         </div>
         <CardDescription>
-          Atividades internas prioritárias para execução no suporte hoje:
+          Atividades operacionais prioritárias para o suporte técnico:
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-2.5">
         {tasks.map((task) => {
           const isDone = task.status === 'concluida';
           return (
             <div
               key={task.id}
               onClick={() => toggleTask(task.id)}
-              className={`flex items-start justify-between gap-3 rounded-lg border p-3 text-sm transition-colors cursor-pointer ${
+              className={`group flex items-start justify-between gap-3 rounded-xl border p-3.5 text-sm transition-all duration-200 cursor-pointer ${
                 isDone
-                  ? 'border-border/40 bg-muted/20 opacity-60'
-                  : 'border-border bg-card hover:bg-accent/40'
+                  ? 'border-border/30 bg-muted/15 opacity-60'
+                  : 'border-border/70 bg-card/90 hover:border-blue-500/30 hover:bg-white/[0.03] hover:shadow-sm'
               }`}
             >
               <div className="flex items-start gap-3">
                 <input
                   type="checkbox"
+                  role="checkbox"
                   checked={isDone}
                   onChange={() => toggleTask(task.id)}
-                  className="mt-1 h-4 w-4 rounded border-border accent-primary cursor-pointer"
+                  className="mt-1 h-4 w-4 rounded border-border accent-blue-600 cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 />
                 <div className="space-y-1">
-                  <p className={`font-medium text-foreground ${isDone ? 'line-through' : ''}`}>
+                  <p className={`font-medium text-foreground transition-colors ${isDone ? 'line-through text-muted-foreground' : ''}`}>
                     {task.title}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="rounded bg-muted px-1.5 py-0.5">{task.category}</span>
+                    <span className="rounded-md bg-muted/60 px-2 py-0.5 font-medium text-[11px]">{task.category}</span>
                     <span>•</span>
-                    <span>Horário previsto: {task.dueTime}</span>
+                    <span>Previsão: {task.dueTime}</span>
                   </div>
                 </div>
               </div>

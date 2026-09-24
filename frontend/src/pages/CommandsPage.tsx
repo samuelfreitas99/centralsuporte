@@ -1,0 +1,1203 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import {
+  Terminal,
+  MessageSquare,
+  Search,
+  Plus,
+  Copy,
+  Check,
+  AlertTriangle,
+  Layers,
+  Users,
+  Edit2,
+  Trash2,
+  Lock,
+  RefreshCw,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
+import { commandService } from '@/services/commandService';
+import { responseService } from '@/services/responseService';
+import type {
+  CommandItem,
+  CommandCreateInput,
+  StandardResponseItem,
+  StandardResponseCreateInput,
+} from '@/types/commands';
+
+type ActiveTab = 'commands' | 'responses';
+
+export const CommandsPage: React.FC = () => {
+  const { user } = useAuth();
+  const { success, error: toastError } = useToast();
+
+  const [activeTab, setActiveTab] = useState<ActiveTab>('commands');
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSystem, setSelectedSystem] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedAudience, setSelectedAudience] = useState<string>('all');
+
+  // Data states
+  const [commands, setCommands] = useState<CommandItem[]>([]);
+  const [responses, setResponses] = useState<StandardResponseItem[]>([]);
+  const [availableSystems, setAvailableSystems] = useState<string[]>([]);
+  const [commandCategories, setCommandCategories] = useState<string[]>([]);
+  const [responseCategories, setResponseCategories] = useState<string[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // Screen states
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Dialog states
+  const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
+  const [editingCommand, setEditingCommand] = useState<CommandItem | null>(null);
+  const [commandForm, setCommandForm] = useState<CommandCreateInput>({
+    title: '',
+    description: '',
+    command: '',
+    system: 'Geral',
+    category: '',
+    tags: '',
+    notes: '',
+    warning: '',
+    visibility: 'equipe',
+  });
+
+  const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
+  const [editingResponse, setEditingResponse] = useState<StandardResponseItem | null>(null);
+  const [responseForm, setResponseForm] = useState<StandardResponseCreateInput>({
+    title: '',
+    content: '',
+    category: '',
+    audience: 'usuario_final',
+    tags: '',
+    visibility: 'equipe',
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load Commands
+  const loadCommands = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const [cmds, systems, cats] = await Promise.all([
+        commandService.getCommands({
+          system: selectedSystem !== 'all' ? selectedSystem : undefined,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+          search: searchQuery || undefined,
+        }),
+        commandService.getSystems(),
+        commandService.getCategories(),
+      ]);
+      setCommands(cmds);
+      setAvailableSystems(systems);
+      setCommandCategories(cats);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Falha ao carregar comandos';
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedSystem, selectedCategory, searchQuery]);
+
+  // Load Responses
+  const loadResponses = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    try {
+      const [resps, cats] = await Promise.all([
+        responseService.getResponses({
+          audience: selectedAudience !== 'all' ? selectedAudience : undefined,
+          category: selectedCategory !== 'all' ? selectedCategory : undefined,
+          search: searchQuery || undefined,
+        }),
+        responseService.getCategories(),
+      ]);
+      setResponses(resps);
+      setResponseCategories(cats);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Falha ao carregar respostas padrão';
+      setErrorMessage(message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [selectedAudience, selectedCategory, searchQuery]);
+
+  // Initial and reactive load
+  useEffect(() => {
+    if (activeTab === 'commands') {
+      loadCommands();
+    } else {
+      loadResponses();
+    }
+  }, [activeTab, loadCommands, loadResponses]);
+
+  // One-click Copy Handler for Commands
+  const handleCopyCommand = async (cmd: CommandItem) => {
+    try {
+      await navigator.clipboard.writeText(cmd.command);
+      setCopiedId(`cmd-${cmd.id}`);
+      success('Comando copiado!', 'O comando foi copiado para a área de transferência.');
+
+      // Optimistic update
+      setCommands((prev) =>
+        prev.map((c) => (c.id === cmd.id ? { ...c, copies_count: c.copies_count + 1 } : c))
+      );
+
+      // Async backend record
+      await commandService.copyCommand(cmd.id);
+    } catch (err) {
+      toastError('Erro ao copiar', 'Não foi possível copiar o comando para o clipboard.');
+    } finally {
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  // One-click Copy Handler for Responses
+  const handleCopyResponse = async (resp: StandardResponseItem) => {
+    try {
+      await navigator.clipboard.writeText(resp.content);
+      setCopiedId(`resp-${resp.id}`);
+      success('Resposta copiada!', 'O texto padrão foi copiado para a área de transferência.');
+
+      // Optimistic update
+      setResponses((prev) =>
+        prev.map((r) => (r.id === resp.id ? { ...r, copies_count: r.copies_count + 1 } : r))
+      );
+
+      // Async backend record
+      await responseService.copyResponse(resp.id);
+    } catch (err) {
+      toastError('Erro ao copiar', 'Não foi possível copiar a resposta para o clipboard.');
+    } finally {
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  // Open Create/Edit Command Modal
+  const handleOpenCommandModal = (cmd?: CommandItem) => {
+    if (cmd) {
+      setEditingCommand(cmd);
+      setCommandForm({
+        title: cmd.title,
+        description: cmd.description || '',
+        command: cmd.command,
+        system: cmd.system || 'Geral',
+        category: cmd.category || '',
+        tags: cmd.tags || '',
+        notes: cmd.notes || '',
+        warning: cmd.warning || '',
+        visibility: cmd.visibility || 'equipe',
+      });
+    } else {
+      setEditingCommand(null);
+      setCommandForm({
+        title: '',
+        description: '',
+        command: '',
+        system: selectedSystem !== 'all' ? selectedSystem : 'Geral',
+        category: selectedCategory !== 'all' ? selectedCategory : '',
+        tags: '',
+        notes: '',
+        warning: '',
+        visibility: 'equipe',
+      });
+    }
+    setIsCommandModalOpen(true);
+  };
+
+  // Save Command
+  const handleSaveCommand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commandForm.title.trim() || !commandForm.command.trim()) {
+      toastError('Campos obrigatórios', 'Por favor preencha o título e o comando.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (editingCommand) {
+        await commandService.updateCommand(editingCommand.id, commandForm);
+        success('Comando atualizado', 'As alterações foram salvas com sucesso.');
+      } else {
+        await commandService.createCommand(commandForm);
+        success('Comando criado', 'Novo comando adicionado ao repositório operacional.');
+      }
+      setIsCommandModalOpen(false);
+      loadCommands();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar comando';
+      toastError('Erro ao salvar', msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete Command
+  const handleDeleteCommand = async (cmd: CommandItem) => {
+    if (!window.confirm(`Tem certeza que deseja excluir o comando "${cmd.title}"?`)) return;
+    try {
+      await commandService.deleteCommand(cmd.id);
+      success('Comando excluído', 'O comando foi removido da biblioteca.');
+      loadCommands();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao excluir comando';
+      toastError('Erro ao excluir', msg);
+    }
+  };
+
+  // Open Create/Edit Response Modal
+  const handleOpenResponseModal = (resp?: StandardResponseItem) => {
+    if (resp) {
+      setEditingResponse(resp);
+      setResponseForm({
+        title: resp.title,
+        content: resp.content,
+        category: resp.category || '',
+        audience: resp.audience || 'usuario_final',
+        tags: resp.tags || '',
+        visibility: resp.visibility || 'equipe',
+      });
+    } else {
+      setEditingResponse(null);
+      setResponseForm({
+        title: '',
+        content: '',
+        category: selectedCategory !== 'all' ? selectedCategory : '',
+        audience: selectedAudience !== 'all' ? selectedAudience : 'usuario_final',
+        tags: '',
+        visibility: 'equipe',
+      });
+    }
+    setIsResponseModalOpen(true);
+  };
+
+  // Save Response
+  const handleSaveResponse = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!responseForm.title.trim() || !responseForm.content.trim()) {
+      toastError('Campos obrigatórios', 'Por favor preencha o título e o conteúdo da resposta.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      if (editingResponse) {
+        await responseService.updateResponse(editingResponse.id, responseForm);
+        success('Resposta atualizada', 'As alterações foram salvas com sucesso.');
+      } else {
+        await responseService.createResponse(responseForm);
+        success('Resposta criada', 'Nova resposta padrão adicionada à biblioteca.');
+      }
+      setIsResponseModalOpen(false);
+      loadResponses();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar resposta padrão';
+      toastError('Erro ao salvar', msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete Response
+  const handleDeleteResponse = async (resp: StandardResponseItem) => {
+    if (!window.confirm(`Tem certeza que deseja excluir a resposta "${resp.title}"?`)) return;
+    try {
+      await responseService.deleteResponse(resp.id);
+      success('Resposta excluída', 'A resposta foi removida da biblioteca.');
+      loadResponses();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao excluir resposta';
+      toastError('Erro ao excluir', msg);
+    }
+  };
+
+  // Permission helpers
+  const canModifyCommand = (cmd: CommandItem) => {
+    if (!user) return false;
+    return user.role?.name === 'Administrador' || cmd.author_id === user.id;
+  };
+
+  const canModifyResponse = (resp: StandardResponseItem) => {
+    if (!user) return false;
+    return user.role?.name === 'Administrador' || resp.author_id === user.id;
+  };
+
+  // Distinct systems list with defaults
+  const systemOptions = useMemo(() => {
+    const defaults = ['Geral', 'Linux', 'Windows', 'Mikrotik', 'Redes', 'Docker', 'PostgreSQL', 'OTRS'];
+    const merged = Array.from(new Set([...defaults, ...availableSystems]));
+    return merged.sort();
+  }, [availableSystems]);
+
+  // Audience labels helper
+  const getAudienceLabel = (audience: string) => {
+    switch (audience) {
+      case 'usuario_final':
+        return { label: 'Usuário Final', variant: 'success' as const };
+      case 'tecnico':
+        return { label: 'Equipe Técnica', variant: 'default' as const };
+      case 'fornecedor':
+        return { label: 'Fornecedor', variant: 'info' as const };
+      default:
+        return { label: audience, variant: 'secondary' as const };
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* 1. Header and Module Tabs */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
+              Repositório Operacional
+            </h1>
+            <Badge variant="default" className="text-[11px] uppercase tracking-wider font-mono">
+              Fase 6
+            </Badge>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Biblioteca de comandos úteis de suporte e modelos de comunicação padrão com cópia rápida em 1 clique.
+          </p>
+        </div>
+
+        {/* Action Button */}
+        <div>
+          {activeTab === 'commands' ? (
+            <Button
+              onClick={() => handleOpenCommandModal()}
+              className="w-full sm:w-auto flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/20"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Novo Comando</span>
+            </Button>
+          ) : (
+            <Button
+              onClick={() => handleOpenResponseModal()}
+              className="w-full sm:w-auto flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/20"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Nova Resposta</span>
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Primary Navigation Tabs */}
+      <div className="flex items-center gap-2 border-b border-border/80 pb-3">
+        <button
+          onClick={() => {
+            setActiveTab('commands');
+            setSelectedCategory('all');
+            setSearchQuery('');
+          }}
+          className={`flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'commands'
+              ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm'
+              : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
+          }`}
+        >
+          <Terminal className="h-4 w-4" />
+          <span>Comandos Rápidos</span>
+          <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300 font-mono">
+            {commands.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('responses');
+            setSelectedCategory('all');
+            setSearchQuery('');
+          }}
+          className={`flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
+            activeTab === 'responses'
+              ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm'
+              : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
+          }`}
+        >
+          <MessageSquare className="h-4 w-4" />
+          <span>Respostas Padrão</span>
+          <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300 font-mono">
+            {responses.length}
+          </span>
+        </button>
+      </div>
+
+      {/* 3. Filter Bar (Search + Categorical Selectors) */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/60 p-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={
+              activeTab === 'commands'
+                ? 'Buscar por comando, título, descrição ou tags...'
+                : 'Buscar por título, conteúdo da mensagem ou tags...'
+            }
+            className="pl-10 h-10 bg-background/50 border-border/60"
+          />
+        </div>
+
+        {/* Filter Pills based on active tab */}
+        <div className="flex flex-wrap items-center gap-2">
+          {activeTab === 'commands' ? (
+            <>
+              {/* System selector */}
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Layers className="h-3.5 w-3.5" />
+                <select
+                  value={selectedSystem}
+                  onChange={(e) => setSelectedSystem(e.target.value)}
+                  className="rounded-lg border border-border/80 bg-background/80 px-2.5 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  <option value="all">Todos os Sistemas</option>
+                  {systemOptions.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Category selector */}
+              {commandCategories.length > 0 && (
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="rounded-lg border border-border/80 bg-background/80 px-2.5 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  <option value="all">Todas Categorias</option>
+                  {commandCategories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Audience selector */}
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Users className="h-3.5 w-3.5" />
+                <select
+                  value={selectedAudience}
+                  onChange={(e) => setSelectedAudience(e.target.value)}
+                  className="rounded-lg border border-border/80 bg-background/80 px-2.5 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  <option value="all">Todos os Destinatários</option>
+                  <option value="usuario_final">Usuário Final</option>
+                  <option value="tecnico">Equipe Técnica</option>
+                  <option value="fornecedor">Fornecedores / Terceiros</option>
+                </select>
+              </div>
+
+              {/* Response Category selector */}
+              {responseCategories.length > 0 && (
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="rounded-lg border border-border/80 bg-background/80 px-2.5 py-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  <option value="all">Todas Categorias</option>
+                  {responseCategories.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </>
+          )}
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (activeTab === 'commands') loadCommands();
+              else loadResponses();
+            }}
+            aria-label="Atualizar lista"
+            className="h-9 w-9 p-0 text-muted-foreground hover:text-foreground"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+
+      {/* 4. Main Content Area — 4 UI States */}
+
+      {/* STATE 1: ERROR */}
+      {errorMessage && (
+        <Card className="border-red-500/30 bg-red-950/20">
+          <CardContent className="flex flex-col items-center justify-center p-8 text-center space-y-3">
+            <AlertTriangle className="h-10 w-10 text-red-400" />
+            <div className="space-y-1">
+              <h3 className="text-base font-semibold text-red-200">Falha ao carregar registros</h3>
+              <p className="text-sm text-red-300/80">{errorMessage}</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (activeTab === 'commands') loadCommands();
+                else loadResponses();
+              }}
+              className="mt-2 border-red-500/30 hover:bg-red-500/10 text-red-300"
+            >
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STATE 2: LOADING SKELETONS */}
+      {isLoading && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="border-border/60 bg-card/60">
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-6 w-20 rounded-md" />
+                    <Skeleton className="h-6 w-16 rounded-md" />
+                  </div>
+                  <Skeleton className="h-5 w-24 rounded-md" />
+                </div>
+                <Skeleton className="h-5 w-3/4 rounded-md" />
+                <Skeleton className="h-4 w-full rounded-md" />
+                <Skeleton className="h-20 w-full rounded-xl" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* STATE 3: EMPTY STATE */}
+      {!isLoading && !errorMessage && activeTab === 'commands' && commands.length === 0 && (
+        <Card className="border-border/60 bg-card/40 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <Terminal className="h-8 w-8" />
+            </div>
+            <div className="space-y-1.5 max-w-md">
+              <h3 className="text-lg font-semibold text-foreground font-heading">
+                Nenhum comando operacional encontrado
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery || selectedSystem !== 'all' || selectedCategory !== 'all'
+                  ? 'Nenhum resultado corresponde aos filtros selecionados. Tente limpar os filtros de busca.'
+                  : 'Comece a construir a biblioteca técnica registrando comandos frequentes de rede, servidores, diagnósticos e automação.'}
+              </p>
+            </div>
+            <Button
+              onClick={() => handleOpenCommandModal()}
+              className="mt-2 flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Adicionar Primeiro Comando</span>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {!isLoading && !errorMessage && activeTab === 'responses' && responses.length === 0 && (
+        <Card className="border-border/60 bg-card/40 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <MessageSquare className="h-8 w-8" />
+            </div>
+            <div className="space-y-1.5 max-w-md">
+              <h3 className="text-lg font-semibold text-foreground font-heading">
+                Nenhuma resposta padrão encontrada
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery || selectedAudience !== 'all' || selectedCategory !== 'all'
+                  ? 'Nenhum modelo corresponde aos critérios de pesquisa informados.'
+                  : 'Crie respostas padrão para orientações a usuários, comunicados de manutenção, encerramentos e acionamento de parceiros técnicos.'}
+              </p>
+            </div>
+            <Button
+              onClick={() => handleOpenResponseModal()}
+              className="mt-2 flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Adicionar Primeira Resposta</span>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STATE 4: IDEAL STATE — COMMANDS LIST */}
+      {!isLoading && !errorMessage && activeTab === 'commands' && commands.length > 0 && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <AnimatePresence>
+            {commands.map((cmd) => {
+              const isCopied = copiedId === `cmd-${cmd.id}`;
+              const hasWarning = Boolean(cmd.warning && cmd.warning.trim().length > 0);
+
+              return (
+                <motion.div
+                  key={cmd.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="h-full flex flex-col justify-between border-border/80 bg-card/75 hover:border-blue-500/40 hover:shadow-lg transition-all duration-200">
+                    <CardContent className="p-5 space-y-3.5">
+                      {/* Top Badges Row */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge variant="default" className="text-[11px] font-mono">
+                            {cmd.system || 'Geral'}
+                          </Badge>
+                          {cmd.category && (
+                            <Badge variant="secondary" className="text-[11px]">
+                              {cmd.category}
+                            </Badge>
+                          )}
+                          {cmd.visibility === 'privado' && (
+                            <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-500/30 flex items-center gap-1">
+                              <Lock className="h-3 w-3" />
+                              <span>Privado</span>
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Copy counter */}
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-mono">
+                          <Copy className="h-3 w-3 text-blue-400" />
+                          <span>{cmd.copies_count} cópias</span>
+                        </div>
+                      </div>
+
+                      {/* Title & Description */}
+                      <div>
+                        <h3 className="text-base font-bold text-foreground tracking-tight leading-snug">
+                          {cmd.title}
+                        </h3>
+                        {cmd.description && (
+                          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                            {cmd.description}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Destructive / Operational Warning Callout */}
+                      {hasWarning && (
+                        <div className="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-950/20 p-2.5 text-xs text-amber-300">
+                          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                          <div className="flex-1 font-medium leading-relaxed">
+                            <span className="font-bold uppercase tracking-wider text-[10px] block text-amber-400">
+                              Atenção Operacional:
+                            </span>
+                            {cmd.warning}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Code block with One-Click Copy Action */}
+                      <div className="relative group rounded-xl border border-border/80 bg-slate-950/80 p-3 overflow-hidden shadow-inner">
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono pb-1.5 mb-1.5 border-b border-white/[0.05]">
+                          <span className="flex items-center gap-1.5 text-slate-400">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
+                            <span>prompt / terminal</span>
+                          </span>
+                          <span className="text-[10px] uppercase">{cmd.system}</span>
+                        </div>
+
+                        <div className="font-mono text-xs sm:text-sm text-blue-300 whitespace-pre-wrap break-all py-1 selection:bg-blue-600/40">
+                          {cmd.command}
+                        </div>
+
+                        {/* Floating Copy Action */}
+                        <div className="mt-3 flex items-center justify-end">
+                          <Button
+                            size="sm"
+                            variant={isCopied ? 'secondary' : 'default'}
+                            onClick={() => handleCopyCommand(cmd)}
+                            className={`h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                              isCopied
+                                ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-600'
+                                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                            }`}
+                          >
+                            {isCopied ? (
+                              <>
+                                <Check className="h-3.5 w-3.5" />
+                                <span>Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3.5 w-3.5" />
+                                <span>Copiar Comando</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Technical Notes / Guidelines */}
+                      {cmd.notes && (
+                        <div className="text-[11px] text-muted-foreground bg-muted/20 rounded-lg p-2.5 border border-border/40">
+                          <span className="font-semibold text-foreground mr-1">Observações:</span>
+                          {cmd.notes}
+                        </div>
+                      )}
+
+                      {/* Footer: Tags and Edit/Delete controls */}
+                      <div className="pt-2 flex items-center justify-between border-t border-border/60 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {cmd.tags &&
+                            cmd.tags.split(',').map((t, idx) => (
+                              <span
+                                key={idx}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted/40 text-muted-foreground"
+                              >
+                                #{t.trim()}
+                              </span>
+                            ))}
+                        </div>
+
+                        {canModifyCommand(cmd) && (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenCommandModal(cmd)}
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                              aria-label="Editar comando"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteCommand(cmd)}
+                              className="h-7 w-7 text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
+                              aria-label="Excluir comando"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* STATE 4: IDEAL STATE — RESPONSES LIST */}
+      {!isLoading && !errorMessage && activeTab === 'responses' && responses.length > 0 && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <AnimatePresence>
+            {responses.map((resp) => {
+              const isCopied = copiedId === `resp-${resp.id}`;
+              const audienceInfo = getAudienceLabel(resp.audience);
+
+              return (
+                <motion.div
+                  key={resp.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className="h-full flex flex-col justify-between border-border/80 bg-card/75 hover:border-blue-500/40 hover:shadow-lg transition-all duration-200">
+                    <CardContent className="p-5 space-y-3.5">
+                      {/* Top Badges Row */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge variant={audienceInfo.variant} className="text-[11px]">
+                            {audienceInfo.label}
+                          </Badge>
+                          {resp.category && (
+                            <Badge variant="secondary" className="text-[11px]">
+                              {resp.category}
+                            </Badge>
+                          )}
+                          {resp.visibility === 'privado' && (
+                            <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-500/30 flex items-center gap-1">
+                              <Lock className="h-3 w-3" />
+                              <span>Privado</span>
+                            </Badge>
+                          )}
+                        </div>
+
+                        {/* Copy counter */}
+                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-mono">
+                          <Copy className="h-3 w-3 text-blue-400" />
+                          <span>{resp.copies_count} cópias</span>
+                        </div>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-base font-bold text-foreground tracking-tight leading-snug">
+                        {resp.title}
+                      </h3>
+
+                      {/* Content Preview Box */}
+                      <div className="relative rounded-xl border border-border/80 bg-muted/20 p-3.5 space-y-2">
+                        <div className="text-xs sm:text-sm text-foreground/90 whitespace-pre-line leading-relaxed font-sans max-h-48 overflow-y-auto selection:bg-blue-600/30 pr-1">
+                          {resp.content}
+                        </div>
+
+                        {/* Copy Action */}
+                        <div className="pt-2 flex items-center justify-end border-t border-border/40">
+                          <Button
+                            size="sm"
+                            variant={isCopied ? 'secondary' : 'default'}
+                            onClick={() => handleCopyResponse(resp)}
+                            className={`h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                              isCopied
+                                ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-600'
+                                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
+                            }`}
+                          >
+                            {isCopied ? (
+                              <>
+                                <Check className="h-3.5 w-3.5" />
+                                <span>Copiado!</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="h-3.5 w-3.5" />
+                                <span>Copiar Resposta</span>
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Footer: Tags and Actions */}
+                      <div className="pt-2 flex items-center justify-between border-t border-border/60 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {resp.tags &&
+                            resp.tags.split(',').map((t, idx) => (
+                              <span
+                                key={idx}
+                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted/40 text-muted-foreground"
+                              >
+                                #{t.trim()}
+                              </span>
+                            ))}
+                        </div>
+
+                        {canModifyResponse(resp) && (
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleOpenResponseModal(resp)}
+                              className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                              aria-label="Editar resposta"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteResponse(resp)}
+                              className="h-7 w-7 text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
+                              aria-label="Excluir resposta"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* 5. MODAL: CREATE / EDIT COMMAND */}
+      <Dialog open={isCommandModalOpen} onOpenChange={setIsCommandModalOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <form onSubmit={handleSaveCommand} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 font-heading">
+                <Terminal className="h-5 w-5 text-blue-400" />
+                <span>{editingCommand ? 'Editar Comando Operacional' : 'Novo Comando Operacional'}</span>
+              </DialogTitle>
+              <DialogDescription>
+                Cadastre comandos técnicos úteis para diagnósticos e rotinas de suporte rápido.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3.5 text-sm">
+              {/* Title */}
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Título do Comando *
+                </label>
+                <Input
+                  value={commandForm.title}
+                  onChange={(e) => setCommandForm({ ...commandForm, title: e.target.value })}
+                  placeholder="Ex: Liberar IP travado no DHCP ou Limpeza de cache DNS"
+                  required
+                />
+              </div>
+
+              {/* Command Code Area */}
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block flex items-center justify-between">
+                  <span>Comando ou Script (Monoespaçado) *</span>
+                  <span className="text-[11px] text-muted-foreground font-normal">Exatamente como deve ser copiado</span>
+                </label>
+                <textarea
+                  value={commandForm.command}
+                  onChange={(e) => setCommandForm({ ...commandForm, command: e.target.value })}
+                  rows={4}
+                  required
+                  placeholder="Ex: ipconfig /flushdns && nbtstat -R"
+                  className="w-full rounded-xl border border-border/80 bg-slate-950 p-3 font-mono text-xs text-blue-300 focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed"
+                />
+              </div>
+
+              {/* System and Category Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Sistema Operacional / Plataforma
+                  </label>
+                  <Input
+                    value={commandForm.system || ''}
+                    onChange={(e) => setCommandForm({ ...commandForm, system: e.target.value })}
+                    placeholder="Linux, Windows, Mikrotik, Docker..."
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Categoria Operacional
+                  </label>
+                  <Input
+                    value={commandForm.category || ''}
+                    onChange={(e) => setCommandForm({ ...commandForm, category: e.target.value })}
+                    placeholder="Redes, Banco de Dados, Backup..."
+                  />
+                </div>
+              </div>
+
+              {/* Warning notice (critical for support) */}
+              <div>
+                <label className="text-xs font-semibold text-amber-400 mb-1 flex items-center gap-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  <span>Aviso de Atenção / Efeitos Colaterais (Opcional)</span>
+                </label>
+                <Input
+                  value={commandForm.warning || ''}
+                  onChange={(e) => setCommandForm({ ...commandForm, warning: e.target.value })}
+                  placeholder="Ex: Reinicia a placa de rede por 5s ou Derruba conexões ativas"
+                  className="border-amber-500/40 bg-amber-950/20 text-amber-200 placeholder:text-amber-500/40"
+                />
+              </div>
+
+              {/* Notes / Context */}
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Instruções e Observações Técnicas
+                </label>
+                <textarea
+                  value={commandForm.notes || ''}
+                  onChange={(e) => setCommandForm({ ...commandForm, notes: e.target.value })}
+                  rows={2}
+                  placeholder="Explicação dos parâmetros, quando utilizar, permissões necessárias..."
+                  className="w-full rounded-lg border border-border/80 bg-background/60 p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed"
+                />
+              </div>
+
+              {/* Tags and Visibility Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Tags (separadas por vírgula)
+                  </label>
+                  <Input
+                    value={commandForm.tags || ''}
+                    onChange={(e) => setCommandForm({ ...commandForm, tags: e.target.value })}
+                    placeholder="dns, cache, rede, windows"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Visibilidade
+                  </label>
+                  <select
+                    value={commandForm.visibility || 'equipe'}
+                    onChange={(e) => setCommandForm({ ...commandForm, visibility: e.target.value })}
+                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                  >
+                    <option value="equipe">Visível para toda a equipe</option>
+                    <option value="privado">Apenas eu (Privado)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsCommandModalOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+                {isSubmitting ? 'Salvando...' : editingCommand ? 'Salvar Alterações' : 'Cadastrar Comando'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 6. MODAL: CREATE / EDIT STANDARD RESPONSE */}
+      <Dialog open={isResponseModalOpen} onOpenChange={setIsResponseModalOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <form onSubmit={handleSaveResponse} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 font-heading">
+                <MessageSquare className="h-5 w-5 text-blue-400" />
+                <span>{editingResponse ? 'Editar Resposta Padrão' : 'Nova Resposta Padrão'}</span>
+              </DialogTitle>
+              <DialogDescription>
+                Crie modelos de respostas para padronizar e agilizar a comunicação técnica.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-3.5 text-sm">
+              {/* Title */}
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Identificador / Título da Resposta *
+                </label>
+                <Input
+                  value={responseForm.title}
+                  onChange={(e) => setResponseForm({ ...responseForm, title: e.target.value })}
+                  placeholder="Ex: Orientação de Reinício de Roteador ou Abertura de Chamado OTRS"
+                  required
+                />
+              </div>
+
+              {/* Content Area */}
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1 block">
+                  Texto da Mensagem *
+                </label>
+                <textarea
+                  value={responseForm.content}
+                  onChange={(e) => setResponseForm({ ...responseForm, content: e.target.value })}
+                  rows={6}
+                  required
+                  placeholder="Olá [Nome], identificamos que... Favor reiniciar o equipamento..."
+                  className="w-full rounded-xl border border-border/80 bg-background/60 p-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
+                />
+              </div>
+
+              {/* Audience and Category Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Público-Alvo
+                  </label>
+                  <select
+                    value={responseForm.audience || 'usuario_final'}
+                    onChange={(e) => setResponseForm({ ...responseForm, audience: e.target.value })}
+                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                  >
+                    <option value="usuario_final">Usuário Final</option>
+                    <option value="tecnico">Equipe Técnica / Interna</option>
+                    <option value="fornecedor">Fornecedor / Terceiro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Categoria
+                  </label>
+                  <Input
+                    value={responseForm.category || ''}
+                    onChange={(e) => setResponseForm({ ...responseForm, category: e.target.value })}
+                    placeholder="Atendimento, Manutenção, Orientação..."
+                  />
+                </div>
+              </div>
+
+              {/* Tags and Visibility Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Tags (separadas por vírgula)
+                  </label>
+                  <Input
+                    value={responseForm.tags || ''}
+                    onChange={(e) => setResponseForm({ ...responseForm, tags: e.target.value })}
+                    placeholder="atendimento, reinicio, orientacao"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Visibilidade
+                  </label>
+                  <select
+                    value={responseForm.visibility || 'equipe'}
+                    onChange={(e) => setResponseForm({ ...responseForm, visibility: e.target.value })}
+                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                  >
+                    <option value="equipe">Visível para toda a equipe</option>
+                    <option value="privado">Apenas eu (Privado)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsResponseModalOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
+                {isSubmitting ? 'Salvando...' : editingResponse ? 'Salvar Alterações' : 'Cadastrar Resposta'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
