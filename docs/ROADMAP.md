@@ -38,8 +38,8 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 **Checkpoints:**
 - [x] Configuração do shadcn/ui e variáveis Tailwind.
 - [x] Implementação de componentes base (Buttons, Inputs, Cards, Modals).
-- [ ] Criação do Layout principal (`Sidebar`, `Header`, `Container`).
-- [ ] Testes de renderização dos componentes principais.
+- [x] Criação do Layout principal (`Sidebar`, `Header`, `Container`).
+- [x] Testes de renderização dos componentes principais.
 
 ---
 
