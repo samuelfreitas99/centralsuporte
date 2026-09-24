@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 4 (Organização) em andamento. Endpoints de CRUD e gestão de status implementados no backend para tarefas, checklists, lembretes e eventos de calendário.
+**Estado atual**: Fase 4 (Organização) em andamento. Telas de listagem, criação e edição de tarefas, acompanhamento de checklists, lembretes de escala e calendário implementadas no frontend.
 **Fase atual**: Fase 4 — Organização (Tarefas, Checklists, Calendário).
-**Última implementação**: Implementação completa dos routers FastAPI e schemas Pydantic para `/tasks`, `/checklists`, `/reminders` e `/calendar/events`, com controle de permissões (`tasks:read`, `tasks:write`), visibilidade operacional (privado, equipe, todos), gestão dinâmica de status com timestamp de conclusão e 13 testes automatizados cobrindo todo o fluxo no backend.
-**Último commit**: "feat: implement CRUD endpoints and status management for tasks, checklists, reminders, and calendar" (2f54056)
-**Próxima tarefa**: Fase 4 — Organização (Tarefas, Checklists, Calendário) — Telas de listagem, criação e edição.
+**Última implementação**: Implementação das telas e componentes de organização: `TasksPage`, `TaskFormDialog` (criação e edição completa com referência OTRS), `TaskDetailDialog` (visualização de instruções, checklists dinâmicos, progresso de itens e status), `RemindersSection` (lembretes operacionais) e `CalendarSection` (eventos e manutenções programadas). Integração em `AuthenticatedView` e `organizationService`.
+**Último commit**: "feat: implement frontend tasks, checklists, reminders, and calendar views" (a479c7f)
+**Próxima tarefa**: Fase 4 — Organização (Tarefas, Checklists, Calendário) — Testes de fluxo e testes unitários.
 **Bloqueios**: Nenhum.
-**Pendências**: Desenvolver interface de frontend para listagem, criação e edição de tarefas, checklists e calendário.
-**Testes**: 28 testes de frontend (vitest) e 13 testes de backend (pytest) executados e aprovados com 100% de sucesso.
+**Pendências**: Finalizar Fase 4 com testes de fluxo ponta a ponta e unitários complementares para consolidar a fase.
+**Testes**: 32 testes de frontend (vitest) e 13 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Separação modular de rotas no backend (`tasks.py`, `checklists.py`, `reminders.py`, `calendar.py`) para manter código limpo, de fácil manutenção e em conformidade estrita com o `PRODUCT_SPEC.md`.
+**Decisões recentes**: Módulo de Organização unificado em abas coesas ('Tarefas e Checklists', 'Lembretes' e 'Calendário'), mantendo as referências ao OTRS visíveis para garantir a separação entre operação interna e chamado oficial.
