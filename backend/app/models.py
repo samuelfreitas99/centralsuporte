@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text, desc
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text, Float, desc
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -290,6 +290,7 @@ class Attendance(Base):
     technician_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False, index=True)
     status = Column(String(32), default="em_andamento", nullable=False, index=True)  # em_andamento, resolvido, cancelado
     equipment_name = Column(String(255), nullable=True)
+    equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="SET NULL"), nullable=True, index=True)
     store_department = Column(String(255), nullable=True)
     problem_description = Column(Text, nullable=True)
     symptoms = Column(Text, nullable=True)
@@ -305,6 +306,7 @@ class Attendance(Base):
     # Relationships
     technician = relationship("User", foreign_keys=[technician_id], back_populates="attendances")
     knowledge_article = relationship("KnowledgeArticle", foreign_keys=[knowledge_article_id])
+    equipment = relationship("Equipment", foreign_keys=[equipment_id], back_populates="attendances")
     notes = relationship("AttendanceNote", back_populates="attendance", cascade="all, delete-orphan", order_by="AttendanceNote.created_at.asc()")
 
 
@@ -320,4 +322,157 @@ class AttendanceNote(Base):
     # Relationships
     attendance = relationship("Attendance", back_populates="notes")
     author = relationship("User", foreign_keys=[author_id], back_populates="attendance_notes")
+
+
+# --- Phase 8 (Infraestrutura: Lojas, Departamentos, Equipamentos, Licenças e Estoque) ---
+
+class Store(Base):
+    __tablename__ = "stores"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(150), nullable=False)
+    code = Column(String(50), unique=True, index=True, nullable=True)  # ex: LOJA-01, MATRIZ
+    address = Column(String(255), nullable=True)
+    phone = Column(String(50), nullable=True)
+    status = Column(String(32), default="ativa", nullable=False)  # ativa, inativa, reforma
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    departments = relationship("Department", back_populates="store", cascade="all, delete-orphan")
+    equipment = relationship("Equipment", back_populates="store")
+
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
+    description = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    store = relationship("Store", back_populates="departments")
+    equipment = relationship("Equipment", back_populates="department")
+
+
+class Equipment(Base):
+    __tablename__ = "equipment"
+
+    id = Column(Integer, primary_key=True, index=True)
+    patrimony = Column(String(100), unique=True, index=True, nullable=True)
+    hostname = Column(String(150), index=True, nullable=True)
+    equipment_type = Column(String(50), nullable=False, index=True)  # computador, notebook, pdv, impressora, switch, access_point, roteador, firewall, servidor, monitor, nobreak, outro
+    brand = Column(String(100), nullable=True)
+    model = Column(String(100), nullable=True)
+    serial_number = Column(String(100), index=True, nullable=True)
+    ip_address = Column(String(45), index=True, nullable=True)
+    mac_address = Column(String(30), index=True, nullable=True)
+    operating_system = Column(String(100), nullable=True)
+    store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
+    department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
+    assigned_user = Column(String(150), nullable=True)
+    status = Column(String(32), default="ativo", nullable=False, index=True)  # ativo, em_manutencao, reserva, descartado
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    store = relationship("Store", back_populates="equipment")
+    department = relationship("Department", back_populates="equipment")
+    history = relationship("EquipmentHistory", back_populates="equipment", cascade="all, delete-orphan", order_by="EquipmentHistory.created_at.desc()")
+    attendances = relationship("Attendance", back_populates="equipment")
+    license_assignments = relationship("LicenseAssignment", back_populates="equipment")
+
+
+class EquipmentHistory(Base):
+    __tablename__ = "equipment_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True)
+    event_type = Column(String(50), nullable=False)  # alteracao_ip, alteracao_mac, mudanca_localizacao, troca_peca, manutencao, atendimento, observacao
+    description = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    equipment = relationship("Equipment", back_populates="history")
+    user = relationship("User")
+
+
+class License(Base):
+    __tablename__ = "licenses"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(150), nullable=False)
+    license_type = Column(String(50), nullable=False, default="perpetua")  # perpetua, saas, volume, oem, open_source
+    vendor = Column(String(100), nullable=True)
+    license_key = Column(String(255), nullable=True)
+    total_seats = Column(Integer, default=1, nullable=False)
+    cost = Column(Float, nullable=True)
+    expiration_date = Column(DateTime(timezone=True), nullable=True)
+    status = Column(String(32), default="ativa", nullable=False)  # ativa, vencida, cancelada
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    assignments = relationship("LicenseAssignment", back_populates="license", cascade="all, delete-orphan")
+
+
+class LicenseAssignment(Base):
+    __tablename__ = "license_assignments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    license_id = Column(Integer, ForeignKey('licenses.id', ondelete="CASCADE"), nullable=False, index=True)
+    equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="SET NULL"), nullable=True, index=True)
+    assigned_to = Column(String(150), nullable=False)
+    notes = Column(Text, nullable=True)
+    assigned_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    license = relationship("License", back_populates="assignments")
+    equipment = relationship("Equipment", back_populates="license_assignments")
+
+
+class StockItem(Base):
+    __tablename__ = "stock_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(150), nullable=False, index=True)
+    category = Column(String(50), nullable=False, default="perifericos")  # perifericos, suprimentos, redes, pecas, cabos, outros
+    part_number = Column(String(100), nullable=True)
+    current_quantity = Column(Integer, default=0, nullable=False)
+    min_quantity = Column(Integer, default=2, nullable=False)
+    unit = Column(String(30), default="unidade", nullable=False)  # unidade, metro, caixa, kit
+    location = Column(String(150), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    movements = relationship("StockMovement", back_populates="stock_item", cascade="all, delete-orphan", order_by="StockMovement.created_at.desc()")
+
+
+class StockMovement(Base):
+    __tablename__ = "stock_movements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    stock_item_id = Column(Integer, ForeignKey('stock_items.id', ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True)
+    movement_type = Column(String(32), nullable=False)  # entrada, saida, transferencia, baixa, devolucao
+    quantity = Column(Integer, nullable=False)
+    store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True)
+    attendance_id = Column(Integer, ForeignKey('attendances.id', ondelete="SET NULL"), nullable=True)
+    reason = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    # Relationships
+    stock_item = relationship("StockItem", back_populates="movements")
+    user = relationship("User")
+    store = relationship("Store")
+    attendance = relationship("Attendance")
+
 

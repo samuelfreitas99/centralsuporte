@@ -24,7 +24,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'knowledge', label: 'Base de Conhecimento', icon: BookOpen, section: 'operacional' },
   { id: 'commands', label: 'Comandos e Respostas', icon: Terminal, section: 'operacional' },
   { id: 'attendance', label: 'Atendimentos Internos', icon: Headset, section: 'operacional' },
-  { id: 'equipment', label: 'Equipamentos', icon: Server, section: 'sistema' },
+  { id: 'equipment', label: 'Infraestrutura & Parque', icon: Server, section: 'sistema' },
   { id: 'files', label: 'Arquivos e Docs', icon: FolderArchive, section: 'sistema' },
   { id: 'users', label: 'Usuários e Perfis', icon: Users, permission: 'users:read', section: 'sistema' },
 ];

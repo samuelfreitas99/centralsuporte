@@ -116,10 +116,10 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Licenças: Gerenciamento de licenças de software, status e atribuição.
 - Estoque Operacional: Controle simples de materiais de uso rápido da equipe de suporte.
 **Checkpoints:**
-- [ ] Migrations e endpoints baseados nas estruturas.
-- [ ] Telas de gerenciamento de inventário, licenças e estoque.
-- [ ] Relacionar equipamentos em atendimentos.
-- [ ] Testes unitários.
+- [x] Migrations e endpoints baseados nas estruturas.
+- [x] Telas de gerenciamento de inventário, licenças e estoque.
+- [x] Relacionar equipamentos em atendimentos.
+- [x] Testes unitários.
 
 ---
 

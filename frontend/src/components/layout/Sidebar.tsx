@@ -72,6 +72,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   Fase 7
                 </span>
               )}
+              {item.id === 'equipment' && (
+                <span className="text-[10px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                  Fase 8
+                </span>
+              )}
             </button>
           );
         })}

@@ -407,6 +407,7 @@ class AttendanceBase(BaseModel):
     requester_name: Optional[str] = None
     status: str = "em_andamento"
     equipment_name: Optional[str] = None
+    equipment_id: Optional[int] = None
     store_department: Optional[str] = None
     problem_description: Optional[str] = None
     symptoms: Optional[str] = None
@@ -427,6 +428,7 @@ class AttendanceUpdate(BaseModel):
     technician_id: Optional[int] = None
     status: Optional[str] = None
     equipment_name: Optional[str] = None
+    equipment_id: Optional[int] = None
     store_department: Optional[str] = None
     problem_description: Optional[str] = None
     symptoms: Optional[str] = None
@@ -445,4 +447,215 @@ class AttendanceResponse(AttendanceBase):
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+
+# --- Phase 8: Infraestrutura (Lojas, Departamentos, Equipamentos, Licenças, Estoque) ---
+
+class StoreBase(BaseModel):
+    name: str
+    code: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    status: str = "ativa"
+    notes: Optional[str] = None
+
+class StoreCreate(StoreBase):
+    pass
+
+class StoreUpdate(BaseModel):
+    name: Optional[str] = None
+    code: Optional[str] = None
+    address: Optional[str] = None
+    phone: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+class StoreResponse(StoreBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DepartmentBase(BaseModel):
+    name: str
+    store_id: Optional[int] = None
+    description: Optional[str] = None
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+class DepartmentUpdate(BaseModel):
+    name: Optional[str] = None
+    store_id: Optional[int] = None
+    description: Optional[str] = None
+
+class DepartmentResponse(DepartmentBase):
+    id: int
+    store: Optional[StoreResponse] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EquipmentHistoryCreate(BaseModel):
+    event_type: str
+    description: str
+
+class EquipmentHistoryResponse(BaseModel):
+    id: int
+    equipment_id: int
+    user_id: Optional[int] = None
+    user: Optional[UserSimpleResponse] = None
+    event_type: str
+    description: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class EquipmentBase(BaseModel):
+    patrimony: Optional[str] = None
+    hostname: Optional[str] = None
+    equipment_type: str
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    ip_address: Optional[str] = None
+    mac_address: Optional[str] = None
+    operating_system: Optional[str] = None
+    store_id: Optional[int] = None
+    department_id: Optional[int] = None
+    assigned_user: Optional[str] = None
+    status: str = "ativo"
+    notes: Optional[str] = None
+
+class EquipmentCreate(EquipmentBase):
+    pass
+
+class EquipmentUpdate(BaseModel):
+    patrimony: Optional[str] = None
+    hostname: Optional[str] = None
+    equipment_type: Optional[str] = None
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    ip_address: Optional[str] = None
+    mac_address: Optional[str] = None
+    operating_system: Optional[str] = None
+    store_id: Optional[int] = None
+    department_id: Optional[int] = None
+    assigned_user: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+class EquipmentResponse(EquipmentBase):
+    id: int
+    store: Optional[StoreResponse] = None
+    department: Optional[DepartmentResponse] = None
+    history: List[EquipmentHistoryResponse] = []
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LicenseAssignmentCreate(BaseModel):
+    equipment_id: Optional[int] = None
+    assigned_to: str
+    notes: Optional[str] = None
+
+class LicenseAssignmentResponse(BaseModel):
+    id: int
+    license_id: int
+    equipment_id: Optional[int] = None
+    assigned_to: str
+    notes: Optional[str] = None
+    assigned_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LicenseBase(BaseModel):
+    name: str
+    license_type: str = "perpetua"
+    vendor: Optional[str] = None
+    license_key: Optional[str] = None
+    total_seats: int = 1
+    cost: Optional[float] = None
+    expiration_date: Optional[datetime] = None
+    status: str = "ativa"
+    notes: Optional[str] = None
+
+class LicenseCreate(LicenseBase):
+    pass
+
+class LicenseUpdate(BaseModel):
+    name: Optional[str] = None
+    license_type: Optional[str] = None
+    vendor: Optional[str] = None
+    license_key: Optional[str] = None
+    total_seats: Optional[int] = None
+    cost: Optional[float] = None
+    expiration_date: Optional[datetime] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+
+class LicenseResponse(LicenseBase):
+    id: int
+    assignments: List[LicenseAssignmentResponse] = []
+    used_seats: int = 0
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class StockMovementCreate(BaseModel):
+    movement_type: str
+    quantity: int
+    store_id: Optional[int] = None
+    attendance_id: Optional[int] = None
+    reason: Optional[str] = None
+
+class StockMovementResponse(BaseModel):
+    id: int
+    stock_item_id: int
+    user_id: Optional[int] = None
+    user: Optional[UserSimpleResponse] = None
+    movement_type: str
+    quantity: int
+    store_id: Optional[int] = None
+    attendance_id: Optional[int] = None
+    reason: Optional[str] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
+class StockItemBase(BaseModel):
+    name: str
+    category: str = "perifericos"
+    part_number: Optional[str] = None
+    current_quantity: int = 0
+    min_quantity: int = 2
+    unit: str = "unidade"
+    location: Optional[str] = None
+    notes: Optional[str] = None
+
+class StockItemCreate(StockItemBase):
+    pass
+
+class StockItemUpdate(BaseModel):
+    name: Optional[str] = None
+    category: Optional[str] = None
+    part_number: Optional[str] = None
+    current_quantity: Optional[int] = None
+    min_quantity: Optional[int] = None
+    unit: Optional[str] = None
+    location: Optional[str] = None
+    notes: Optional[str] = None
+
+class StockItemResponse(StockItemBase):
+    id: int
+    is_low_stock: bool = False
+    movements: List[StockMovementResponse] = []
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 
