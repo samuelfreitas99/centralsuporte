@@ -1,42 +1,35 @@
 ---
 name: central-suporte-ui
 description: >-
-  Skill obrigatória para desenvolvimento de UI no projeto Central de Suporte.
-  Contém as regras de consistência visual, design premium, uso de glassmorphism, 
-  framer-motion e Tailwind customizado, garantindo que o design não fique simplista.
+  Skill obrigatória e específica para o desenvolvimento frontend da Central de Suporte.
+  Garante o alinhamento com a identidade visual premium, regras de UX, acessibilidade 
+  e uso funcional de animações, evitando a criação de UIs genéricas.
 ---
 
 # UI/UX Skill — Central de Suporte
 
-Ao atuar no frontend deste projeto, você deve OBRIGATORIAMENTE seguir as seguintes diretrizes para garantir uma UI premium, moderna e coesa (conforme `docs/UI_UX.md`).
+Sempre que atuar no frontend (React/Tailwind) deste projeto, você deve OBRIGATORIAMENTE seguir estas diretrizes. O objetivo é manter o padrão estabelecido, sem criar "ilhas" de design com aparência genérica ou conflitante.
 
-## 1. Diretriz Principal
-O design atual estava visualmente simplista por usar apenas o padrão básico do `shadcn/ui` com cores chapadas e falta de profundidade. A partir de agora, **toda tela ou componente novo deve ser visualmente rico e altamente polido**.
+## 1. Documentação Obrigatória
+Antes de implementar qualquer tela ou componente visual, você deve alinhar seu código lendo:
+1. `docs/DESIGN_SYSTEM.md` (A fonte primária para estética, cores, tipografia e motion).
+2. `docs/UI_UX.md` (Princípios de fricção, hierarquia e comportamento de tela).
+3. `docs/PRODUCT_SPEC.md` (Para entender o escopo da funcionalidade).
 
-## 2. Regras de Estilo (Tailwind + CSS)
-* **Profundidade e Glassmorphism**: Use `bg-background/80`, `backdrop-blur-xl`, e bordas translúcidas (`border-white/10` ou `border-border/50`) em Cards, Modals e Dropdowns.
-* **Gradientes**: Use gradientes sutis em fundos principais e em botões de destaque (CTA).
-* **Hover States**: Sempre aplique hover states significativos (ex: `hover:bg-accent/50`, `hover:-translate-y-1`, `hover:shadow-lg`, `transition-all duration-300`).
-* **Tipografia**: Garanta excelente hierarquia usando tamanhos contrastantes e cores atenuadas para subtítulos (`text-muted-foreground`).
+## 2. Padrões de Implementação (O que Fazer)
+* **Reutilização:** Sempre tente estender os componentes da pasta `components/ui` existentes antes de criar novos do zero.
+* **Consistência:** Utilize os tokens de Tailwind definidos no tema (cores semânticas, bordas, background) para implementar o Light Mode e Dark Mode corretamente, preservando a identidade visual premium.
+* **Estados da Tela:** Valide e implemente os 4 estados cruciais sempre que buscar dados do backend: Ideal, Loading (Skeletons), Empty State e Error.
+* **Responsividade e Acessibilidade:** Garanta que a tela quebre suavemente em mobile/tablet e que o `focus-visible` do teclado esteja funcionando bem, mantendo alto contraste nos textos e badges.
+* **Ícones:** Utilize a biblioteca de ícones (`lucide-react`) de forma consistente em termos de tamanho e `strokeWidth`.
 
-## 3. Uso de Animações
-* Integração de **framer-motion** é encorajada para transições de página, carregamento de listas e modais.
-* Exemplo de wrapper animado:
-```tsx
-import { motion } from 'framer-motion';
+## 3. Motion (Animações)
+* Utilize **exclusivamente** a biblioteca `motion/react`.
+* Aplique animações com **propósito** (indicadores de entrada/saída, modais, dropdowns, feedback de sucesso).
+* **Obrigatório:** Respeite o `prefers-reduced-motion` utilizando os hooks adequados da biblioteca para cancelar movimentos se o usuário assim preferir.
 
-export const FadeIn = ({ children }) => (
-  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-    {children}
-  </motion.div>
-);
-```
-
-## 4. Consistência do shadcn/ui
-Ao utilizar componentes do shadcn (já na pasta `components/ui`), não se limite ao visual out-of-the-box caso ele destoe do padrão premium exigido. Adicione classes Tailwind (ex: `className="bg-white/5 backdrop-blur border-white/10"`) quando instanciar o componente nas telas para alcançar a estética definida.
-
-## 5. Proibições
-* NÃO crie telas com fundos de uma única cor sólida chapada e cards da mesma cor sólida por cima, sem borda de contraste ou elevação.
-* NÃO utilize cores genéricas (red-500, blue-500) para avisos. Utilize a paleta ajustada do tema, favorecendo badges com background de baixa opacidade e texto vivo.
-
-**LEMBRE-SE:** O objetivo é impressionar o usuário, trazendo a sensação de um produto de altíssima tecnologia.
+## 4. O que NÃO Fazer (Evitar)
+* NÃO crie UI com aparência de "template padrão" ou "CRUD genérico administrativo".
+* NÃO adicione `framer-motion` nas dependências. Apenas use o `motion/react`.
+* NÃO utilize excesso de efeitos (como blurs exagerados ou gradientes de arco-íris) nem faça uma tela parecer feita inteiramente de vidro (Glassmorphism apenas onde fizer sentido).
+* NÃO crie soluções visuais isoladas que contradigam o `DESIGN_SYSTEM.md`. Se o componente precisar evoluir, a evolução deve servir para todo o projeto.

@@ -20,6 +20,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Entidades: `users`, `roles`, `permissions`.
 - Autenticação local JWT segura.
 - Controle de sessão e perfis de usuário (Admin, Gestor, Técnico, Consulta).
+- *Nota: Evoluirá futuramente para suportar informações operacionais de perfil (especialidades, turnos), mas sem tornar-se um módulo social complexo.*
 **Checkpoints:**
 - [x] Implementar migrations e models do banco de dados.
 - [x] Endpoints de login e gestão de usuários (Backend).
@@ -47,6 +48,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 **Entregas principais:**
 - Visão geral com informações táticas rápidas (tarefas pendentes, lembretes, últimos atendimentos).
 - Painel para organizar o início do turno do técnico.
+- *Nota: Deve prever futuramente um dashboard pessoal/contextual por usuário (aproveitando tarefas, lembretes, atendimentos).*
 **Checkpoints:**
 - [x] Criar estrutura do Dashboard no frontend.
 - [x] Implementar mock de dados se as fases seguintes ainda não estiverem prontas.
@@ -54,10 +56,12 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ---
 
-## Fase 4 — Organização (Tarefas, Checklists, Calendário)
+## Fase 4 — Organização (Tarefas, Checklists, Calendário e Projetos)
 **Entregas principais:**
-- Entidades: `tasks`, `task_assignments`, `checklists`, `checklist_items`, `reminders`, `calendar_events`.
+- Entidades: `tasks`, `task_assignments`, `checklists`, `checklist_items`, `reminders`, `calendar_events`, `projects`.
 - Funcionalidades: Criar/atribuir tarefas, listas de checklists, lembretes pontuais e visualização de calendário.
+- Histórico: Consultas retroativas de tarefas, lembretes e eventos da agenda passados.
+- Projetos Operacionais: Agrupamento de tarefas, checklists, equipamentos e arquivos (ex: abertura de loja).
 **Checkpoints:**
 - [x] Migrations e models.
 - [x] Endpoints de CRUD e gestão de status.
@@ -104,14 +108,16 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ---
 
-## Fase 8 — Infraestrutura (Lojas e Equipamentos)
+## Fase 8 — Infraestrutura (Lojas, Equipamentos, Licenças e Estoque)
 **Entregas principais:**
 - Cadastro e organização do parque tecnológico.
-- Entidades: `stores`, `departments`, `equipment`, `equipment_history`.
-- Funcionalidades: Cadastro de equipamentos com vínculo a lojas, tracking de histórico (IP, MAC, problemas passados).
+- Entidades: `stores`, `departments`, `equipment`, `equipment_history`, `licenses`, `stock_items`, `stock_movements`.
+- Funcionalidades: Cadastro de equipamentos com vínculo a lojas, tracking de histórico.
+- Licenças: Gerenciamento de licenças de software, status e atribuição.
+- Estoque Operacional: Controle simples de materiais de uso rápido da equipe de suporte.
 **Checkpoints:**
-- [ ] Migrations e endpoints baseados nas estruturas de lojas e ativos.
-- [ ] Telas de gerenciamento de inventário.
+- [ ] Migrations e endpoints baseados nas estruturas.
+- [ ] Telas de gerenciamento de inventário, licenças e estoque.
 - [ ] Relacionar equipamentos em atendimentos.
 - [ ] Testes unitários.
 
@@ -135,7 +141,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - Funcionalidades: Upload no servidor via API, armazenamento estruturado dos metadados no Postgres e gestão segura de acessos.
 **Checkpoints:**
 - [ ] Configuração do sistema de storage local no FastAPI.
-- [ ] Refatoração das entidades que aceitam anexos (Tarefas, Atendimentos, Manutenções).
+- [ ] Refatoração das entidades que aceitam anexos.
 
 ---
 
@@ -153,9 +159,11 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 ## Fase 12 — Auditoria e Segurança
 **Entregas principais:**
 - Controle avançado e trilhas de auditoria.
+- Planejamento e revisão de arquitetura de segurança para o futuro **Cofre de Senhas** (armazenamento de senhas sem logs/texto puro, com criptografia adequada).
 - Entidades: `audit_logs`.
 - Funcionalidades: Logs automáticos de alterações sensíveis, bloqueio de soft-deletes onde aplicável e revisão robusta de regras no backend.
 **Checkpoints:**
+- [ ] Revisão arquitetural documentada em `DECISIONS.md` para o Cofre.
 - [ ] Implementação de middlewares de auditoria.
 - [ ] Revisão geral de proteção de rotas e segurança (backend).
 
@@ -182,39 +190,8 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 ## Fase 15 — Polimento
 **Entregas principais:**
 - Ajustes finos do MVP antes de estabilização.
+- Consolidação visual final, UX, acessibilidade, performance e consistência geral.
 **Checkpoints:**
-- [ ] Revisão de UX e acessibilidade.
+- [ ] Revisão profunda de UX e acessibilidade (`prefers-reduced-motion`, contraste).
 - [ ] Cobertura de testes e correções finais de performance.
 - [ ] Atualização final da documentação corporativa.
-
----
-
-## Fase 16 — Licenças e Estoque Operacional
-**Entregas principais:**
-- Módulo de controle de licenças de software.
-- Módulo de controle de materiais de uso rápido (toners, periféricos).
-**Checkpoints:**
-- [ ] Entidades de banco de dados (`licenses`, `stock_items`, `stock_movements`).
-- [ ] Endpoints e UI para CRUD e gestão de atribuição/uso.
-- [ ] Alertas de vencimento de licença e estoque mínimo.
-
----
-
-## Fase 17 — Projetos Operacionais e Histórico Completo
-**Entregas principais:**
-- Agrupamento de tarefas e checklists em "Projetos".
-- Histórico auditável e consultivo de lembretes e agenda.
-- Expansão dos perfis de usuários com metadados.
-**Checkpoints:**
-- [ ] Entidade `projects` e relacionamentos com `tasks` e `checklists`.
-- [ ] Telas de visão macro de projetos.
-
----
-
-## Fase 18 — Cofre de Senhas
-**Entregas principais:**
-- Armazenamento de senhas e credenciais administrativas.
-**Checkpoints:**
-- [ ] Revisão de arquitetura de segurança, documentada em `DECISIONS.md`.
-- [ ] Implementação de criptografia robusta.
-- [ ] Auditoria de acessos.

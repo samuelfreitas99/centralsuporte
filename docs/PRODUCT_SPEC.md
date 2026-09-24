@@ -802,50 +802,116 @@ Registros específicos para manutenção física/lógica. (Pendente de detalhame
 
 ---
 
-# 33. Licenças (Novo Módulo)
+# 33. Licenças
 
-O sistema deve permitir o controle de licenças de software adquiridas e utilizadas pela empresa.
-* **Informações:** Produto, Chave/Token, Quantidade, Atribuições, Vencimento, Custo, Fornecedor.
-* **Objetivo:** Evitar perda de licenças, facilitar auditoria e alertar sobre vencimentos próximos.
+**Objetivo:** Gerenciar licenças de software e assinaturas digitais utilizadas pela empresa e mantidas sob controle do suporte.
+**Escopo:** Controle operacional simples de quantidade, vigência, custo e atribuição de licenças.
+**O que NÃO faz:** Não é um sistema de auditoria de SAM (Software Asset Management) automatizado via rede, nem faz varredura de endpoints.
 
----
+**Entidades envolvidas:** `licenses`, `license_assignments`
+**Principais campos:**
+* Nome/Produto;
+* Tipo (SaaS, Perpétua, Open Source, Volume);
+* Fabricante/Fornecedor;
+* Chave/Token;
+* Quantidade adquirida;
+* Custo opcional;
+* Data de validade/vencimento;
+* Status (Ativa, Vencida, Cancelada);
+* Observações e campos personalizados.
 
-# 34. Histórico de lembretes e agenda (Novo Módulo)
-
-O sistema deve registrar o histórico de todos os lembretes disparados e eventos de agenda passados.
-* **Objetivo:** Permitir consulta retroativa do que foi alertado para a equipe e quando os eventos ocorreram.
-
----
-
-# 35. Perfis de usuários (Novo Módulo)
-
-O sistema de gestão de perfis deve ser enriquecido com informações operacionais.
-* **Informações:** Especialidades, turno, histórico de atendimentos, tarefas concluídas, contato.
-* **Objetivo:** Humanizar o sistema e permitir identificar rapidamente quem é o especialista em determinado assunto.
-
----
-
-# 36. Controle de materiais/estoque operacional (Novo Módulo)
-
-Módulo para gerenciar materiais de uso rápido (cabos, mouses, teclados, toners).
-* **Funcionalidades:** Entrada, Saída, Saldo, Alertas de estoque mínimo, Vínculo com Atendimento (em qual chamado foi usado o material).
-* **Objetivo:** Evitar falta de suprimentos críticos para a operação diária.
+**Relacionamentos e Atribuições:** Uma licença pode ter X "assentos" atribuídos a usuários, lojas ou equipamentos.
+**Ações e Comportamento Esperado:**
+* Cadastro/edição de licenças;
+* Gestão de assentos (atribuir/remover);
+* Dashboard/alertas de licenças próximas ao vencimento (ex: 30 dias);
+* Estados vazios adequados se não houver licenças ativas;
+* Permissões restritas (apenas Admin/Gestor podem gerenciar chaves).
 
 ---
 
-# 37. Projetos operacionais (Novo Módulo)
+# 34. Estoque / Material Operacional
 
-Permitir o agrupamento de tarefas, checklists e arquivos em "Projetos".
-* **Exemplos:** "Migração de Servidor X", "Abertura da Loja Y".
-* **Objetivo:** Organizar ações que demandam vários passos e múltiplos envolvidos ao longo do tempo, mantendo a visão macro.
+**Objetivo:** Controlar materiais físicos de uso rápido ou equipamentos sob custódia temporária do suporte técnico (ex: toners, teclados, switches reserva).
+**Escopo:** Registro de entrada, saída e transferência (Ex: "10 mouses recebidos, 5 enviados para loja X, 5 disponíveis").
+**O que NÃO faz:** NÃO é um ERP ou sistema contábil de controle de almoxarifado corporativo. Não calcula depreciação nem emite notas fiscais.
+
+**Entidades envolvidas:** `stock_items`, `stock_movements`
+**Principais campos:**
+* Nome do Item/Categoria (ex: Mouse Dell, Toner HP 85A);
+* Código/Part Number;
+* Saldo disponível;
+* Estoque Mínimo para alerta.
+
+**Ações e Movimentações:**
+* Entrada, Reserva, Transferência, Entrega, Devolução e Baixa;
+* Vínculo opcional da movimentação com um "Atendimento" (ex: "Entregue toner no chamado #123");
+* Histórico de movimentações auditável.
+**Integração:** Relaciona-se com Lojas e Atendimentos.
 
 ---
 
-# 38. Cofre de senhas (Novo Módulo - ATENÇÃO)
+# 35. Projetos Operacionais
 
-Módulo para armazenamento seguro de credenciais administrativas.
-* **Regra Crítica:** Requer revisão profunda de segurança (criptografia em repouso, chave mestre, log de acesso rigoroso) antes da implementação.
-* **Objetivo:** Centralizar de forma segura senhas de roteadores, switches, contas de serviço, etc.
+**Objetivo:** Agrupar atividades complexas e de longa duração que envolvem múltiplos técnicos e recursos (ex: "Implantação Loja 4", "Migração de Servidores 2026").
+**Escopo:** Visão macro (container) que unifica o trabalho em torno de um objetivo corporativo da TI.
+**O que NÃO faz:** Não é um calendário simples e não tenta substituir ferramentas de gerenciamento ágil como Jira ou MS Project (nada de gráficos de Gantt complexos no MVP).
+
+**Entidades envolvidas:** `projects`
+**Principais campos:**
+* Título, Descrição, Status (Planejamento, Em Execução, Concluído, Pausado);
+* Prazo Estimado, Responsável Técnico.
+**Relacionamentos:**
+* Um projeto agrupa N Tarefas, N Checklists, N Atendimentos, Eventos da Agenda, Equipamentos relacionados e Arquivos anexos.
+**Ações e Comportamento:**
+* Visão consolidada (Dashboard do Projeto) mostrando progresso das tarefas;
+* Permite fechar/concluir o projeto, arquivando suas atividades;
+* Filtro global para ver apenas o que pertence ao Projeto X.
+
+---
+
+# 36. Histórico de Tarefas, Lembretes e Agenda
+
+**Objetivo:** Preservar a memória operacional da equipe sobre o que foi executado e quando foi disparado.
+**Escopo:** Consultas retroativas para fins de auditoria interna e histórico.
+**O que NÃO faz:** Não recria a visualização de calendário em formato de edição, apenas leitura do que já passou.
+
+**Comportamento e Regras:**
+* **Tarefas Concluídas:** Mantêm histórico de quem concluiu e quando, além das observações de fechamento.
+* **Lembretes Disparados:** Mesmo após a data e o aceite, ficam registrados em listagem específica (`historical_reminders`).
+* **Agenda:** Eventos passados não somem completamente; entram em status "Realizado" e ficam acessíveis em pesquisa retroativa.
+* **Pesquisa e Filtros:** Cruciais para permitir responder à pergunta: "O que agendamos ou lembramos de fazer na semana passada sobre o assunto X?".
+
+---
+
+# 37. Perfis de Usuários
+
+**Objetivo:** Humanizar o sistema, identificando os membros da equipe de TI e suas especialidades técnicas.
+**Escopo:** Extensão do módulo de Autenticação inicial.
+**O que NÃO faz:** Não é uma rede social corporativa; não terá feeds de timeline, chats diretos ou comentários de perfil.
+
+**Principais campos adicionais:**
+* Especialidades técnicas (ex: Redes, Windows Server, Impressoras);
+* Turno de trabalho / Horário de plantão;
+* Contato interno de emergência.
+**Integração e Exibição:**
+* Perfil do usuário exibirá métricas operacionais automáticas: "X Atendimentos Realizados", "Y Tarefas Concluídas", "Projetos em que participa".
+
+---
+
+# 38. Cofre de Senhas (Planejamento)
+
+**Objetivo:** Armazenar de forma centralizada e hiper-segura credenciais administrativas e tokens sensíveis utilizados pelo suporte.
+**Escopo:** Cofre seguro com auditoria restrita de quem revelou a senha.
+**O que NÃO faz:** Não deve ser implementado no MVP e não substituirá o AD.
+
+**Regras de Negócio e Segurança OBRIGATÓRIAS (Pré-requisitos da implementação futura):**
+* Diferenciação entre credenciais compartilhadas (time) e pessoais (privadas);
+* Campos: Sistema/URL/Equipamento, Login, Senha, Observações;
+* **Criptografia:** Senhas JAMAIS em texto puro no banco. Uso de chaves de criptografia gerenciadas fora do código-fonte (ex: Vault externo ou chave injetada no ambiente);
+* **Auditoria:** Log inalterável de qual usuário acessou a opção "Exibir Senha" e quando;
+* Nenhuma senha exibida em logs da aplicação, payloads de erro ou crash dumps;
+* Antes da implementação real, a arquitetura técnica deve ser validada e documentada em `DECISIONS.md`.
 
 O módulo de Manutenções deve registrar atividades de manutenção física ou lógica.
 
