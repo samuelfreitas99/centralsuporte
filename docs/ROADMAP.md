@@ -62,7 +62,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - [x] Migrations e models.
 - [x] Endpoints de CRUD e gestão de status.
 - [x] Telas de listagem, criação e edição.
-- [ ] Testes de fluxo e testes unitários.
+- [x] Testes de fluxo e testes unitários.
 
 ---
 

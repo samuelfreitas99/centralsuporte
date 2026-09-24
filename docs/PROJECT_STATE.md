@@ -1,12 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 4 (Organização) em andamento. Telas de listagem, criação e edição de tarefas, acompanhamento de checklists, lembretes de escala e calendário implementadas no frontend.
-**Fase atual**: Fase 4 — Organização (Tarefas, Checklists, Calendário).
-**Última implementação**: Implementação das telas e componentes de organização: `TasksPage`, `TaskFormDialog` (criação e edição completa com referência OTRS), `TaskDetailDialog` (visualização de instruções, checklists dinâmicos, progresso de itens e status), `RemindersSection` (lembretes operacionais) e `CalendarSection` (eventos e manutenções programadas). Integração em `AuthenticatedView` e `organizationService`.
-**Último commit**: "feat: implement frontend tasks, checklists, reminders, and calendar views" (a479c7f)
-**Próxima tarefa**: Fase 4 — Organização (Tarefas, Checklists, Calendário) — Testes de fluxo e testes unitários.
+**Estado atual**: Fase 4 (Organização: Tarefas, Checklists, Calendário) 100% concluída. Suporte a acesso e login externo via IP do servidor (`http://10.0.29.220:5173`) configurado e validado.
+**Fase atual**: Fase 4 concluída. Próxima: Fase 5 (Conhecimento).
+**Última implementação**: Implementação de testes de fluxo ponta a ponta (`test_full_operational_organization_flow`) no backend e testes unitários de resolução de IP no frontend. Configuração de rede e Vite (`allowedHosts: true`, host `0.0.0.0`, resolução dinâmica de API por `window.location.hostname`) permitindo que qualquer máquina acesse o sistema através de `http://10.0.29.220:5173` comunicando com o backend em `http://10.0.29.220:8088`.
+**Último commit**: "feat: complete Phase 4 tests and configure network IP access for 10.0.29.220" (f935591)
+**Próxima tarefa**: Fase 5 — Conhecimento — Migrations, models e versionamento do conteúdo.
 **Bloqueios**: Nenhum.
-**Pendências**: Finalizar Fase 4 com testes de fluxo ponta a ponta e unitários complementares para consolidar a fase.
-**Testes**: 32 testes de frontend (vitest) e 13 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
+**Pendências**: Iniciar Fase 5 (Base de Conhecimento Técnico com artigos, categorias e controle de versões).
+**Testes**: 34 testes de frontend (vitest) e 14 testes de backend (pytest) executados e aprovados com 100% de sucesso. Build de produção do Vite/TypeScript compilado com sucesso.
 **Problemas conhecidos**: Nenhum.
-**Decisões recentes**: Módulo de Organização unificado em abas coesas ('Tarefas e Checklists', 'Lembretes' e 'Calendário'), mantendo as referências ao OTRS visíveis para garantir a separação entre operação interna e chamado oficial.
+**Decisões recentes**: Resolução dinâmica do host da API no frontend (`getApiBase`) para evitar fixação de `localhost` em hardcode, permitindo tanto desenvolvimento local quanto acesso via IP da rede corporativa (`10.0.29.220`).

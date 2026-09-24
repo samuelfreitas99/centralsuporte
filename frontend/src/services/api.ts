@@ -1,6 +1,15 @@
 import type { TokenResponse, User, Role } from '../types/auth';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8088';
+export function getApiBase(): string {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl !== 'http://localhost:8088') {
+    return envUrl;
+  }
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    return `${window.location.protocol}//${window.location.hostname}:8088`;
+  }
+  return 'http://localhost:8088';
+}
 
 export async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('token');
@@ -13,7 +22,7 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const response = await fetch(`${getApiBase()}${endpoint}`, {
     ...options,
     headers,
   });
