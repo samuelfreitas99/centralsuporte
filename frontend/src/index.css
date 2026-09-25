@@ -21,7 +21,7 @@
   --color-accent: hsl(var(--accent));
   --color-accent-foreground: hsl(var(--accent-foreground));
 
-  /* NOVO: cores semânticas */
+  /* Cores semânticas operacionais calibradas */
   --color-success: hsl(var(--success));
   --color-success-foreground: hsl(var(--success-foreground));
   --color-warning: hsl(var(--warning));
@@ -34,84 +34,104 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+
+  /* Tokens de Raio e Elevação */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.08);
+  --shadow-popover: 0 4px 6px -1px rgb(0 0 0 / 0.12), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.25), 0 8px 10px -6px rgb(0 0 0 / 0.25);
 }
 
 :root {
-  /* ===== Dark Mode (Deep Slate refinado — mais profundidade) ===== */
-  --background: 224 45% 6%;          /* mais escuro que antes */
-  --foreground: 210 40% 98%;
+  /* ===== Dark Mode (Modern Operations Center — Deep Matte Slate) ===== */
+  /* Fundo fosco técnico, baixa fadiga ocular, sem saturação excessiva */
+  --background: 220 18% 9%;
+  --foreground: 215 20% 95%;
 
-  --card: 224 38% 10%;               /* camada visível sobre background */
-  --card-foreground: 210 40% 98%;
+  /* Superfícies hierarquizadas por luminosidade, sem bordas pesadas */
+  --card: 220 16% 12%;
+  --card-foreground: 215 20% 95%;
 
-  --popover: 224 40% 12%;            /* popover acima do card */
-  --popover-foreground: 210 40% 98%;
+  --popover: 220 16% 14%;
+  --popover-foreground: 215 20% 95%;
 
-  --primary: 217 91% 60%;
+  /* Acento cobalto técnico (preciso, sem brilho neon) */
+  --primary: 217 72% 52%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 217 33% 17%;
-  --secondary-foreground: 210 40% 98%;
+  --secondary: 220 14% 17%;
+  --secondary-foreground: 215 20% 90%;
 
-  --muted: 217 33% 15%;
-  --muted-foreground: 215 25% 72%;   /* +claro p/ melhor contraste */
+  --muted: 220 14% 15%;
+  --muted-foreground: 217 14% 62%;
 
-  --accent: 217 33% 22%;
-  --accent-foreground: 210 40% 98%;
+  --accent: 220 14% 18%;
+  --accent-foreground: 215 20% 95%;
 
-  /* Cores semânticas */
-  --success: 152 76% 45%;
+  /* Cores semânticas operacionais técnicas */
+  --success: 156 55% 42%;
   --success-foreground: 0 0% 100%;
-  --warning: 38 92% 55%;
-  --warning-foreground: 26 83% 14%;
-  --info: 199 89% 55%;
+  --warning: 38 72% 48%;
+  --warning-foreground: 24 80% 10%;
+  --info: 205 65% 48%;
   --info-foreground: 0 0% 100%;
-  --destructive: 0 72% 55%;
+  --destructive: 0 64% 52%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 217 33% 22%;             /* mais visível */
-  --input: 217 33% 17%;              /* ligeiramente mais escuro */
-  --ring: 217 91% 65%;               /* +claro p/ foco visível */
+  /* Bordas suaves e discretas (elimina o efeito de caixas marcadas) */
+  --border: 220 14% 17%;
+  --input: 220 14% 15%;
+  --ring: 217 72% 52%;
 
-  --radius: 0.75rem;
+  /* Raio padrão técnico refinado (8px) */
+  --radius: 0.5rem;
 }
 
 .light {
-  /* ===== Light Mode (Clean Slate refinado) ===== */
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
+  /* ===== Light Mode (Ergonomic Technical Light — Clean Slate) ===== */
+  /* Fundo off-white confortável, evitando cansaço visual de branco puro */
+  --background: 216 24% 96%;
+  --foreground: 222 35% 12%;
 
+  /* Superfície em branco puro para contraste limpo com o fundo off-white */
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 222 35% 12%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 222 35% 12%;
 
-  --primary: 221 83% 53%;
+  /* Acento cobalto equilibrado para alto contraste */
+  --primary: 217 72% 50%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 210 40% 96%;
-  --secondary-foreground: 222 47% 11%;
+  --secondary: 214 20% 92%;
+  --secondary-foreground: 222 35% 15%;
 
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 25% 35%;   /* mais escuro → contraste AA ✓ */
+  --muted: 214 20% 93%;
+  --muted-foreground: 217 15% 40%;
 
-  --accent: 210 40% 94%;
-  --accent-foreground: 222 47% 11%;
+  --accent: 214 20% 90%;
+  --accent-foreground: 222 35% 12%;
 
-  /* Cores semânticas */
-  --success: 152 69% 36%;
+  /* Cores semânticas operacionais modo claro */
+  --success: 156 60% 32%;
   --success-foreground: 0 0% 100%;
-  --warning: 32 95% 44%;
+  --warning: 36 84% 36%;
   --warning-foreground: 0 0% 100%;
-  --info: 199 89% 42%;
+  --info: 205 75% 38%;
   --info-foreground: 0 0% 100%;
-  --destructive: 0 72% 51%;
+  --destructive: 0 68% 46%;
   --destructive-foreground: 0 0% 100%;
 
-  --border: 214 32% 91%;
-  --input: 214 32% 88%;              /* mais escuro que border */
-  --ring: 221 83% 53%;
+  /* Bordas discretas e sem excesso de contraste */
+  --border: 216 18% 88%;
+  --input: 216 18% 91%;
+  --ring: 217 72% 50%;
 }
 
 * { box-sizing: border-box; }
@@ -126,11 +146,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Glow ambiente mais sutil e sofisticado */
+/* Fundo dark fosco técnico — profundidade sutil e controlada, sem efeito neon/gamer */
 body:not(.light) {
-  background-image:
-    radial-gradient(at 100% 0%, hsl(217 91% 60% / 0.10) 0px, transparent 55%),
-    radial-gradient(at 0% 100%, hsl(260 80% 60% / 0.06) 0px, transparent 55%);
+  background-image: radial-gradient(at 50% 0%, hsl(220 18% 12% / 0.35) 0px, transparent 70%);
   background-attachment: fixed;
 }
 
@@ -145,35 +163,42 @@ h1, h2, h3, .font-heading {
   font-family: var(--font-heading), var(--font-sans);
 }
 
-/* Glassmorphism */
+/* Superfícies translúcidas funcionais (sem blur exagerado ou aspecto leitoso) */
 .glass-panel {
-  background: hsl(224 40% 12% / 0.72);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid hsl(210 40% 98% / 0.08);
+  background: hsl(var(--card) / 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border) / 0.7);
 }
 
 .light .glass-panel {
-  background: hsl(0 0% 100% / 0.78);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  border: 1px solid hsl(214 32% 91% / 0.9);
+  background: hsl(0 0% 100% / 0.90);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border) / 0.8);
 }
 
+/* Scrollbar técnica e discreta */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.25);
+  background: hsl(var(--muted-foreground) / 0.20);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.40);
 }
 
 /* ===== Acessibilidade & Focus Visible ===== */
 :focus-visible {
   outline: 2px solid hsl(var(--ring));
   outline-offset: 2px;
+}
+
+/* ===== Estados Disabled Globais ===== */
+:disabled, [aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 /* ===== Respeito ao prefers-reduced-motion (Acessibilidade Cognitiva & Conforto) ===== */
