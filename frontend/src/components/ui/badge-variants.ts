@@ -1,23 +1,24 @@
 import { cva } from 'class-variance-authority';
 
 export const badgeVariants = cva(
-  'inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium tracking-tight transition-colors focus:outline-none focus:ring-1 focus:ring-ring',
   {
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary/15 text-primary border border-primary/25 font-semibold',
+          'bg-primary/10 text-primary border border-primary/20 font-semibold',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'bg-secondary text-secondary-foreground border border-border/40',
         destructive:
-          'border-transparent bg-destructive/15 text-destructive border border-destructive/30 font-medium',
-        outline: 'border-border/80 text-foreground',
+          'bg-destructive/10 text-destructive border border-destructive/20 font-medium',
+        outline:
+          'border border-border/70 text-muted-foreground bg-transparent',
         success:
-          'border-transparent bg-success/15 text-success border border-success/30 font-medium',
+          'bg-success/10 text-success border border-success/20 font-medium',
         warning:
-          'border-transparent bg-warning/15 text-warning border border-warning/30 font-medium',
+          'bg-warning/10 text-warning border border-warning/20 font-medium',
         info:
-          'border-transparent bg-info/15 text-info border border-info/30 font-medium',
+          'bg-info/10 text-info border border-info/20 font-medium',
       },
     },
     defaultVariants: {

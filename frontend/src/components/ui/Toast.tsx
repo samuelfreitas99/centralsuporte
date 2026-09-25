@@ -66,47 +66,47 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     <ToastContext.Provider value={{ showToast, success, error, warning, info }}>
       {children}
       <div
-        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
+        className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none"
         aria-live="polite"
       >
         <AnimatePresence>
           {toasts.map((toast) => {
             const icons = {
-              success: <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />,
-              warning: <AlertTriangle className="h-5 w-5 text-amber-400 shrink-0" />,
-              error: <AlertCircle className="h-5 w-5 text-red-400 shrink-0" />,
-              info: <Info className="h-5 w-5 text-sky-400 shrink-0" />,
+              success: <CheckCircle2 className="h-4 w-4 text-success shrink-0 mt-0.5" />,
+              warning: <AlertTriangle className="h-4 w-4 text-warning shrink-0 mt-0.5" />,
+              error: <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />,
+              info: <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />,
             };
 
             const borderColors = {
-              success: 'border-emerald-500/30 bg-slate-900/95 text-slate-100 shadow-emerald-950/20',
-              warning: 'border-amber-500/30 bg-slate-900/95 text-slate-100 shadow-amber-950/20',
-              error: 'border-red-500/30 bg-slate-900/95 text-slate-100 shadow-red-950/20',
-              info: 'border-sky-500/30 bg-slate-900/95 text-slate-100 shadow-sky-950/20',
+              success: 'border-success/30',
+              warning: 'border-warning/30',
+              error: 'border-destructive/30',
+              info: 'border-info/30',
             };
 
             return (
               <motion.div
                 key={toast.id}
-                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                initial={{ opacity: 0, y: 10, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className={`pointer-events-auto flex items-start gap-3 rounded-xl border p-4 shadow-xl backdrop-blur-md ${borderColors[toast.type]}`}
+                exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                transition={{ duration: 0.15 }}
+                className={`pointer-events-auto flex items-start gap-3 rounded-xl border bg-popover text-popover-foreground p-3.5 shadow-lg ${borderColors[toast.type]}`}
               >
                 {icons[toast.type]}
-                <div className="flex-1 text-sm">
-                  <p className="font-semibold leading-tight">{toast.title}</p>
+                <div className="flex-1 text-xs">
+                  <p className="font-semibold leading-tight text-popover-foreground">{toast.title}</p>
                   {toast.message && (
-                    <p className="mt-1 text-xs text-slate-400 leading-relaxed">{toast.message}</p>
+                    <p className="mt-1 text-[11px] text-muted-foreground leading-relaxed">{toast.message}</p>
                   )}
                 </div>
                 <button
                   onClick={() => removeToast(toast.id)}
-                  className="text-slate-400 hover:text-slate-200 p-0.5 rounded transition-colors"
+                  className="text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer transition-colors"
                   aria-label="Fechar notificação"
                 >
-                  <X className="h-4 w-4" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               </motion.div>
             );
