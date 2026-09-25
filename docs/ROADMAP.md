@@ -209,3 +209,18 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - [x] Revisão profunda de UX e acessibilidade: `<MotionConfig reducedMotion="user">`, CSS `@media (prefers-reduced-motion: reduce)`, link de acessibilidade "Skip to content" (`#main-content`), anéis de foco (`:focus-visible`) e atalho global `Ctrl+K`.
 - [x] Cobertura de testes e correções de performance: Code-splitting com `React.lazy` e `Suspense` em todas as rotas secundárias (redução de 40% do bundle principal) e `PageSkeleton.tsx`.
 - [x] Atualização de documentação corporativa e técnica com decisões registradas em `DECISIONS.md`.
+
+---
+
+## Backlog Arquitetural Pós-MVP
+
+*(Não são fases definitivas. Representam os grandes blocos de trabalho identificados pela auditoria, pendentes de priorização).*
+
+* **Evolução Documental (Arquivos):** Centralização e polimorfismo de arquivos via tabela associativa N:N, permitindo reuso em múltiplas entidades.
+* **Projetos Operacionais:** Criação da entidade `Project` como guarda-chuva para agrupar tarefas, equipamentos e checklists.
+* **Cofre de Senhas:** Implementação do módulo hyper-seguro (Envelope Encryption) para credenciais de rede, com log inalterável de revelação de senha.
+* **Remodelagem de Licenças:** Mascaramento obrigatório na interface gráfica e vínculo direto entre Licenças e Usuários ou Credenciais do Cofre.
+* **Checklists Reutilizáveis (Templates):** Desacoplar os itens estáticos das instâncias, permitindo criar "Matrizes de Checklist".
+* **Dashboard V2 (Alarme & Situação):** Alimentação consolidada por serviço para alertas cruciais (licenças vencendo, estoque baixo) sem sobrecarregar a UX.
+* **Perfil do Técnico e Squads:** Enriquecimento do `User` atual para um Perfil Operacional (Cargos, turnos e métricas pessoais).
+* **Cotações:** Fluxo de orçamentação amarrado à reposição de estoque.

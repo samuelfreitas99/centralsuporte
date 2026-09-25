@@ -70,3 +70,12 @@
 - **Contexto**: Exigência de conformidade com o `DESIGN_SYSTEM.md`, `UI_UX.md` e checkpoints da Fase 15 do `ROADMAP.md` para finalização e estabilização do MVP da Central Operacional.
 - **Consequências**: Experiência de uso fluida, inclusiva e ágil para o time de suporte técnico, com carregamento otimizado mesmo em redes com restrição de largura de banda.
 
+### 2026-09-25: Congelamento e Diretrizes Arquiteturais (Pós-MVP)
+- **Decisão**: Estabelecimento formal de diretrizes para o próximo ciclo:
+  1. **Soft Delete**: Entidades críticas operacionais (`Equipment`, `License`, `Store`) usarão estados inativos em vez de Hard Delete, preservando consistência de trilhas técnicas.
+  2. **Arquivos como Biblioteca**: O acoplamento N:1 de arquivos passa a N:N (Tabelas de Junção `document_equipment`, etc.), elevando anexos a Documentos globais pesquisáveis.
+  3. **Checklists como Templates**: Checklists deverão ter tabelas de `Template` para reuso contínuo.
+  4. **Projetos Operacionais**: Tarefas complexas deixarão de viver isoladamente e serão agregadas sob a nova entidade pai `Project`.
+- **Contexto**: Fechamento do MVP e documentação proveniente de auditoria exaustiva.
+- **Consequências**: O escopo passa a suportar relacionamentos mais robustos, sem perder as regras de negócio consolidadas (OTRS permanece o canal oficial, Cofre usa Envelope Encryption, etc.).
+
