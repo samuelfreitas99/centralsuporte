@@ -1,27 +1,25 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase Visual 1 (Fundação Visual / Design Tokens) concluída com sucesso. Base visual técnica "Modern Operations Center" estabelecida.
-**Fase atual**: Fase Visual 1 concluída -> Próxima: Fase Visual 2 (Shell e Layout Global).
+**Estado atual**: Fase Visual 2 (App Shell / Sidebar / Header) concluída com sucesso. Estrutura de navegação global e layout operacional alinhados à identidade "Modern Operations Center".
+**Fase atual**: Fase Visual 2 concluída -> Próxima: Fase Visual 3 (Componentes Base e Padrões de Superfície).
 **Última implementação**: 
-- **Fase Visual 1 — Fundação Visual / Design Tokens (`frontend/src/index.css`)**:
-  - **Linguagem Visual "Modern Operations Center"**: Consolidação de tokens semânticos e estruturais para operação técnica focada e sem ruído.
-  - **Dark Mode Fosco e Calibrado**: Transição da base anterior para um slate-grafite fosco (`220 18% 9%`) com superfícies hierarquizadas por luminosidade (`220 16% 12%`), eliminando saturação azulada gamer e glow RGB no background.
-  - **Light Mode Ergonômico**: Fundo off-white confortável (`216 24% 96%`) com superfícies em branco puro (`#ffffff`), garantindo alto contraste e leitura sem fadiga visual.
-  - **Atenuação do Efeito "Caixa Dentro de Caixa"**: Bordas com contraste suavizado (`220 14% 17%` dark / `216 18% 88%` light), preparando o terreno para componentes menos dependentes de linhas rígidas.
-  - **Moderação de Glassmorphism**: Painéis translúcidos `.glass-panel` calibrados para blur funcional de 8px e opacidades superiores (88%-90%), evitando efeitos borrados ou leitosos excessivos.
-  - **Acessibilidade e Usabilidade Preservadas**: Foco visível (`:focus-visible` ring de 2px), padronização de estados `:disabled`, respeito a `prefers-reduced-motion` e contraste WCAG AA.
-  - **Tokens de Raio e Elevação**: Raio padrão calibrado em `0.5rem` (8px) para maior precisão geométrica e sombras sutis de elevação.
+- **Fase Visual 2 — App Shell / Sidebar / Header (`AppLayout.tsx`, `Sidebar.tsx`, `Header.tsx`, `NotificationsDropdown.tsx`)**:
+  - **Sidebar Técnica e Compacta**: Eliminação completa de gradientes e sombras neon gamer. Implementação de navegação com estado ativo refinado (`bg-primary/10 text-primary border-primary/20`), agrupamento operacional e do sistema com tipografia clara, ícones consistentes e aviso do OTRS reestruturado de forma neutra e técnica.
+  - **Header Operacional Calibrado**: Altura compacta (h-14 / 56px) para maior foco na área de trabalho, ícone de terminal discreto, status operacional estável em esmeralda, gatilho ergonômico de busca global (`Ctrl+K`) e cápsula de usuário sem saturação excessiva.
+  - **NotificationsDropdown Fluido**: Animação de entrada sutil via `motion/react` (`opacity`, `scale` e translação discreta), respeitando `prefers-reduced-motion`, com prioridades visualmente claras e painel em popover de alta legibilidade.
+  - **App Layout e Superfícies Contínuas**: Relação contínua entre Sidebar, Header e área de conteúdo principal sem sobreposição de bordas pesadas. Preservação do link WCAG "Pular para o conteúdo principal" e suporte a atalhos de teclado.
+  - **Responsividade e Acessibilidade**: Gaveta mobile deslizante com fechamento por clique fora ou tecla `Escape`, mantendo foco visível `:focus-visible` e conformidade WCAG AA.
 - **Testes Automatizados**:
   - 87 testes de frontend (Vitest) 100% aprovados (17 arquivos de teste).
   - 44 testes de backend (Pytest) 100% aprovados.
   - Linter (`oxlint`) com 0 erros.
   - Build de produção (`tsc -b && vite build`) validado sem erros ou alertas.
-**Último commit**: style(ui): establish visual design tokens
-**Próxima tarefa**: Fase Visual 2 — Shell e Layout Global (Header, Sidebar, AppLayout).
+**Último commit**: style(ui): redesign app shell navigation
+**Próxima tarefa**: Fase Visual 3 — Componentes Base e Padrões de Superfície (Cards, Dialogs, Drawers, Badges, Tables).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma nesta unidade.
 **Testes**: 87 testes de frontend (vitest) e 44 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Transição da identidade visual para paleta Slate técnica fosca (sem estética gamer/neon).
-- Padronização do raio base em 8px (`0.5rem`) para alinhamento com dashboards operacionais modernos.
+- Transição da navegação e header para o padrão operacional sem neon, com badges neutras e acentos de cor controlados.
+- Uso de `motion/react` com AnimatePresence e respeito a `prefers-reduced-motion` no dropdown de alertas e notificações.

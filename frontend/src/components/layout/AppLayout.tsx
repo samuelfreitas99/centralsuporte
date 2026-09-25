@@ -16,7 +16,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Atalho global de teclado: Ctrl+K ou Cmd+K para busca global
+  // Atalho global de teclado: Ctrl+K ou Cmd+K para busca global, Escape para fechar gaveta mobile
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -33,11 +33,11 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   }, [onSelectTab, sidebarOpen]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
       {/* Link de Acessibilidade (WCAG 2.1 / Skip to Content) */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2.5 focus:bg-primary focus:text-primary-foreground focus:rounded-xl focus:shadow-xl focus:font-semibold focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-3.5 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-lg focus:shadow-md focus:font-medium focus:text-xs focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
       >
         Pular para o conteúdo principal
       </a>
@@ -57,7 +57,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto py-6 focus:outline-none"
+          className="flex-1 overflow-y-auto py-5 focus:outline-none"
           role="main"
           aria-label="Conteúdo Principal"
         >
@@ -67,4 +67,3 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     </div>
   );
 };
-
