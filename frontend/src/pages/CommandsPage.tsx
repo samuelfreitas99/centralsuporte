@@ -14,6 +14,8 @@ import {
   Trash2,
   Lock,
   RefreshCw,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,7 +74,7 @@ export const CommandsPage: React.FC = () => {
   const [commandForm, setCommandForm] = useState<CommandCreateInput>({
     title: '',
     description: '',
-    command: '',
+    steps: [{ position: 1, title: 'Passo 1', command_text: '' }],
     system: 'Geral',
     category: '',
     tags: '',
@@ -154,9 +156,10 @@ export const CommandsPage: React.FC = () => {
   // One-click Copy Handler for Commands
   const handleCopyCommand = async (cmd: CommandItem) => {
     try {
-      await navigator.clipboard.writeText(cmd.command);
+      const fullCommand = cmd.steps?.map(s => s.command_text).join('\n') || '';
+      await navigator.clipboard.writeText(fullCommand);
       setCopiedId(`cmd-${cmd.id}`);
-      success('Comando copiado!', 'O comando foi copiado para a área de transferência.');
+      success('Procedimento copiado!', 'O procedimento foi copiado para a área de transferência.');
 
       // Optimistic update
       setCommands((prev) =>
@@ -166,7 +169,21 @@ export const CommandsPage: React.FC = () => {
       // Async backend record
       await commandService.copyCommand(cmd.id);
     } catch (err) {
-      toastError('Erro ao copiar', 'Não foi possível copiar o comando para o clipboard.');
+      toastError('Erro ao copiar', 'Não foi possível copiar o procedimento para o clipboard.');
+    } finally {
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
+
+  const handleCopyStep = async (cmd: CommandItem, step: any) => {
+    try {
+      await navigator.clipboard.writeText(step.command_text);
+      setCopiedId(`cmd-${cmd.id}-step-${step.id}`);
+      success('Passo copiado!', 'Comando copiado para a área de transferência.');
+      setCommands((prev) => prev.map((c) => (c.id === cmd.id ? { ...c, copies_count: c.copies_count + 1 } : c)));
+      await commandService.copyCommand(cmd.id);
+    } catch (err) {
+      toastError('Erro ao copiar', 'Não foi possível copiar o passo.');
     } finally {
       setTimeout(() => setCopiedId(null), 2000);
     }
@@ -200,7 +217,7 @@ export const CommandsPage: React.FC = () => {
       setCommandForm({
         title: cmd.title,
         description: cmd.description || '',
-        command: cmd.command,
+        steps: cmd.steps && cmd.steps.length > 0 ? cmd.steps : [{ position: 1, title: 'Passo 1', command_text: '' }],
         system: cmd.system || 'Geral',
         category: cmd.category || '',
         tags: cmd.tags || '',
@@ -213,7 +230,7 @@ export const CommandsPage: React.FC = () => {
       setCommandForm({
         title: '',
         description: '',
-        command: '',
+        steps: [{ position: 1, title: 'Passo 1', command_text: '' }],
         system: selectedSystem !== 'all' ? selectedSystem : 'Geral',
         category: selectedCategory !== 'all' ? selectedCategory : '',
         tags: '',
@@ -228,8 +245,8 @@ export const CommandsPage: React.FC = () => {
   // Save Command
   const handleSaveCommand = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!commandForm.title.trim() || !commandForm.command.trim()) {
-      toastError('Campos obrigatórios', 'Por favor preencha o título e o comando.');
+    if (!commandForm.title.trim() || commandForm.steps.some(s => !s.command_text.trim())) {
+      toastError('Campos obrigatórios', 'Por favor preencha o título e os códigos dos passos.');
       return;
     }
 
@@ -707,22 +724,52 @@ export const CommandsPage: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Code block with One-Click Copy Action */}
-                      <div className="relative group rounded-xl border border-border/80 bg-slate-950/80 p-3 overflow-hidden shadow-inner">
-                        <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono pb-1.5 mb-1.5 border-b border-white/[0.05]">
-                          <span className="flex items-center gap-1.5 text-slate-400">
-                            <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
-                            <span>prompt / terminal</span>
-                          </span>
-                          <span className="text-[10px] uppercase">{cmd.system}</span>
-                        </div>
+                      {/* Steps Code blocks */}
+                      <div className="space-y-3">
+                        {cmd.steps?.map((step) => {
+                          const stepCopiedId = `cmd-${cmd.id}-step-${step.id}`;
+                          const isStepCopied = copiedId === stepCopiedId;
+                          return (
+                            <div key={step.id} className="relative group rounded-xl border border-border/80 bg-slate-950/80 p-3 overflow-hidden shadow-inner">
+                              <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono pb-1.5 mb-1.5 border-b border-white/[0.05]">
+                                <span className="flex items-center gap-1.5 text-slate-400 font-semibold">
+                                  <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
+                                  <span>Passo {step.position}: {step.title}</span>
+                                </span>
+                              </div>
+                              {step.description && (
+                                <p className="text-[11px] text-slate-400 mb-2">{step.description}</p>
+                              )}
+                              <div className="font-mono text-xs sm:text-sm text-blue-300 whitespace-pre-wrap break-all py-1 selection:bg-blue-600/40">
+                                {step.command_text}
+                              </div>
+                              <div className="mt-3 flex items-center justify-end">
+                                <Button
+                                  size="sm"
+                                  variant={isStepCopied ? 'secondary' : 'default'}
+                                  onClick={() => handleCopyStep(cmd, step)}
+                                  className="h-7 px-2 text-[10px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                                >
+                                  {isStepCopied ? (
+                                    <>
+                                      <Check className="h-3 w-3" />
+                                      <span>Copiado!</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="h-3 w-3" />
+                                      <span>Copiar Passo</span>
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                        <div className="font-mono text-xs sm:text-sm text-blue-300 whitespace-pre-wrap break-all py-1 selection:bg-blue-600/40">
-                          {cmd.command}
-                        </div>
-
-                        {/* Floating Copy Action */}
-                        <div className="mt-3 flex items-center justify-between">
+                      {/* Copy All Action */}
+                      <div className="mt-3 flex items-center justify-between">
                           {hasWarning ? (
                             <span className="text-[10px] text-muted-foreground italic max-w-[60%]">
                               Copiar não executa o comando. Use com cautela.
@@ -734,21 +781,20 @@ export const CommandsPage: React.FC = () => {
                             size="sm"
                             variant={isCopied ? 'secondary' : 'default'}
                             onClick={() => handleCopyCommand(cmd)}
-                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm w-full sm:w-auto"
                           >
                             {isCopied ? (
                               <>
                                 <Check className="h-3.5 w-3.5" />
-                                <span>Copiado!</span>
+                                <span>Procedimento Copiado!</span>
                               </>
                             ) : (
                               <>
                                 <Copy className="h-3.5 w-3.5" />
-                                <span>Copiar Comando</span>
+                                <span>Copiar Todos</span>
                               </>
                             )}
                           </Button>
-                        </div>
                       </div>
 
                       {/* Technical Notes / Guidelines */}
@@ -957,20 +1003,114 @@ export const CommandsPage: React.FC = () => {
                 />
               </div>
 
-              {/* Command Code Area */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block flex items-center justify-between">
-                  <span>Comando ou Script (Monoespaçado) *</span>
-                  <span className="text-[11px] text-muted-foreground font-normal">Exatamente como deve ser copiado</span>
-                </label>
-                <textarea
-                  value={commandForm.command}
-                  onChange={(e) => setCommandForm({ ...commandForm, command: e.target.value })}
-                  rows={4}
-                  required
-                  placeholder="Ex: ipconfig /flushdns && nbtstat -R"
-                  className="w-full rounded-xl border border-border/80 bg-slate-950 p-3 font-mono text-xs text-blue-300 focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed"
-                />
+              {/* Command Code Area (Steps) */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground">Passos do Procedimento *</label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => {
+                      const newSteps = [...commandForm.steps, { position: commandForm.steps.length + 1, title: `Passo ${commandForm.steps.length + 1}`, command_text: '' }];
+                      setCommandForm({ ...commandForm, steps: newSteps });
+                    }}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar Passo
+                  </Button>
+                </div>
+                
+                {commandForm.steps.map((step, index) => (
+                  <div key={index} className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3 relative">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex-1">
+                        <Input
+                          value={step.title}
+                          onChange={(e) => {
+                            const newSteps = [...commandForm.steps];
+                            newSteps[index].title = e.target.value;
+                            setCommandForm({ ...commandForm, steps: newSteps });
+                          }}
+                          placeholder="Título do passo"
+                          className="h-8 text-xs font-semibold"
+                          required
+                        />
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const newSteps = [...commandForm.steps];
+                            [newSteps[index], newSteps[index - 1]] = [newSteps[index - 1], newSteps[index]];
+                            newSteps.forEach((s, i) => s.position = i + 1);
+                            setCommandForm({ ...commandForm, steps: newSteps });
+                          }}
+                          className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-foreground"
+                        >
+                          <ArrowUp className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          disabled={index === commandForm.steps.length - 1}
+                          onClick={() => {
+                            const newSteps = [...commandForm.steps];
+                            [newSteps[index], newSteps[index + 1]] = [newSteps[index + 1], newSteps[index]];
+                            newSteps.forEach((s, i) => s.position = i + 1);
+                            setCommandForm({ ...commandForm, steps: newSteps });
+                          }}
+                          className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-foreground"
+                        >
+                          <ArrowDown className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          disabled={commandForm.steps.length === 1}
+                          onClick={() => {
+                            const newSteps = commandForm.steps.filter((_, i) => i !== index);
+                            newSteps.forEach((s, i) => s.position = i + 1);
+                            setCommandForm({ ...commandForm, steps: newSteps });
+                          }}
+                          className="h-7 w-7 cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    <textarea
+                      value={step.description || ''}
+                      onChange={(e) => {
+                        const newSteps = [...commandForm.steps];
+                        newSteps[index].description = e.target.value;
+                        setCommandForm({ ...commandForm, steps: newSteps });
+                      }}
+                      rows={1}
+                      placeholder="Descrição opcional..."
+                      className="w-full rounded-lg border border-border/80 bg-background p-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
+                    />
+
+                    <textarea
+                      value={step.command_text}
+                      onChange={(e) => {
+                        const newSteps = [...commandForm.steps];
+                        newSteps[index].command_text = e.target.value;
+                        setCommandForm({ ...commandForm, steps: newSteps });
+                      }}
+                      rows={2}
+                      required
+                      placeholder="Código do comando..."
+                      className="w-full rounded-lg border border-border/80 bg-slate-950 p-2.5 font-mono text-xs text-blue-300 focus:outline-none focus:ring-1 focus:ring-primary/40"
+                    />
+                  </div>
+                ))}
               </div>
 
               {/* System and Category Row */}

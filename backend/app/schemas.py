@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 # --- Auth & Users Schemas ---
 
@@ -325,10 +325,24 @@ class KnowledgeArticleResponse(BaseModel):
 
 # --- Commands & Standard Responses Schemas (Phase 6) ---
 
+class CommandStepBase(BaseModel):
+    position: int
+    title: str
+    description: Optional[str] = None
+    command_text: str
+
+class CommandStepCreate(CommandStepBase):
+    pass
+
+class CommandStepResponse(CommandStepBase):
+    id: int
+    command_id: int
+    model_config = ConfigDict(from_attributes=True)
+
 class CommandBase(BaseModel):
     title: str
     description: Optional[str] = None
-    command: str
+    command: Optional[str] = None # Legacy fallback
     system: str = "Geral"
     category: Optional[str] = None
     tags: Optional[str] = None
@@ -337,7 +351,7 @@ class CommandBase(BaseModel):
     visibility: str = "equipe"
 
 class CommandCreate(CommandBase):
-    pass
+    steps: List[CommandStepCreate] = Field(default_factory=list)
 
 class CommandUpdate(BaseModel):
     title: Optional[str] = None
@@ -349,6 +363,7 @@ class CommandUpdate(BaseModel):
     notes: Optional[str] = None
     warning: Optional[str] = None
     visibility: Optional[str] = None
+    steps: Optional[List[CommandStepCreate]] = None
 
 class CommandResponse(CommandBase):
     id: int
@@ -357,6 +372,7 @@ class CommandResponse(CommandBase):
     copies_count: int = 0
     created_at: datetime
     updated_at: datetime
+    steps: List[CommandStepResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
 class StandardResponseBase(BaseModel):

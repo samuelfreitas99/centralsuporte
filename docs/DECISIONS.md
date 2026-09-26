@@ -79,3 +79,8 @@
 - **Contexto**: Fechamento do MVP e documentação proveniente de auditoria exaustiva.
 - **Consequências**: O escopo passa a suportar relacionamentos mais robustos, sem perder as regras de negócio consolidadas (OTRS permanece o canal oficial, Cofre usa Envelope Encryption, etc.).
 
+
+### 2026-09-26: Evolução Arquitetural de Comandos (Multi-passo)
+- **Decisão**: A entidade `Command` passa a suportar múltiplos passos ordenados através de relacionamento 1:N com a nova tabela `command_steps`. A persistência do código do comando foi migrada da coluna `command` na tabela `commands` para `command_text` em `command_steps`. A UI foi atualizada para permitir adicionar, reordenar, excluir e copiar passos individualmente, além de um botão para "Copiar Todos" que consolida os scripts de um procedimento.
+- **Contexto**: A necessidade operacional em suporte técnico exige execução de procedimentos sequenciais.
+- **Consequências**: Maior clareza e redução de erros ao seguir procedimentos compostos. Suporte a pesquisa aprimorado cobrindo o texto em todos os passos.

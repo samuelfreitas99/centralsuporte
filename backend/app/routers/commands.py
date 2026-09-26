@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_, distinct
 
 from app.database import get_db
-from app.models import Command, User
+from app.models import Command, CommandStep, User
 from app.auth import get_current_active_user
 from app.schemas import (
     CommandCreate,
@@ -50,6 +50,15 @@ def list_commands(
                 Command.command.ilike(f"%{search}%"),
                 Command.notes.ilike(f"%{search}%"),
                 Command.tags.ilike(f"%{search}%"),
+                Command.id.in_(
+                    db.query(CommandStep.command_id).filter(
+                        or_(
+                            CommandStep.title.ilike(f"%{search}%"),
+                            CommandStep.description.ilike(f"%{search}%"),
+                            CommandStep.command_text.ilike(f"%{search}%")
+                        )
+                    )
+                )
             )
         )
 
@@ -90,6 +99,17 @@ def create_command(
         visibility=payload.visibility or "equipe",
     )
     db.add(command_obj)
+    db.flush()  # to get command_obj.id
+
+    for step in payload.steps:
+        db.add(CommandStep(
+            command_id=command_obj.id,
+            position=step.position,
+            title=step.title,
+            description=step.description,
+            command_text=step.command_text
+        ))
+
     db.commit()
     db.refresh(command_obj)
     return command_obj
@@ -141,6 +161,17 @@ def update_command(
         command_obj.warning = payload.warning
     if payload.visibility is not None:
         command_obj.visibility = payload.visibility
+
+    if payload.steps is not None:
+        db.query(CommandStep).filter(CommandStep.command_id == command_obj.id).delete()
+        for step in payload.steps:
+            db.add(CommandStep(
+                command_id=command_obj.id,
+                position=step.position,
+                title=step.title,
+                description=step.description,
+                command_text=step.command_text
+            ))
 
     db.commit()
     db.refresh(command_obj)

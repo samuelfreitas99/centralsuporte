@@ -245,7 +245,7 @@ class Command(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    command = Column(Text, nullable=False)
+    command = Column(Text, nullable=True)  # Legacy column, kept for safety during migration
     system = Column(String(50), nullable=False, default="Geral", index=True)
     category = Column(String(100), nullable=True, index=True)
     tags = Column(String(255), nullable=True)
@@ -259,6 +259,20 @@ class Command(Base):
     
     # Relationships
     author = relationship("User", foreign_keys=[author_id], back_populates="authored_commands")
+    steps = relationship("CommandStep", back_populates="command_parent", cascade="all, delete-orphan", order_by="CommandStep.position")
+
+class CommandStep(Base):
+    __tablename__ = "command_steps"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    command_id = Column(Integer, ForeignKey('commands.id', ondelete="CASCADE"), nullable=False, index=True)
+    position = Column(Integer, nullable=False, default=1)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    command_text = Column(Text, nullable=False)
+    
+    # Relationships
+    command_parent = relationship("Command", back_populates="steps")
 
 class StandardResponse(Base):
     __tablename__ = "standard_responses"

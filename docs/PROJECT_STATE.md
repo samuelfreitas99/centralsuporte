@@ -1,23 +1,21 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase Visual 7 (Comandos e Respostas) concluída com sucesso. A tela foi refatorada substituindo modais por Drawers para progressive disclosure, unificando os componentes de Tabs com o Design System, e introduzindo marcações visuais claras de riscos operacionais.
-**Fase atual**: Fase Visual 7 concluída -> Próxima: Fase 8 (Base de Conhecimento).
+**Estado atual**: Evolução Arquitetural de Comandos (Multi-passo) concluída com sucesso. O modelo de domínio foi atualizado para `CommandStep`, com migrations e refatoração completa ponta a ponta.
+**Fase atual**: Evolução Arquitetural de Comandos concluída -> Próxima: Fase 8 (Base de Conhecimento).
 **Última implementação**: 
-- **Fase Visual 7 — Refatoração (CommandsPage)**:
-  - **Componente Drawer**: Migração dos formulários de Criação/Edição de Comandos e Respostas de `Dialog` para `Drawer` para maior consistência e melhor UX (Progressive Disclosure).
-  - **Tabs**: Integração do componente padronizado `Tabs` do Design System para navegar entre Comandos Rápidos e Respostas Padrão.
-  - **UX para Comandos Destrutivos**: Melhoria na apresentação visual do aviso "Atenção Operacional", além de clareza textual próxima ao botão de cópia ("Copiar não executa o comando").
+- **Evolução Arquitetural — CommandStep**:
+  - **Backend**: Criação da tabela `command_steps`, relacionamento 1:N com `commands`, schemas Pydantic atualizados e testes em pytest expandidos para validação dos passos.
+  - **Migration**: Criado script de migração Alembic para migrar o conteúdo antigo da coluna `command` para um `CommandStep` inicial, garantindo segurança contra perda de dados.
+  - **Frontend**: `CommandsPage` refatorada para suportar a visualização e edição dinâmica de múltiplos passos por comando, incluindo reordenação (up/down) e cópia isolada. O botão principal evoluiu para "Copiar Todos" gerando scripts combinados de procedimentos.
 - **Testes Automatizados**:
-  - Testes atualizados em `CommandsPage.test.tsx` (modificação de query `button` -> `tab`).
-  - Todos os testes de frontend (Vitest) 100% aprovados.
-  - Build de produção (`tsc -b && vite build`) validado sem erros ou alertas de compilação.
-**Último commit**: style(ui): refactor commands workspace
+  - Backend pytest 100% aprovado.
+  - Frontend Vitest 100% aprovado e Vite Build validado.
+**Último commit**: feat: implement multi-step commands architecture
 **Próxima tarefa**: Fase 8 — Refatoração da Base de Conhecimento.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma nesta unidade.
-**Testes**: Testes de frontend executados e aprovados com 100% de sucesso.
+**Testes**: Todos testes (Backend/Frontend) aprovados.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Utilização de Drawers (via radix-ui) ao invés de Modals tradicionais.
-- Ajuste das tags de navegação em `CommandsPage` para o componente padronizado `Tabs` do Design System.
-- Aplicado hotfix (Fase 7.1) de acessibilidade visual na classe destrutiva do `CommandsPage` para garantir legibilidade impecável no Light Mode.
+- O `CommandStep` foi modelado com exclusão em cascata (cascade delete) atrelado ao comando pai.
+- Reordenação de passos gerenciada no Frontend e atualizada transacionalmente no Backend via PUT (Drop e Recria).

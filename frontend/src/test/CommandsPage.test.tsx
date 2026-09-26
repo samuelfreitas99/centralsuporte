@@ -45,6 +45,7 @@ const mockCommands: CommandItem[] = [
     copies_count: 5,
     created_at: '2026-09-24T10:00:00Z',
     updated_at: '2026-09-24T10:00:00Z',
+    steps: [{ id: 1, command_id: 1, position: 1, title: 'Passo 1', command_text: 'ipconfig /release && ipconfig /renew' }]
   },
   {
     id: 2,
@@ -62,6 +63,7 @@ const mockCommands: CommandItem[] = [
     copies_count: 12,
     created_at: '2026-09-24T10:00:00Z',
     updated_at: '2026-09-24T10:00:00Z',
+    steps: [{ id: 2, command_id: 2, position: 1, title: 'Passo 1', command_text: 'sudo systemctl restart docker' }]
   },
 ];
 
@@ -147,7 +149,7 @@ describe('CommandsPage (Phase 6)', () => {
       expect(screen.getByText('Reiniciar Placa de Rede DHCP')).toBeInTheDocument();
     });
 
-    const copyButtons = screen.getAllByRole('button', { name: /copiar comando/i });
+    const copyButtons = screen.getAllByRole('button', { name: /copiar todos/i });
     expect(copyButtons.length).toBeGreaterThan(0);
 
     fireEvent.click(copyButtons[0]);

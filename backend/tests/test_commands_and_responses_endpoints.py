@@ -26,7 +26,15 @@ def test_commands_crud_and_copy_tracking():
         "tags": f"ad, powershell, conta_{uid}",
         "notes": "Executar no RSAT ou diretamente no DC",
         "warning": "Não alterar senhas sem confirmação formal do titular",
-        "visibility": "equipe"
+        "visibility": "equipe",
+        "steps": [
+            {
+                "position": 1,
+                "title": "Buscar dados basicos",
+                "description": "Obter informacoes",
+                "command_text": f"Get-ADUser -Identity 'usuario_{uid}' -Properties *"
+            }
+        ]
     }
     res = client.post("/commands", json=cmd_payload, headers=headers)
     assert res.status_code == 201
@@ -35,6 +43,8 @@ def test_commands_crud_and_copy_tracking():
     assert created_cmd["title"] == cmd_payload["title"]
     assert created_cmd["system"] == "PowerShell"
     assert created_cmd["copies_count"] == 0
+    assert len(created_cmd["steps"]) == 1
+    assert created_cmd["steps"][0]["command_text"] == f"Get-ADUser -Identity 'usuario_{uid}' -Properties *"
 
     # 2. Get Command by ID
     get_res = client.get(f"/commands/{cmd_id}", headers=headers)
@@ -77,10 +87,23 @@ def test_commands_crud_and_copy_tracking():
     # 8. Update Command
     up_res = client.put(f"/commands/{cmd_id}", json={
         "title": f"Consultar Conta no AD Revisado {uid}",
-        "notes": "Atualizado para ambiente Windows Server 2022"
+        "notes": "Atualizado para ambiente Windows Server 2022",
+        "steps": [
+            {
+                "position": 1,
+                "title": "Passo Editado",
+                "command_text": f"Get-ADUser -Identity 'usuario_{uid}'"
+            },
+            {
+                "position": 2,
+                "title": "Passo Novo",
+                "command_text": "Export-Csv -Path 'out.csv'"
+            }
+        ]
     }, headers=headers)
     assert up_res.status_code == 200
     assert up_res.json()["title"] == f"Consultar Conta no AD Revisado {uid}"
+    assert len(up_res.json()["steps"]) == 2
 
     # 9. Delete Command
     del_res = client.delete(f"/commands/{cmd_id}", headers=headers)

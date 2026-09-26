@@ -1,9 +1,24 @@
+export interface CommandStep {
+  id: number;
+  command_id: number;
+  position: number;
+  title: string;
+  description?: string | null;
+  command_text: string;
+}
+
+export interface CommandStepInput {
+  position: number;
+  title: string;
+  description?: string | null;
+  command_text: string;
+}
 
 export interface CommandItem {
   id: number;
   title: string;
   description?: string | null;
-  command: string;
+  command?: string | null;
   system: string;
   category?: string | null;
   tags?: string | null;
@@ -22,18 +37,20 @@ export interface CommandItem {
   copies_count: number;
   created_at: string;
   updated_at: string;
+  steps: CommandStep[];
 }
 
 export interface CommandCreateInput {
   title: string;
   description?: string;
-  command: string;
+  command?: string;
   system?: string;
   category?: string;
   tags?: string;
   notes?: string;
   warning?: string;
   visibility?: string;
+  steps: CommandStepInput[];
 }
 
 export interface CommandUpdateInput {
@@ -46,6 +63,7 @@ export interface CommandUpdateInput {
   notes?: string;
   warning?: string;
   visibility?: string;
+  steps?: CommandStepInput[];
 }
 
 export interface StandardResponseItem {
