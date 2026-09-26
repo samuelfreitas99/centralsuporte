@@ -166,7 +166,7 @@ describe('CommandsPage (Phase 6)', () => {
       expect(screen.getByText('Reiniciar Placa de Rede DHCP')).toBeInTheDocument();
     });
 
-    const responsesTab = screen.getByRole('button', { name: /respostas padrão/i });
+    const responsesTab = screen.getByRole('tab', { name: /respostas padrão/i });
     fireEvent.click(responsesTab);
 
     await waitFor(() => {
@@ -184,7 +184,7 @@ describe('CommandsPage (Phase 6)', () => {
       expect(screen.getByText('Reiniciar Placa de Rede DHCP')).toBeInTheDocument();
     });
 
-    const responsesTab = screen.getByRole('button', { name: /respostas padrão/i });
+    const responsesTab = screen.getByRole('tab', { name: /respostas padrão/i });
     fireEvent.click(responsesTab);
 
     await waitFor(() => {

@@ -21,13 +21,14 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+} from '@/components/ui/drawer';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { commandService } from '@/services/commandService';
@@ -66,7 +67,7 @@ export const CommandsPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Dialog states
-  const [isCommandModalOpen, setIsCommandModalOpen] = useState(false);
+  const [isCommandDrawerOpen, setIsCommandDrawerOpen] = useState(false);
   const [editingCommand, setEditingCommand] = useState<CommandItem | null>(null);
   const [commandForm, setCommandForm] = useState<CommandCreateInput>({
     title: '',
@@ -80,7 +81,7 @@ export const CommandsPage: React.FC = () => {
     visibility: 'equipe',
   });
 
-  const [isResponseModalOpen, setIsResponseModalOpen] = useState(false);
+  const [isResponseDrawerOpen, setIsResponseDrawerOpen] = useState(false);
   const [editingResponse, setEditingResponse] = useState<StandardResponseItem | null>(null);
   const [responseForm, setResponseForm] = useState<StandardResponseCreateInput>({
     title: '',
@@ -193,7 +194,7 @@ export const CommandsPage: React.FC = () => {
   };
 
   // Open Create/Edit Command Modal
-  const handleOpenCommandModal = (cmd?: CommandItem) => {
+  const handleOpenCommandDrawer = (cmd?: CommandItem) => {
     if (cmd) {
       setEditingCommand(cmd);
       setCommandForm({
@@ -221,7 +222,7 @@ export const CommandsPage: React.FC = () => {
         visibility: 'equipe',
       });
     }
-    setIsCommandModalOpen(true);
+    setIsCommandDrawerOpen(true);
   };
 
   // Save Command
@@ -241,7 +242,7 @@ export const CommandsPage: React.FC = () => {
         await commandService.createCommand(commandForm);
         success('Comando criado', 'Novo comando adicionado ao repositório operacional.');
       }
-      setIsCommandModalOpen(false);
+      setIsCommandDrawerOpen(false);
       loadCommands();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Falha ao salvar comando';
@@ -265,7 +266,7 @@ export const CommandsPage: React.FC = () => {
   };
 
   // Open Create/Edit Response Modal
-  const handleOpenResponseModal = (resp?: StandardResponseItem) => {
+  const handleOpenResponseDrawer = (resp?: StandardResponseItem) => {
     if (resp) {
       setEditingResponse(resp);
       setResponseForm({
@@ -287,7 +288,7 @@ export const CommandsPage: React.FC = () => {
         visibility: 'equipe',
       });
     }
-    setIsResponseModalOpen(true);
+    setIsResponseDrawerOpen(true);
   };
 
   // Save Response
@@ -307,7 +308,7 @@ export const CommandsPage: React.FC = () => {
         await responseService.createResponse(responseForm);
         success('Resposta criada', 'Nova resposta padrão adicionada à biblioteca.');
       }
-      setIsResponseModalOpen(false);
+      setIsResponseDrawerOpen(false);
       loadResponses();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Falha ao salvar resposta padrão';
@@ -384,7 +385,7 @@ export const CommandsPage: React.FC = () => {
         <div>
           {activeTab === 'commands' ? (
             <Button
-              onClick={() => handleOpenCommandModal()}
+              onClick={() => handleOpenCommandDrawer()}
               className="w-full sm:w-auto flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/20"
             >
               <Plus className="h-4 w-4" />
@@ -392,7 +393,7 @@ export const CommandsPage: React.FC = () => {
             </Button>
           ) : (
             <Button
-              onClick={() => handleOpenResponseModal()}
+              onClick={() => handleOpenResponseDrawer()}
               className="w-full sm:w-auto flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/20"
             >
               <Plus className="h-4 w-4" />
@@ -403,45 +404,32 @@ export const CommandsPage: React.FC = () => {
       </div>
 
       {/* 2. Primary Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-border/80 pb-3">
-        <button
-          onClick={() => {
-            setActiveTab('commands');
-            setSelectedCategory('all');
-            setSearchQuery('');
-          }}
-          className={`flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'commands'
-              ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm'
-              : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
-          }`}
-        >
-          <Terminal className="h-4 w-4" />
-          <span>Comandos Rápidos</span>
-          <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300 font-mono">
-            {commands.length}
-          </span>
-        </button>
-
-        <button
-          onClick={() => {
-            setActiveTab('responses');
-            setSelectedCategory('all');
-            setSearchQuery('');
-          }}
-          className={`flex items-center gap-2.5 rounded-xl px-4 py-2 text-sm font-semibold transition-all cursor-pointer ${
-            activeTab === 'responses'
-              ? 'bg-blue-600/15 text-blue-400 border border-blue-500/30 shadow-sm'
-              : 'text-muted-foreground hover:bg-white/[0.04] hover:text-foreground'
-          }`}
-        >
-          <MessageSquare className="h-4 w-4" />
-          <span>Respostas Padrão</span>
-          <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-xs text-blue-300 font-mono">
-            {responses.length}
-          </span>
-        </button>
-      </div>
+      <Tabs
+        value={activeTab}
+        onValueChange={(val) => {
+          setActiveTab(val as ActiveTab);
+          setSelectedCategory('all');
+          setSearchQuery('');
+        }}
+        className="w-full"
+      >
+        <TabsList variant="underline" className="w-full justify-start border-b border-border/80 pb-0 mb-4">
+          <TabsTrigger value="commands" className="gap-2.5 px-4 py-2 text-sm font-semibold h-11 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none">
+            <Terminal className="h-4 w-4" />
+            <span>Comandos Rápidos</span>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary font-mono ml-1">
+              {commands.length}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="responses" className="gap-2.5 px-4 py-2 text-sm font-semibold h-11 data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none shadow-none">
+            <MessageSquare className="h-4 w-4" />
+            <span>Respostas Padrão</span>
+            <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary font-mono ml-1">
+              {responses.length}
+            </span>
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       {/* 3. Filter Bar (Search + Categorical Selectors) */}
       <div className="flex flex-col gap-3 rounded-2xl border border-border/80 bg-card/60 p-4 backdrop-blur-md sm:flex-row sm:items-center sm:justify-between">
@@ -613,7 +601,7 @@ export const CommandsPage: React.FC = () => {
               </p>
             </div>
             <Button
-              onClick={() => handleOpenCommandModal()}
+              onClick={() => handleOpenCommandDrawer()}
               className="mt-2 flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -640,7 +628,7 @@ export const CommandsPage: React.FC = () => {
               </p>
             </div>
             <Button
-              onClick={() => handleOpenResponseModal()}
+              onClick={() => handleOpenResponseDrawer()}
               className="mt-2 flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -708,12 +696,12 @@ export const CommandsPage: React.FC = () => {
 
                       {/* Destructive / Operational Warning Callout */}
                       {hasWarning && (
-                        <div className="flex items-start gap-2.5 rounded-lg border border-amber-500/30 bg-amber-950/20 p-2.5 text-xs text-amber-300">
-                          <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-                          <div className="flex-1 font-medium leading-relaxed">
-                            <span className="font-bold uppercase tracking-wider text-[10px] block text-amber-400">
-                              Atenção Operacional:
-                            </span>
+                        <div className="flex flex-col gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive-foreground">
+                          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                            <AlertTriangle className="h-4 w-4 shrink-0" />
+                            <span>Risco Operacional: Comando Destrutivo</span>
+                          </div>
+                          <div className="font-medium leading-relaxed opacity-90">
                             {cmd.warning}
                           </div>
                         </div>
@@ -734,16 +722,19 @@ export const CommandsPage: React.FC = () => {
                         </div>
 
                         {/* Floating Copy Action */}
-                        <div className="mt-3 flex items-center justify-end">
+                        <div className="mt-3 flex items-center justify-between">
+                          {hasWarning ? (
+                            <span className="text-[10px] text-muted-foreground italic max-w-[60%]">
+                              Copiar não executa o comando. Use com cautela.
+                            </span>
+                          ) : (
+                            <span />
+                          )}
                           <Button
                             size="sm"
                             variant={isCopied ? 'secondary' : 'default'}
                             onClick={() => handleCopyCommand(cmd)}
-                            className={`h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                              isCopied
-                                ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-600'
-                                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
-                            }`}
+                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                           >
                             {isCopied ? (
                               <>
@@ -787,7 +778,7 @@ export const CommandsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleOpenCommandModal(cmd)}
+                              onClick={() => handleOpenCommandDrawer(cmd)}
                               className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
                               aria-label="Editar comando"
                             >
@@ -875,11 +866,7 @@ export const CommandsPage: React.FC = () => {
                             size="sm"
                             variant={isCopied ? 'secondary' : 'default'}
                             onClick={() => handleCopyResponse(resp)}
-                            className={`h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                              isCopied
-                                ? 'bg-emerald-600 text-white border-emerald-500 hover:bg-emerald-600'
-                                : 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm'
-                            }`}
+                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
                           >
                             {isCopied ? (
                               <>
@@ -915,7 +902,7 @@ export const CommandsPage: React.FC = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleOpenResponseModal(resp)}
+                              onClick={() => handleOpenResponseDrawer(resp)}
                               className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
                               aria-label="Editar resposta"
                             >
@@ -943,18 +930,18 @@ export const CommandsPage: React.FC = () => {
       )}
 
       {/* 5. MODAL: CREATE / EDIT COMMAND */}
-      <Dialog open={isCommandModalOpen} onOpenChange={setIsCommandModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+      <Drawer open={isCommandDrawerOpen} onOpenChange={setIsCommandDrawerOpen}>
+        <DrawerContent size="lg" side="right">
           <form onSubmit={handleSaveCommand} className="space-y-4">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 font-heading">
+            <DrawerHeader>
+              <DrawerTitle className="flex items-center gap-2 font-heading">
                 <Terminal className="h-5 w-5 text-blue-400" />
                 <span>{editingCommand ? 'Editar Comando Operacional' : 'Novo Comando Operacional'}</span>
-              </DialogTitle>
-              <DialogDescription>
+              </DrawerTitle>
+              <DrawerDescription>
                 Cadastre comandos técnicos úteis para diagnósticos e rotinas de suporte rápido.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
 
             <div className="space-y-3.5 text-sm">
               {/* Title */}
@@ -1066,11 +1053,11 @@ export const CommandsPage: React.FC = () => {
               </div>
             </div>
 
-            <DialogFooter className="pt-2">
+            <DrawerFooter className="pt-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsCommandModalOpen(false)}
+                onClick={() => setIsCommandDrawerOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancelar
@@ -1078,24 +1065,24 @@ export const CommandsPage: React.FC = () => {
               <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                 {isSubmitting ? 'Salvando...' : editingCommand ? 'Salvar Alterações' : 'Cadastrar Comando'}
               </Button>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
 
       {/* 6. MODAL: CREATE / EDIT STANDARD RESPONSE */}
-      <Dialog open={isResponseModalOpen} onOpenChange={setIsResponseModalOpen}>
-        <DialogContent className="sm:max-w-xl">
+      <Drawer open={isResponseDrawerOpen} onOpenChange={setIsResponseDrawerOpen}>
+        <DrawerContent size="lg" side="right">
           <form onSubmit={handleSaveResponse} className="space-y-4">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 font-heading">
+            <DrawerHeader>
+              <DrawerTitle className="flex items-center gap-2 font-heading">
                 <MessageSquare className="h-5 w-5 text-blue-400" />
                 <span>{editingResponse ? 'Editar Resposta Padrão' : 'Nova Resposta Padrão'}</span>
-              </DialogTitle>
-              <DialogDescription>
+              </DrawerTitle>
+              <DrawerDescription>
                 Crie modelos de respostas para padronizar e agilizar a comunicação técnica.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
 
             <div className="space-y-3.5 text-sm">
               {/* Title */}
@@ -1182,11 +1169,11 @@ export const CommandsPage: React.FC = () => {
               </div>
             </div>
 
-            <DialogFooter className="pt-2">
+            <DrawerFooter className="pt-2">
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setIsResponseModalOpen(false)}
+                onClick={() => setIsResponseDrawerOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancelar
@@ -1194,10 +1181,10 @@ export const CommandsPage: React.FC = () => {
               <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
                 {isSubmitting ? 'Salvando...' : editingResponse ? 'Salvar Alterações' : 'Cadastrar Resposta'}
               </Button>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
-        </DialogContent>
-      </Dialog>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };
