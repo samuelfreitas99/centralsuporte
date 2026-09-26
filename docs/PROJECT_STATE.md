@@ -20,3 +20,4 @@
 **Decisões recentes**:
 - Utilização de Drawers (via radix-ui) ao invés de Modals tradicionais.
 - Ajuste das tags de navegação em `CommandsPage` para o componente padronizado `Tabs` do Design System.
+- Aplicado hotfix (Fase 7.1) de acessibilidade visual na classe destrutiva do `CommandsPage` para garantir legibilidade impecável no Light Mode.

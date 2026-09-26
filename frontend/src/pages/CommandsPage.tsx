@@ -696,12 +696,12 @@ export const CommandsPage: React.FC = () => {
 
                       {/* Destructive / Operational Warning Callout */}
                       {hasWarning && (
-                        <div className="flex flex-col gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-xs text-destructive-foreground">
-                          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px]">
+                        <div className="flex flex-col gap-1.5 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-xs">
+                          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-destructive">
                             <AlertTriangle className="h-4 w-4 shrink-0" />
                             <span>Risco Operacional: Comando Destrutivo</span>
                           </div>
-                          <div className="font-medium leading-relaxed opacity-90">
+                          <div className="font-medium leading-relaxed opacity-90 text-foreground">
                             {cmd.warning}
                           </div>
                         </div>
@@ -999,7 +999,7 @@ export const CommandsPage: React.FC = () => {
 
               {/* Warning notice (critical for support) */}
               <div>
-                <label className="text-xs font-semibold text-amber-400 mb-1 flex items-center gap-1.5">
+                <label className="text-xs font-semibold text-warning mb-1 flex items-center gap-1.5">
                   <AlertTriangle className="h-3.5 w-3.5" />
                   <span>Aviso de Atenção / Efeitos Colaterais (Opcional)</span>
                 </label>
@@ -1007,7 +1007,7 @@ export const CommandsPage: React.FC = () => {
                   value={commandForm.warning || ''}
                   onChange={(e) => setCommandForm({ ...commandForm, warning: e.target.value })}
                   placeholder="Ex: Reinicia a placa de rede por 5s ou Derruba conexões ativas"
-                  className="border-amber-500/40 bg-amber-950/20 text-amber-200 placeholder:text-amber-500/40"
+                  className="border-warning/40 bg-warning/10 text-foreground placeholder:text-foreground/50"
                 />
               </div>
 
