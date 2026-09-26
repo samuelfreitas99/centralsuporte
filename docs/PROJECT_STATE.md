@@ -1,9 +1,13 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase Visual 3 (Sistema de Componentes Base) concluída com sucesso. Primitivas de interface, superfícies e controles operacionais consolidados sob a identidade "Modern Operations Center".
-**Fase atual**: Fase Visual 3 concluída -> Próxima: Fase Visual 4 (Dashboard V2 — Estação de Comando Operacional).
+**Estado atual**: Fase Visual 4 (Dashboard V2) concluída com sucesso. O Dashboard foi refatorado para uma verdadeira Estação de Comando Operacional.
+**Fase atual**: Fase Visual 4 concluída -> Próxima: Fase Visual 5 (Refatoração de Telas de Domínio - Tarefas).
 **Última implementação**: 
-- **Fase Visual 3 — Sistema de Componentes Base (`button.tsx`, `card.tsx`, `badge.tsx`, `dialog.tsx`, `drawer.tsx`, `input.tsx`, `textarea.tsx`, `select.tsx`, `label.tsx`, `tabs.tsx`, `table.tsx`, `Toast.tsx`, `EmptyState.tsx`, `ErrorState.tsx`)**:
+- **Fase Visual 4 — Dashboard V2 (`DashboardPage.tsx`, `DashboardHeader.tsx`, `MetricCard.tsx`, `TaskListSection.tsx`, `RecentAttendancesSection.tsx`, `QuickKnowledgeSection.tsx`, `RemindersSection.tsx`)**:
+  - **Hierarquia Visual (Critical Alerts e O Meu Turno)**: Implementação condicional para tarefas urgentes. Reestruturação do cabeçalho e grid usando componentes `Flat/Ghost` em CSS Grid.
+  - **Refatoração Semântica do Código**: Simplificação e nivelamento da hierarquia visual, abandonando caixas superpostas e utilizando micro-interações semânticas com Framer Motion, totalmente acessível e responsivo.
+  - **Layout de Central Operacional**: Ações rápidas foram unificadas no topo de maneira utilitária, KPIs foram centralizados, e o histórico operacional (timeline) tornou-se contínuo.
+- **Fase Visual 3 — Sistema de Componentes Base**:
   - **Botões Padronizados**: Eliminação definitiva de gradientes neon (`from-blue-600 to-indigo-600`) e sombras azuis saturadas; integração direta aos tokens semânticos (`bg-primary`, `bg-destructive`, etc.), com suporte nativo a indicador de `loading` acessível.
   - **Superfícies e Resolução de "Box dentro de Box"**: Suporte a variantes no `Card` (`default`, `flat`, `outline`, `ghost`), garantindo que seções internas possam ser agrupadas sem acúmulo de bordas duplas ou triplas.
   - **Badges Semânticas**: Cores equilibradas de baixa saturação em esmeralda, âmbar, carmesim e cobalto, evitando poluição visual decorativa e preservando uso exclusivo para estados operacionais reais.
@@ -16,8 +20,8 @@
   - 44 testes de backend (Pytest) 100% aprovados.
   - Linter (`oxlint`) com 0 erros em 108 arquivos.
   - Build de produção (`tsc -b && vite build`) validado sem erros ou alertas de compilação.
-**Último commit**: style(ui): standardize base components
-**Próxima tarefa**: Fase Visual 4 — Dashboard V2 (Estação de Comando Operacional).
+**Último commit**: style(ui): redesign dashboard as operations command center
+**Próxima tarefa**: Fase Visual 5 — Refatoração das Telas de Domínio (ex: Tarefas, Infraestrutura).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma nesta unidade.
 **Testes**: 96 testes de frontend (vitest) e 44 testes de backend (pytest) executados e aprovados com 100% de sucesso.

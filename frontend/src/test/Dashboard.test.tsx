@@ -50,18 +50,18 @@ describe('DashboardPage', () => {
   it('renders technical shift header and user information', () => {
     renderDashboard();
 
-    expect(screen.getByText(/painel do técnico — admin/i)).toBeInTheDocument();
+    expect(screen.getByText(/olá, admin/i)).toBeInTheDocument();
     expect(screen.getByText(/turno operacional ativo/i)).toBeInTheDocument();
-    expect(screen.getByText(/perfil: administrador/i)).toBeInTheDocument();
+    expect(screen.getByText('Administrador')).toBeInTheDocument();
   });
 
   it('renders tactical operational metrics cards', () => {
     renderDashboard();
 
-    expect(screen.getByText('Tarefas Pendentes')).toBeInTheDocument();
-    expect(screen.getByText('Em Andamento')).toBeInTheDocument();
-    expect(screen.getByText('Lembretes Ativos')).toBeInTheDocument();
-    expect(screen.getAllByText('Atendimentos Recentes').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('Pendentes')).toBeInTheDocument();
+    expect(screen.getByText('Em Curso')).toBeInTheDocument();
+    expect(screen.getByText('Atendimentos')).toBeInTheDocument();
+    expect(screen.getAllByText('Base').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders task list and allows toggling task completion status', () => {
@@ -93,9 +93,9 @@ describe('DashboardPage', () => {
   it('renders shift reminders and quick knowledge procedures', () => {
     renderDashboard();
 
-    expect(screen.getByText('Lembretes do Turno')).toBeInTheDocument();
+    expect(screen.getByText('Lembretes')).toBeInTheDocument();
     expect(screen.getByText(/passagem de turno com técnico da noite/i)).toBeInTheDocument();
-    expect(screen.getByText('Procedimentos Rápidos')).toBeInTheDocument();
+    expect(screen.getByText('Knowledge Base')).toBeInTheDocument();
     expect(screen.getByText(/comandos úteis para reinicialização do spooler e sat fiscal/i)).toBeInTheDocument();
   });
 
@@ -104,7 +104,7 @@ describe('DashboardPage', () => {
 
     expect(screen.getByText('Integração Oficial com OTRS')).toBeInTheDocument();
     expect(
-      screen.getByText(/abertura, sla, histórico do cliente e fechamento ocorrem exclusivamente no otrs/i)
+      screen.getByText(/abertura, histórico do cliente e encerramento ocorrem exclusivamente no sistema otrs/i)
     ).toBeInTheDocument();
   });
 });

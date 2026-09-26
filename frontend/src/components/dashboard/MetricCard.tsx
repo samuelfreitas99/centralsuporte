@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-
 import { ArrowUpRight } from 'lucide-react';
 
 interface MetricCardProps {
@@ -21,45 +20,44 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
   onClick,
 }) => {
-  const variantStyles = {
-    default: 'text-muted-foreground',
-    primary: 'text-primary',
-    warning: 'text-warning',
-    success: 'text-success',
-  };
+
 
   const bgStyles = {
-    default: 'bg-muted/40 border-border/60',
-    primary: 'bg-primary/10 border-primary/20',
-    warning: 'bg-warning/10 border-warning/20',
-    success: 'bg-success/10 border-success/20',
+    default: 'bg-muted/40 text-muted-foreground',
+    primary: 'bg-primary/10 text-primary',
+    warning: 'bg-warning/10 text-warning',
+    success: 'bg-success/10 text-success',
   };
 
   return (
     <Card
       onClick={onClick}
+      variant="ghost"
       className={cn(
-        'group border-border/70 bg-card/70 backdrop-blur-md transition-all duration-200',
-        onClick && 'cursor-pointer hover:border-primary/40 hover:bg-card/90 hover:shadow-md hover:-translate-y-0.5'
+        'group relative overflow-hidden bg-card/40 transition-all duration-200 hover:bg-card/80',
+        onClick && 'cursor-pointer'
       )}
     >
-      <CardContent className="p-5 flex items-center justify-between">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {title}
-            </p>
+      <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full gap-4">
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+            {title}
+          </p>
+          <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', bgStyles[variant])}>
+            <Icon className="h-4 w-4" />
+          </div>
+        </div>
+        
+        <div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-3xl font-heading font-bold tracking-tight text-foreground">
+              {value}
+            </span>
             {onClick && (
-              <ArrowUpRight className="h-3 w-3 text-muted-foreground/60 opacity-0 transition-opacity group-hover:opacity-100 group-hover:text-primary" />
+              <ArrowUpRight className="h-4 w-4 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 group-hover:text-primary translate-y-1 group-hover:translate-y-0" />
             )}
           </div>
-          <div className="text-3xl font-heading font-bold tracking-tight text-foreground">
-            {value}
-          </div>
-          <p className="text-xs text-muted-foreground/80">{subtitle}</p>
-        </div>
-        <div className={cn('flex h-12 w-12 items-center justify-center rounded-2xl border shadow-inner transition-transform group-hover:scale-105', bgStyles[variant])}>
-          <Icon className={cn('h-5 w-5', variantStyles[variant])} />
+          <p className="text-xs text-muted-foreground/70 mt-1">{subtitle}</p>
         </div>
       </CardContent>
     </Card>

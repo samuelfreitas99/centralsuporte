@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckSquare, AlertCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,70 +40,65 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ initialTasks, 
   };
 
   return (
-    <Card className="h-full border-border/70 bg-card/70 backdrop-blur-md">
-      <CardHeader className="pb-3">
+    <Card variant="ghost" className="h-full flex flex-col">
+      <CardHeader className="pb-4 px-0">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
-              <CheckSquare className="h-4 w-4" />
-            </div>
-            <CardTitle className="font-heading text-lg">Minhas Tarefas do Turno</CardTitle>
-          </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="font-mono text-xs">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <CheckSquare className="h-3.5 w-3.5" />
+            </div>
+            <CardTitle className="font-heading text-lg">Tarefas do Turno</CardTitle>
+            <Badge variant="secondary" className="ml-2 font-mono text-[10px] uppercase">
               {tasks.filter((t) => t.status !== 'concluida').length} pendentes
             </Badge>
-            {onNavigateToTasks && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onNavigateToTasks}
-                className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer"
-              >
-                <span>Ver todas</span>
-                <ArrowRight className="h-3 w-3" />
-              </Button>
-            )}
           </div>
+          {onNavigateToTasks && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onNavigateToTasks}
+              className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer"
+            >
+              <span>Ver todas</span>
+              <ArrowRight className="h-3 w-3" />
+            </Button>
+          )}
         </div>
-        <CardDescription>
-          Atividades operacionais prioritárias para o suporte técnico:
-        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-2.5">
+      <CardContent className="space-y-2 px-0 pb-0 flex-1">
         {tasks.map((task) => {
           const isDone = task.status === 'concluida';
           return (
             <div
               key={task.id}
               onClick={() => toggleTask(task.id)}
-              className={`group flex items-start justify-between gap-3 rounded-xl border p-3.5 text-sm transition-all duration-200 cursor-pointer ${
+              className={`group flex items-center justify-between gap-3 rounded-lg p-3 text-sm transition-all duration-200 cursor-pointer ${
                 isDone
-                  ? 'border-border/30 bg-muted/15 opacity-60'
-                  : 'border-border/70 bg-card/90 hover:border-blue-500/30 hover:bg-white/[0.03] hover:shadow-sm'
+                  ? 'bg-muted/30 opacity-60'
+                  : 'bg-card/40 hover:bg-card/80 border border-transparent hover:border-border/50'
               }`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-center gap-3 overflow-hidden">
                 <input
                   type="checkbox"
                   role="checkbox"
                   checked={isDone}
                   onChange={() => toggleTask(task.id)}
-                  className="mt-1 h-4 w-4 rounded border-border accent-blue-600 cursor-pointer"
+                  className="h-4 w-4 shrink-0 rounded border-border accent-primary cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 />
-                <div className="space-y-1">
-                  <p className={`font-medium text-foreground transition-colors ${isDone ? 'line-through text-muted-foreground' : ''}`}>
+                <div className="min-w-0 truncate">
+                  <p className={`truncate font-medium text-foreground transition-colors ${isDone ? 'line-through text-muted-foreground' : ''}`}>
                     {task.title}
                   </p>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="rounded-md bg-muted/60 px-2 py-0.5 font-medium text-[11px]">{task.category}</span>
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                    <span className="font-medium text-muted-foreground/80">{task.category}</span>
                     <span>•</span>
-                    <span>Previsão: {task.dueTime}</span>
+                    <span>{task.dueTime}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="shrink-0">
                 {getPriorityBadge(task.priority)}
               </div>
             </div>
@@ -111,9 +106,9 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ initialTasks, 
         })}
 
         {tasks.length === 0 && (
-          <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
-            <AlertCircle className="h-8 w-8 mb-2 opacity-50" />
-            <p>Nenhuma tarefa atribuída no momento.</p>
+          <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground bg-card/20 rounded-lg">
+            <AlertCircle className="h-6 w-6 mb-2 opacity-40" />
+            <p className="text-sm">Nenhuma tarefa pendente.</p>
           </div>
         )}
       </CardContent>
