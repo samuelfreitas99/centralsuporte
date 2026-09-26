@@ -1,7 +1,7 @@
 # PROJECT_STATE
 
 **Estado atual**: Evolução Arquitetural de Comandos (Multi-passo) concluída com sucesso. O modelo de domínio foi atualizado para `CommandStep`, com migrations e refatoração completa ponta a ponta.
-**Fase atual**: Evolução Arquitetural de Comandos concluída -> Próxima: Fase 8 (Base de Conhecimento).
+**Fase atual**: Fase 8.1 (Infraestrutura: Backend Soft Delete e Proteção de Licenças) concluída.
 **Última implementação**: 
 - **Evolução Arquitetural — CommandStep**:
   - **Backend**: Criação da tabela `command_steps`, relacionamento 1:N com `commands`, schemas Pydantic atualizados e testes em pytest expandidos para validação dos passos.
@@ -11,7 +11,7 @@
   - Backend pytest 100% aprovado.
   - Frontend Vitest 100% aprovado e Vite Build validado.
 **Último commit**: feat: implement multi-step commands architecture
-**Próxima tarefa**: Fase 8 — Refatoração da Base de Conhecimento.
+**Próxima tarefa**: Fase 8.2 — Infraestrutura (Frontend modularização e Progressive Disclosure).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma nesta unidade.
 **Testes**: Todos testes (Backend/Frontend) aprovados.

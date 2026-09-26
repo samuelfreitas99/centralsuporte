@@ -59,6 +59,8 @@ def list_stores(
     query = db.query(Store)
     if status:
         query = query.filter(Store.status == status)
+    else:
+        query = query.filter(Store.status != "inativa")
     return query.order_by(Store.name.asc()).all()
 
 
@@ -133,7 +135,7 @@ def delete_store(
     if not store:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Loja não encontrada.")
 
-    db.delete(store)
+    store.status = "inativa"
     db.commit()
     return None
 
@@ -222,6 +224,8 @@ def list_equipment(
         query = query.filter(Equipment.equipment_type == equipment_type)
     if status:
         query = query.filter(Equipment.status == status)
+    else:
+        query = query.filter(Equipment.status != "descartado")
 
     return query.order_by(Equipment.hostname.asc(), Equipment.id.desc()).all()
 
@@ -340,7 +344,16 @@ def delete_equipment(
     if not equipment:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Equipamento não encontrado.")
 
-    db.delete(equipment)
+    equipment.status = "descartado"
+    
+    history_entry = EquipmentHistory(
+        equipment_id=equipment.id,
+        user_id=current_user.id,
+        event_type="exclusao",
+        description=f"Equipamento descartado do sistema operacional (Soft Delete) por {current_user.username}.",
+    )
+    db.add(history_entry)
+
     db.commit()
     return None
 
@@ -381,12 +394,19 @@ def list_licenses(
     query = db.query(License)
     if status_filter:
         query = query.filter(License.status == status_filter)
+    else:
+        query = query.filter(License.status != "cancelada")
 
     licenses = query.order_by(License.name.asc()).all()
-    # Compute used_seats dynamically
+    # Compute used_seats dynamically and redact license_key
+    results = []
     for lic in licenses:
         lic.used_seats = len(lic.assignments)
-    return licenses
+        resp = LicenseResponse.model_validate(lic)
+        if resp.license_key:
+            resp.license_key = "[REDACTED]"
+        results.append(resp)
+    return results
 
 
 @router.post("/licenses", response_model=LicenseResponse, status_code=status.HTTP_201_CREATED)
@@ -400,7 +420,10 @@ def create_license(
     db.commit()
     db.refresh(lic)
     lic.used_seats = 0
-    return lic
+    resp = LicenseResponse.model_validate(lic)
+    if resp.license_key:
+        resp.license_key = "[REDACTED]"
+    return resp
 
 
 @router.get("/licenses/{license_id}", response_model=LicenseResponse)
@@ -413,7 +436,10 @@ def get_license(
     if not lic:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Licença não encontrada.")
     lic.used_seats = len(lic.assignments)
-    return lic
+    resp = LicenseResponse.model_validate(lic)
+    if resp.license_key:
+        resp.license_key = "[REDACTED]"
+    return resp
 
 
 @router.put("/licenses/{license_id}", response_model=LicenseResponse)
@@ -428,12 +454,17 @@ def update_license(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Licença não encontrada.")
 
     for field, value in lic_in.model_dump(exclude_unset=True).items():
+        if field == "license_key" and value == "[REDACTED]":
+            continue
         setattr(lic, field, value)
 
     db.commit()
     db.refresh(lic)
     lic.used_seats = len(lic.assignments)
-    return lic
+    resp = LicenseResponse.model_validate(lic)
+    if resp.license_key:
+        resp.license_key = "[REDACTED]"
+    return resp
 
 
 @router.delete("/licenses/{license_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -446,9 +477,34 @@ def delete_license(
     if not lic:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Licença não encontrada.")
 
-    db.delete(lic)
+    lic.status = "cancelada"
     db.commit()
     return None
+
+@router.post("/licenses/{license_id}/reveal", response_model=dict)
+def reveal_license(
+    license_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    lic = db.query(License).filter(License.id == license_id).first()
+    if not lic:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Licença não encontrada.")
+
+    from app.models import AuditLog
+    
+    audit = AuditLog(
+        user_id=current_user.id,
+        username=current_user.username,
+        action="REVEAL_LICENSE_KEY",
+        entity_type="license",
+        entity_id=lic.id,
+        details=f"Usuário revelou a chave da licença '{lic.name}'.",
+    )
+    db.add(audit)
+    db.commit()
+
+    return {"license_key": lic.license_key}
 
 
 @router.post("/licenses/{license_id}/assignments", response_model=LicenseAssignmentResponse, status_code=status.HTTP_201_CREATED)

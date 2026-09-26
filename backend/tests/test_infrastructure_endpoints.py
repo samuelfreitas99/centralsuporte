@@ -256,3 +256,81 @@ def test_stock_items_and_movements():
     res_invalid = client.post(f"/stock/items/{item_id}/movements", json=mov_invalid, headers=headers)
     assert res_invalid.status_code == 400
     assert "Saldo insuficiente em estoque" in res_invalid.json()["detail"]
+
+
+def test_soft_delete_infrastructure():
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    uid = uuid.uuid4().hex[:6]
+
+    # 1. Create and Soft Delete Store
+    store_res = client.post("/stores", json={"name": f"Loja SoftDelete {uid}", "code": f"SD-{uid}"}, headers=headers)
+    store_id = store_res.json()["id"]
+
+    del_store = client.delete(f"/stores/{store_id}", headers=headers)
+    assert del_store.status_code == 204
+
+    # GET specific store shows it as inativa
+    get_store = client.get(f"/stores/{store_id}", headers=headers)
+    assert get_store.status_code == 200
+    assert get_store.json()["status"] == "inativa"
+
+    # GET stores list should not include the inativa store
+    list_stores = client.get("/stores", headers=headers)
+    assert not any(s["id"] == store_id for s in list_stores.json())
+
+    # 2. Create and Soft Delete Equipment
+    eq_res = client.post("/equipment", json={"patrimony": f"EQ-SD-{uid}", "equipment_type": "monitor", "status": "ativo"}, headers=headers)
+    eq_id = eq_res.json()["id"]
+
+    del_eq = client.delete(f"/equipment/{eq_id}", headers=headers)
+    assert del_eq.status_code == 204
+
+    # GET specific eq shows it as descartado
+    get_eq = client.get(f"/equipment/{eq_id}", headers=headers)
+    assert get_eq.status_code == 200
+    assert get_eq.json()["status"] == "descartado"
+
+    # GET equipment list should not include the descartado eq
+    list_eq = client.get("/equipment", headers=headers)
+    assert not any(e["id"] == eq_id for e in list_eq.json())
+
+
+def test_license_protection_and_reveal():
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    uid = uuid.uuid4().hex[:6]
+    real_key = f"SECRET-KEY-{uid}"
+
+    # 1. Create License
+    lic_res = client.post("/licenses", json={"name": f"Licença Protegida {uid}", "license_key": real_key}, headers=headers)
+    assert lic_res.status_code == 201
+    lic_id = lic_res.json()["id"]
+    
+    # Assert create returns redacted
+    assert lic_res.json()["license_key"] == "[REDACTED]"
+
+    # 2. GET List returns redacted
+    list_lic = client.get("/licenses", headers=headers)
+    assert list_lic.status_code == 200
+    lic_in_list = next(l for l in list_lic.json() if l["id"] == lic_id)
+    assert lic_in_list["license_key"] == "[REDACTED]"
+
+    # 3. GET Single returns redacted
+    get_lic = client.get(f"/licenses/{lic_id}", headers=headers)
+    assert get_lic.status_code == 200
+    assert get_lic.json()["license_key"] == "[REDACTED]"
+
+    # 4. Reveal Endpoint
+    reveal_res = client.post(f"/licenses/{lic_id}/reveal", headers=headers)
+    assert reveal_res.status_code == 200
+    assert reveal_res.json()["license_key"] == real_key
+
+    # 5. Soft Delete License
+    del_lic = client.delete(f"/licenses/{lic_id}", headers=headers)
+    assert del_lic.status_code == 204
+
+    get_del_lic = client.get(f"/licenses/{lic_id}", headers=headers)
+    assert get_del_lic.status_code == 200
+    assert get_del_lic.json()["status"] == "cancelada"
+    assert get_del_lic.json()["license_key"] == "[REDACTED]"
