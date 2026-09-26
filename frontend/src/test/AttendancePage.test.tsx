@@ -111,6 +111,12 @@ describe('AttendancePage (Phase 7)', () => {
       id: 20,
       title: 'Procedimento: Falha Spooler de Impressão PDV 02',
       status: 'rascunho',
+      created_at: '2026-09-24T10:30:00Z',
+      updated_at: '2026-09-24T10:30:00Z',
+      author_id: 1,
+      category: 'Geral',
+      views: 0,
+      helpful_count: 0
     });
     vi.mocked(attendanceService.addNote).mockResolvedValue({
       id: 11,
@@ -122,12 +128,11 @@ describe('AttendancePage (Phase 7)', () => {
     });
   });
 
-  it('renders page header, Phase 7 badge, and OTRS boundary banner', async () => {
+  it('renders page header and OTRS boundary banner', async () => {
     renderAttendancePage();
 
     expect(screen.getByText('Atendimentos Internos')).toBeInTheDocument();
-    expect(screen.getByText('Fase 7')).toBeInTheDocument();
-    expect(screen.getByText('Integração Oficial com OTRS')).toBeInTheDocument();
+    expect(screen.getByText(/Integração Oficial com OTRS/i)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
@@ -138,10 +143,15 @@ describe('AttendancePage (Phase 7)', () => {
     renderAttendancePage();
 
     await waitFor(() => {
-      expect(screen.getByText('Chamado #202609240099')).toBeInTheDocument();
+      expect(screen.getByText('OTRS #202609240099')).toBeInTheDocument();
       expect(screen.getByText('PDV 02 - Caixa Central')).toBeInTheDocument();
-      expect(screen.getAllByText('Em Andamento').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('Resolvido').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Em Andamento/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Resolvido/i).length).toBeGreaterThanOrEqual(1);
+    });
+
+    fireEvent.click(screen.getByText('Falha Spooler de Impressão PDV 02'));
+
+    await waitFor(() => {
       expect(screen.getByText('net stop spooler && net start spooler')).toBeInTheDocument();
     });
   });
@@ -153,7 +163,9 @@ describe('AttendancePage (Phase 7)', () => {
       expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
     });
 
-    const copyBtn = screen.getByRole('button', { name: /copiar/i });
+    fireEvent.click(screen.getByText('Falha Spooler de Impressão PDV 02'));
+
+    const copyBtn = await screen.findByRole('button', { name: /copiar/i });
     fireEvent.click(copyBtn);
 
     await waitFor(() => {
@@ -169,12 +181,14 @@ describe('AttendancePage (Phase 7)', () => {
       expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
     });
 
-    const convertBtn = screen.getByRole('button', { name: /salvar como conhecimento/i });
+    fireEvent.click(screen.getByText('Falha Spooler de Impressão PDV 02'));
+
+    const convertBtn = await screen.findByRole('button', { name: /gerar artigo/i });
     fireEvent.click(convertBtn);
 
     await waitFor(() => {
       expect(attendanceService.convertToKnowledge).toHaveBeenCalledWith(1);
-      expect(screen.getAllByText(/salvo na base de conhecimento/i).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/Artigo Criado/i).length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -185,16 +199,17 @@ describe('AttendancePage (Phase 7)', () => {
       expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();
     });
 
-    const notesBtn = screen.getByRole('button', { name: /notas \(1\)/i });
-    fireEvent.click(notesBtn);
+    fireEvent.click(screen.getByText('Falha Spooler de Impressão PDV 02'));
 
-    expect(screen.getByText('Notas Técnicas Internas')).toBeInTheDocument();
-    expect(screen.getByText('Primeiro teste realizado com sucesso')).toBeInTheDocument();
+    const notesTab = await screen.findByRole('tab', { name: /Notas & Anexos/i });
+    fireEvent.click(notesTab);
 
-    const noteInput = screen.getByPlaceholderText(/realizado teste após reinicialização/i);
+    expect(await screen.findByText('Primeiro teste realizado com sucesso')).toBeInTheDocument();
+
+    const noteInput = screen.getByPlaceholderText(/Registre observações sobre testes/i);
     fireEvent.change(noteInput, { target: { value: 'Nota de acompanhamento do chamado' } });
 
-    const sendBtn = screen.getByRole('button', { name: /adicionar nota/i });
+    const sendBtn = screen.getByRole('button', { name: /enviar nota/i });
     fireEvent.click(sendBtn);
 
     await waitFor(() => {
@@ -208,8 +223,8 @@ describe('AttendancePage (Phase 7)', () => {
     const newBtn = screen.getByRole('button', { name: /novo atendimento/i });
     fireEvent.click(newBtn);
 
-    expect(screen.getByText('Novo Atendimento Técnico')).toBeInTheDocument();
-    expect(screen.getByText(/título do atendimento \/ problema \*/i)).toBeInTheDocument();
+    expect(await screen.findByText('Novo Atendimento Técnico')).toBeInTheDocument();
+    expect(screen.getByText(/Título \/ Assunto \*/i)).toBeInTheDocument();
 
     const cancelBtn = screen.getByRole('button', { name: /cancelar/i });
     fireEvent.click(cancelBtn);

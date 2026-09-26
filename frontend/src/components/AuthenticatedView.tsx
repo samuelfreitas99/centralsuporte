@@ -1,4 +1,4 @@
-import React, { useState, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import { AppLayout } from './layout/AppLayout';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
@@ -35,12 +35,37 @@ const AuditLogsPage = lazy(() =>
 );
 
 export const AuthenticatedView: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState('dashboard');
+  const [currentTab, setCurrentTab] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash.split('?')[0] || 'dashboard';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const hash = window.location.hash.replace('#', '');
+      const tab = hash.split('?')[0] || 'dashboard';
+      setCurrentTab(tab);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // Set initial hash if empty
+    if (!window.location.hash) {
+      window.history.replaceState(null, '', '#dashboard');
+    }
+
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const handleSelectTab = useCallback((tab: string) => {
+    setCurrentTab(tab);
+    window.history.pushState(null, '', `#${tab}`);
+  }, []);
 
   const activeNavItem = NAV_ITEMS.find((item) => item.id === currentTab);
 
   return (
-    <AppLayout currentTab={currentTab} onSelectTab={setCurrentTab}>
+    <AppLayout currentTab={currentTab} onSelectTab={handleSelectTab}>
       <Suspense fallback={<PageSkeleton />}>
         {currentTab === 'dashboard' ? (
           <DashboardPage onSelectTab={setCurrentTab} />

@@ -91,16 +91,16 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ reminders: i
                 }`}
               >
                 <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-muted/50 mt-0.5">
-                  {getTypeIcon(reminder.type)}
+                  {getTypeIcon(reminder.priority)}
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className={`font-semibold text-[13px] leading-tight ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                     {reminder.title}
                   </p>
-                  {reminder.due_time && (
+                  {reminder.remind_at && (
                     <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground mt-1">
                       <Clock className="h-3 w-3" />
-                      <span>{new Date(reminder.due_time).toLocaleString('pt-BR')}</span>
+                      <span>{new Date(reminder.remind_at).toLocaleString('pt-BR')}</span>
                     </div>
                   )}
                 </div>

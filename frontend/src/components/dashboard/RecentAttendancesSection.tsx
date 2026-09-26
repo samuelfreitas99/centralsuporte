@@ -57,7 +57,8 @@ export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> =
           attendances.map((attendance) => (
             <div
               key={attendance.id}
-              className="flex items-center justify-between gap-3 rounded-md p-3 text-sm border border-border/40 bg-background hover:bg-muted/40 transition-colors shadow-xs"
+              onClick={() => onNavigateToAttendance?.(attendance.id)}
+              className="flex items-center justify-between gap-3 rounded-md p-3 text-sm border border-border/40 bg-background hover:bg-muted/40 transition-colors shadow-xs cursor-pointer"
             >
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -83,10 +84,10 @@ export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> =
                 </p>
                 <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium mt-1">
                   <span className="text-muted-foreground/80">{attendance.technician?.username || 'Sistema'}</span>
-                  {attendance.equipment && (
+                  {attendance.equipment_name && (
                     <>
                       <span>•</span>
-                      <span className="truncate">{attendance.equipment.name}</span>
+                      <span className="truncate">{attendance.equipment_name}</span>
                     </>
                   )}
                 </div>

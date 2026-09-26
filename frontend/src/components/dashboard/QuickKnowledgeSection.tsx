@@ -46,7 +46,7 @@ export const QuickKnowledgeSection: React.FC<QuickKnowledgeSectionProps> = ({ ar
             <div
               key={article.id}
               className="flex items-center justify-between gap-3 rounded-md p-3 text-sm border border-border/40 bg-background hover:bg-muted/40 transition-colors shadow-xs group cursor-pointer"
-              onClick={onNavigateToKnowledge} // simplistic routing to knowledge tab
+              onClick={() => onNavigateToKnowledge?.(article.id)}
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-[13px] text-foreground group-hover:text-primary transition-colors">
@@ -72,7 +72,7 @@ export const QuickKnowledgeSection: React.FC<QuickKnowledgeSectionProps> = ({ ar
               </div>
               <div className="shrink-0 flex items-center gap-1.5 text-muted-foreground text-[10px] font-medium bg-muted/40 px-2 py-1 rounded-md border border-border/50">
                 <Eye className="h-3 w-3" />
-                <span>{article.views || 0}</span>
+                <span>0</span>
               </div>
             </div>
           ))
