@@ -156,6 +156,12 @@ export const infrastructureService = {
     });
   },
 
+  revealLicenseKey: async (licenseId: number): Promise<{ license_key: string }> => {
+    return request<{ license_key: string }>(`/licenses/${licenseId}/reveal`, {
+      method: 'POST',
+    });
+  },
+
   // --- Estoque Operacional ---
   getStockItems: async (params?: { q?: string; category?: string; low_stock_only?: boolean }): Promise<StockItem[]> => {
     const searchParams = new URLSearchParams();

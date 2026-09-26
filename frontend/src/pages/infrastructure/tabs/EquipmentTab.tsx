@@ -8,25 +8,26 @@ import {
   HardDrive,
   Cpu,
   Monitor,
-  History,
-  Trash2,
-  Edit2,
-  Clock,
   MapPin,
   Plus,
+  MoreVertical,
+  Network,
+  Wrench,
+  FileText,
+  Activity,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerFooter,
+} from '@/components/ui/drawer';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
@@ -68,7 +69,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
     showToast(opts.title, { message: opts.description, type: opts.type });
   };
 
-  const [viewingHistoryEquipment, setViewingHistoryEquipment] = useState<EquipmentItem | null>(null);
+  const [activeDrawerTab, setActiveDrawerTab] = useState('base');
   const [newHistoryNote, setNewHistoryNote] = useState('');
   const [isSubmittingHistory, setIsSubmittingHistory] = useState(false);
 
@@ -97,15 +98,15 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   const getEquipmentStatusBadge = (status: EquipmentStatus) => {
     switch (status) {
       case 'ativo':
-        return <Badge variant="success">Ativo</Badge>;
+        return <span className="text-emerald-500 font-medium">Ativo</span>;
       case 'em_manutencao':
-        return <Badge variant="warning">Em Manutenção</Badge>;
+        return <span className="text-amber-500 font-medium">Em Manutenção</span>;
       case 'reserva':
-        return <Badge variant="info">Reserva Técnica</Badge>;
+        return <span className="text-blue-500 font-medium">Reserva</span>;
       case 'descartado':
-        return <Badge variant="destructive">Descartado</Badge>;
+        return <span className="text-red-500 font-medium">Descartado</span>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <span className="text-muted-foreground">{status}</span>;
     }
   };
 
@@ -169,6 +170,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
         notes: '',
       });
     }
+    setActiveDrawerTab('base');
     setIsEquipmentModalOpen(true);
   };
 
@@ -177,6 +179,8 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
     try {
       if (editingEquipment) {
         const updated = await infrastructureService.updateEquipment(editingEquipment.id, eqForm);
+        // Preserve history if exists
+        updated.history = editingEquipment.history;
         setEquipmentList((prev) => prev.map((item) => (item.id === updated.id ? updated : item)));
         addToast({
           title: 'Equipamento Atualizado',
@@ -204,6 +208,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
     try {
       await infrastructureService.deleteEquipment(eq.id);
       setEquipmentList((prev) => prev.filter((item) => item.id !== eq.id));
+      setIsEquipmentModalOpen(false);
       addToast({
         title: 'Equipamento Excluído',
         description: 'Registro removido com sucesso.',
@@ -217,16 +222,16 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
 
   const handleAddHistoryNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!viewingHistoryEquipment || !newHistoryNote.trim()) return;
+    if (!editingEquipment || !newHistoryNote.trim()) return;
     setIsSubmittingHistory(true);
     try {
-      const entry = await infrastructureService.addEquipmentHistory(viewingHistoryEquipment.id, {
+      const entry = await infrastructureService.addEquipmentHistory(editingEquipment.id, {
         event_type: 'observacao',
         description: newHistoryNote.trim(),
       });
-      const updatedHistory = [entry, ...(viewingHistoryEquipment.history || [])];
-      const updatedEq = { ...viewingHistoryEquipment, history: updatedHistory };
-      setViewingHistoryEquipment(updatedEq);
+      const updatedHistory = [entry, ...(editingEquipment.history || [])];
+      const updatedEq = { ...editingEquipment, history: updatedHistory };
+      setEditingEquipment(updatedEq);
       setEquipmentList((prev) => prev.map((item) => (item.id === updatedEq.id ? updatedEq : item)));
       setNewHistoryNote('');
       addToast({
@@ -245,9 +250,9 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   return (
     <>
       {filteredEquipment.length === 0 ? (
-        <Card className="border-border/60 bg-card/40 border-dashed">
+        <Card className="border-border/60 bg-card/40 border-dashed shadow-sm">
           <CardContent className="flex flex-col items-center justify-center p-12 text-center space-y-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+            <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground border border-border/50">
               <Server className="h-8 w-8" />
             </div>
             <div className="space-y-1.5 max-w-md">
@@ -260,335 +265,327 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                   : 'Comece a cadastrar servidores, computadores, PDVs e switches para gerenciar o parque tecnológico.'}
               </p>
             </div>
-            <Button onClick={() => handleOpenEquipmentModalLocal()} className="mt-2 flex items-center gap-2">
+            <Button onClick={() => handleOpenEquipmentModalLocal()} className="mt-2 flex items-center gap-2 shadow-sm">
               <Plus className="h-4 w-4" />
-              <span>Cadastrar Primeiro Equipamento</span>
+              <span>Cadastrar Equipamento</span>
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <AnimatePresence>
-            {filteredEquipment.map((eq) => (
-              <motion.div
-                key={eq.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
-              >
-                <Card className="border-border/80 bg-card/75 hover:border-blue-500/40 hover:shadow-lg transition-all duration-200">
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/40 border border-border/80">
-                          {getEquipmentIcon(eq.equipment_type)}
-                        </div>
-                        <div>
-                          <h3 className="text-base font-bold text-foreground font-heading leading-snug">
-                            {eq.hostname || 'Sem Hostname'}
-                          </h3>
-                          <p className="text-xs text-muted-foreground font-mono">
-                            Patr: {eq.patrimony || '—'}
-                          </p>
-                        </div>
-                      </div>
-                      {getEquipmentStatusBadge(eq.status)}
+        <div className="flex flex-col border border-border/40 rounded-xl overflow-hidden bg-card/50">
+          <div className="hidden md:grid grid-cols-12 gap-4 p-4 text-xs font-semibold text-muted-foreground border-b border-border/40 bg-muted/20">
+            <div className="col-span-4">EQUIPAMENTO</div>
+            <div className="col-span-3">REDE / LOCALIZAÇÃO</div>
+            <div className="col-span-2">STATUS</div>
+            <div className="col-span-2">PATRIMÔNIO</div>
+            <div className="col-span-1 text-right">AÇÕES</div>
+          </div>
+          
+          <div className="flex flex-col">
+            <AnimatePresence>
+              {filteredEquipment.map((eq) => (
+                <motion.div
+                  key={eq.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border-b border-border/40 hover:bg-muted/30 transition-colors items-center group cursor-pointer"
+                  onClick={() => handleOpenEquipmentModalLocal(eq)}
+                >
+                  <div className="col-span-1 md:col-span-4 flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-background border border-border/50 shadow-sm shrink-0">
+                      {getEquipmentIcon(eq.equipment_type)}
                     </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-xs rounded-xl border border-border/60 bg-background/50 p-2.5">
-                      <div>
-                        <span className="text-[10px] text-muted-foreground block">IP / Rede</span>
-                        <span className="font-mono font-semibold text-blue-400">{eq.ip_address || '—'}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-muted-foreground block">MAC Address</span>
-                        <span className="font-mono text-foreground text-[11px]">{eq.mac_address || '—'}</span>
-                      </div>
-                      <div className="col-span-2 pt-1 border-t border-border/40 flex items-center justify-between text-[11px]">
-                        <span className="text-muted-foreground">
-                          {eq.brand} {eq.model}
-                        </span>
-                        <span className="text-slate-300 font-medium">{eq.operating_system || ''}</span>
-                      </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold text-foreground truncate">
+                        {eq.hostname || 'Sem Hostname'}
+                      </h3>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {eq.brand} {eq.model}
+                      </p>
                     </div>
+                  </div>
 
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="h-3.5 w-3.5 text-blue-400" />
-                        <span>{eq.store?.name || 'Sem Loja'}</span>
-                        {eq.department && <span className="text-foreground/80">({eq.department.name})</span>}
-                      </div>
-                      {eq.assigned_user && (
-                        <span className="text-foreground font-medium bg-muted/40 px-2 py-0.5 rounded-md">
-                          {eq.assigned_user}
-                        </span>
-                      )}
+                  <div className="col-span-1 md:col-span-3 flex flex-col justify-center min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs font-mono text-foreground/80">
+                      <Network className="h-3 w-3 text-muted-foreground" />
+                      <span className="truncate">{eq.ip_address || '—'}</span>
                     </div>
-
-                    <div className="pt-2 flex items-center justify-between border-t border-border/60 text-xs">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setViewingHistoryEquipment(eq)}
-                        className="h-8 text-xs flex items-center gap-1.5 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 cursor-pointer"
-                      >
-                        <History className="h-3.5 w-3.5" />
-                        <span>Histórico ({eq.history?.length || 0})</span>
-                      </Button>
-
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleOpenEquipmentModalLocal(eq)}
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                          aria-label="Editar equipamento"
-                        >
-                          <Edit2 className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDeleteEquipment(eq)}
-                          className="h-7 w-7 text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
-                          aria-label="Excluir equipamento"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                      <MapPin className="h-3 w-3" />
+                      <span className="truncate">{eq.store?.name || 'Sem Loja'}</span>
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2 text-xs">
+                    {getEquipmentStatusBadge(eq.status)}
+                  </div>
+
+                  <div className="col-span-1 md:col-span-2 flex items-center text-xs font-mono text-muted-foreground">
+                    {eq.patrimony || '—'}
+                  </div>
+
+                  <div className="col-span-1 md:col-span-1 flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenEquipmentModalLocal(eq);
+                      }}
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
         </div>
       )}
 
-      {/* MODAL: CREATE / EDIT EQUIPMENT */}
-      <Dialog open={isEquipmentModalOpen} onOpenChange={setIsEquipmentModalOpen}>
-        <DialogContent className="sm:max-w-2xl">
-          <form onSubmit={handleSaveEquipment} className="space-y-4">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2 font-heading">
-                <Server className="h-5 w-5 text-blue-400" />
-                <span>{editingEquipment ? 'Editar Equipamento' : 'Cadastrar Equipamento'}</span>
-              </DialogTitle>
-              <DialogDescription>
-                Registro técnico detalhado no parque tecnológico para controle de inventário e atendimentos.
-              </DialogDescription>
-            </DialogHeader>
+      {/* DRAWER: CREATE / EDIT EQUIPMENT */}
+      <Drawer open={isEquipmentModalOpen} onOpenChange={setIsEquipmentModalOpen}>
+        <DrawerContent size="lg" className="flex flex-col h-full max-h-[100dvh]">
+          <DrawerHeader>
+            <DrawerTitle className="flex items-center gap-2">
+              <Server className="h-5 w-5 text-blue-400" />
+              <span>{editingEquipment ? eqForm.hostname || 'Detalhes do Equipamento' : 'Novo Equipamento'}</span>
+            </DrawerTitle>
+            <DrawerDescription>
+              {editingEquipment ? `Patrimônio: ${eqForm.patrimony || 'N/A'}` : 'Cadastre um novo ativo no inventário.'}
+            </DrawerDescription>
+          </DrawerHeader>
 
-            <div className="space-y-3 text-sm">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Hostname / Nome do Dispositivo *</label>
-                  <Input
-                    value={eqForm.hostname || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, hostname: e.target.value })}
-                    placeholder="Ex: SRV-APP-01 ou PDV-02"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Código de Patrimônio</label>
-                  <Input
-                    value={eqForm.patrimony || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, patrimony: e.target.value })}
-                    placeholder="Ex: PAT-2026-089"
-                  />
-                </div>
+          <Tabs value={activeDrawerTab} onValueChange={setActiveDrawerTab} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {editingEquipment && (
+              <div className="px-5 sm:px-6 pt-2 shrink-0 border-b border-border/40">
+                <TabsList className="w-full justify-start h-9 bg-transparent p-0">
+                  <TabsTrigger value="base" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-2 pt-1 h-auto">
+                    <Activity className="h-3.5 w-3.5 mr-1.5" /> Informações
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-2 pt-1 h-auto">
+                    <Wrench className="h-3.5 w-3.5 mr-1.5" /> Histórico
+                  </TabsTrigger>
+                  <TabsTrigger value="docs" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-2 pt-1 h-auto">
+                    <FileText className="h-3.5 w-3.5 mr-1.5" /> Anexos
+                  </TabsTrigger>
+                </TabsList>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Tipo de Equipamento</label>
-                  <select
-                    value={eqForm.equipment_type}
-                    onChange={(e) => setEqForm({ ...eqForm, equipment_type: e.target.value as EquipmentType })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-2.5 text-xs text-foreground focus:outline-none cursor-pointer"
-                  >
-                    <option value="computador">Computador Desktop</option>
-                    <option value="notebook">Notebook</option>
-                    <option value="pdv">PDV Caixa</option>
-                    <option value="servidor">Servidor</option>
-                    <option value="impressora">Impressora</option>
-                    <option value="switch">Switch</option>
-                    <option value="access_point">Access Point</option>
-                    <option value="roteador">Roteador</option>
-                    <option value="firewall">Firewall</option>
-                    <option value="monitor">Monitor</option>
-                    <option value="nobreak">Nobreak/UPS</option>
-                    <option value="outro">Outro</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Marca / Fabricante</label>
-                  <Input
-                    value={eqForm.brand || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, brand: e.target.value })}
-                    placeholder="Ex: Dell, HP, Ubiquiti"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Modelo</label>
-                  <Input
-                    value={eqForm.model || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, model: e.target.value })}
-                    placeholder="Ex: PowerEdge R740"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Endereço IP</label>
-                  <Input
-                    value={eqForm.ip_address || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, ip_address: e.target.value })}
-                    placeholder="Ex: 10.0.29.100"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">MAC Address</label>
-                  <Input
-                    value={eqForm.mac_address || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, mac_address: e.target.value })}
-                    placeholder="Ex: AA:BB:CC:DD:EE:FF"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Status</label>
-                  <select
-                    value={eqForm.status}
-                    onChange={(e) => setEqForm({ ...eqForm, status: e.target.value as EquipmentStatus })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-2.5 text-xs text-foreground focus:outline-none cursor-pointer"
-                  >
-                    <option value="ativo">Ativo</option>
-                    <option value="em_manutencao">Em Manutenção</option>
-                    <option value="reserva">Reserva Técnica</option>
-                    <option value="descartado">Descartado</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Loja / Unidade</label>
-                  <select
-                    value={eqForm.store_id || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, store_id: e.target.value ? Number(e.target.value) : null })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-2.5 text-xs text-foreground focus:outline-none cursor-pointer"
-                  >
-                    <option value="">Nenhuma Loja</option>
-                    {stores.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">Usuário / Responsável</label>
-                  <Input
-                    value={eqForm.assigned_user || ''}
-                    onChange={(e) => setEqForm({ ...eqForm, assigned_user: e.target.value })}
-                    placeholder="Ex: Gerente Operacional"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <DialogFooter className="pt-2">
-              <Button type="button" variant="outline" onClick={() => setIsEquipmentModalOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" className="cursor-pointer">
-                {editingEquipment ? 'Salvar Alterações' : 'Cadastrar Equipamento'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* MODAL / DRAWER: EQUIPMENT TECHNICAL HISTORY */}
-      <Dialog
-        open={Boolean(viewingHistoryEquipment)}
-        onOpenChange={(open) => !open && setViewingHistoryEquipment(null)}
-      >
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-heading">
-              <History className="h-5 w-5 text-blue-400" />
-              <span>Histórico Técnico: {viewingHistoryEquipment?.hostname}</span>
-            </DialogTitle>
-            <DialogDescription>
-              Trilha de auditoria e apontamentos de manutenções, trocas de IP/MAC e eventos do equipamento.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
-            {viewingHistoryEquipment?.history && viewingHistoryEquipment.history.length > 0 ? (
-              viewingHistoryEquipment.history.map((h) => (
-                <div key={h.id} className="rounded-xl border border-border/70 bg-muted/20 p-3 space-y-1 text-xs">
-                  <div className="flex items-center justify-between text-muted-foreground">
-                    <span className="font-semibold text-foreground flex items-center gap-1.5">
-                      <Clock className="h-3 w-3 text-blue-400" />
-                      <span>{h.event_type.toUpperCase()}</span>
-                    </span>
-                    <span className="text-[10px] font-mono">
-                      {new Date(h.created_at).toLocaleDateString('pt-BR')} {new Date(h.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <p className="text-slate-200 leading-relaxed">{h.description}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-center py-6 text-xs text-muted-foreground">
-                Nenhum evento registrado no histórico deste equipamento.
-              </p>
             )}
-          </div>
 
-          <form onSubmit={handleAddHistoryNote} className="space-y-2 pt-2 border-t border-border/60">
-            <label className="text-xs font-semibold text-foreground block">
-              Adicionar Apontamento Técnico / Manutenção
-            </label>
-            <div className="flex items-center gap-2">
-              <Input
-                value={newHistoryNote}
-                onChange={(e) => setNewHistoryNote(e.target.value)}
-                placeholder="Ex: Realizada troca de cabo de rede e reinstalação..."
-                className="text-xs h-9 bg-background/60"
-              />
-              <Button type="submit" size="sm" disabled={isSubmittingHistory || !newHistoryNote.trim()} className="h-9 px-3 shrink-0 cursor-pointer">
-                Salvar
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar">
+              <TabsContent value="base" className="m-0 space-y-6">
+                <form id="equipment-form" onSubmit={handleSaveEquipment} className="space-y-6">
+                  {/* Info Base */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Informações Base</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Hostname *</label>
+                        <Input
+                          value={eqForm.hostname || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, hostname: e.target.value })}
+                          placeholder="Ex: SRV-APP-01"
+                          required
+                          className="h-9 bg-background/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Tipo de Equipamento</label>
+                        <select
+                          value={eqForm.equipment_type}
+                          onChange={(e) => setEqForm({ ...eqForm, equipment_type: e.target.value as EquipmentType })}
+                          className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                        >
+                          <option value="computador">Computador Desktop</option>
+                          <option value="notebook">Notebook</option>
+                          <option value="pdv">PDV Caixa</option>
+                          <option value="servidor">Servidor</option>
+                          <option value="impressora">Impressora</option>
+                          <option value="switch">Switch</option>
+                          <option value="access_point">Access Point</option>
+                          <option value="roteador">Roteador</option>
+                          <option value="firewall">Firewall</option>
+                          <option value="monitor">Monitor</option>
+                          <option value="nobreak">Nobreak/UPS</option>
+                          <option value="outro">Outro</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Patrimônio</label>
+                        <Input
+                          value={eqForm.patrimony || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, patrimony: e.target.value })}
+                          placeholder="Ex: PAT-089"
+                          className="h-9 bg-background/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Status Operacional</label>
+                        <select
+                          value={eqForm.status}
+                          onChange={(e) => setEqForm({ ...eqForm, status: e.target.value as EquipmentStatus })}
+                          className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                        >
+                          <option value="ativo">Ativo</option>
+                          <option value="em_manutencao">Em Manutenção</option>
+                          <option value="reserva">Reserva Técnica</option>
+                          <option value="descartado">Descartado</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-border/40 w-full" />
+
+                  {/* Rede & Hardware */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Rede & Hardware</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Endereço IP</label>
+                        <Input
+                          value={eqForm.ip_address || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, ip_address: e.target.value })}
+                          placeholder="Ex: 10.0.29.100"
+                          className="h-9 bg-background/50 font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">MAC Address</label>
+                        <Input
+                          value={eqForm.mac_address || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, mac_address: e.target.value })}
+                          placeholder="Ex: AA:BB:CC:DD:EE:FF"
+                          className="h-9 bg-background/50 font-mono text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Fabricante</label>
+                        <Input
+                          value={eqForm.brand || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, brand: e.target.value })}
+                          placeholder="Ex: Dell"
+                          className="h-9 bg-background/50"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Modelo</label>
+                        <Input
+                          value={eqForm.model || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, model: e.target.value })}
+                          placeholder="Ex: PowerEdge R740"
+                          className="h-9 bg-background/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="h-px bg-border/40 w-full" />
+
+                  {/* Alocação */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Localização</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Local / Rack (Loja)</label>
+                        <select
+                          value={eqForm.store_id || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, store_id: e.target.value ? Number(e.target.value) : null })}
+                          className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                        >
+                          <option value="">Não Alocado</option>
+                          {stores.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Usuário / Responsável</label>
+                        <Input
+                          value={eqForm.assigned_user || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, assigned_user: e.target.value })}
+                          placeholder="Ex: Operação Caixa 01"
+                          className="h-9 bg-background/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </form>
+              </TabsContent>
+
+              {editingEquipment && (
+                <>
+                  <TabsContent value="history" className="m-0 flex flex-col h-full space-y-4">
+                    <form onSubmit={handleAddHistoryNote} className="flex gap-2">
+                      <Input
+                        value={newHistoryNote}
+                        onChange={(e) => setNewHistoryNote(e.target.value)}
+                        placeholder="Registrar nova intervenção ou manutenção..."
+                        className="text-sm bg-background/50 h-10"
+                      />
+                      <Button type="submit" disabled={isSubmittingHistory || !newHistoryNote.trim()} className="h-10 shrink-0 cursor-pointer">
+                        Salvar
+                      </Button>
+                    </form>
+
+                    <div className="flex-1 space-y-3 mt-4">
+                      {editingEquipment.history && editingEquipment.history.length > 0 ? (
+                        editingEquipment.history.map((h) => (
+                          <div key={h.id} className="relative pl-6 pb-4 border-l border-border/40 last:border-0 last:pb-0">
+                            <div className="absolute left-[-5px] top-1.5 h-2.5 w-2.5 rounded-full bg-border border-2 border-card" />
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                              <span className="font-semibold text-foreground uppercase tracking-wider">{h.event_type}</span>
+                              <span className="font-mono">
+                                • {new Date(h.created_at).toLocaleDateString('pt-BR')} {new Date(h.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                            <p className="text-sm text-foreground/90">{h.description}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-muted-foreground text-center py-8">
+                          Nenhum histórico registrado para este ativo.
+                        </p>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="docs" className="m-0 flex flex-col h-full">
+                    <AttachmentManager
+                      entityType="equipment"
+                      entityId={editingEquipment.id}
+                      title="Anexos do Equipamento"
+                    />
+                  </TabsContent>
+                </>
+              )}
+            </div>
+          </Tabs>
+
+          <DrawerFooter>
+            {activeDrawerTab === 'base' && (
+              <Button type="submit" form="equipment-form" className="w-full sm:w-auto cursor-pointer">
+                {editingEquipment ? 'Salvar Alterações' : 'Cadastrar'}
               </Button>
-            </div>
-          </form>
-
-          {viewingHistoryEquipment && (
-            <div className="pt-3 border-t border-border/60">
-              <AttachmentManager
-                entityType="equipment"
-                entityId={viewingHistoryEquipment.id}
-                title="Manuais, NFs & Fotos do Equipamento"
-                compact
-              />
-            </div>
-          )}
-
-          <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => setViewingHistoryEquipment(null)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            )}
+            {editingEquipment && (
+              <Button
+                type="button"
+                variant="destructive"
+                className="w-full sm:w-auto cursor-pointer"
+                onClick={() => handleDeleteEquipment(editingEquipment)}
+              >
+                Excluir Equipamento
+              </Button>
+            )}
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 };

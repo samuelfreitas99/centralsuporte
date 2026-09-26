@@ -64,7 +64,7 @@ const copyToClipboard = async (text: string) => {
     }
     return;
   }
-  await copyToClipboard(text);
+  await navigator.clipboard.writeText(text);
 };
 
 export const CommandsPage: React.FC = () => {

@@ -106,6 +106,12 @@ describe('CommandsPage (Phase 6)', () => {
       writable: true,
       configurable: true,
     });
+    
+    Object.defineProperty(window, 'isSecureContext', {
+      value: true,
+      writable: true,
+      configurable: true,
+    });
 
     vi.mocked(commandService.getCommands).mockResolvedValue(mockCommands);
     vi.mocked(commandService.getSystems).mockResolvedValue(['Windows', 'Linux']);
