@@ -8,7 +8,7 @@ import type { KnowledgeArticle } from '@/types/knowledge';
 interface QuickKnowledgeSectionProps {
   articles: KnowledgeArticle[];
   loading?: boolean;
-  onNavigateToKnowledge?: () => void;
+  onNavigateToKnowledge?: (id?: number) => void;
 }
 
 export const QuickKnowledgeSection: React.FC<QuickKnowledgeSectionProps> = ({ articles, loading, onNavigateToKnowledge }) => {
@@ -26,7 +26,7 @@ export const QuickKnowledgeSection: React.FC<QuickKnowledgeSectionProps> = ({ ar
             <Button
               variant="ghost"
               size="sm"
-              onClick={onNavigateToKnowledge}
+              onClick={() => onNavigateToKnowledge?.()}
               className="h-7 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer hover:bg-muted/50"
             >
               <span>Acessar base</span>

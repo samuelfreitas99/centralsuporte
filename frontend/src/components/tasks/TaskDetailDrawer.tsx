@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ import {
 import type { Task } from '@/types/tasks';
 import { organizationService } from '@/services/organizationService';
 
-interface TaskDetailDialogProps {
+interface TaskDetailDrawerProps {
   task: Task | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -28,7 +28,7 @@ interface TaskDetailDialogProps {
   onEditTask: (task: Task) => void;
 }
 
-export const TaskDetailDialog: React.FC<TaskDetailDialogProps> = ({
+export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   task,
   open,
   onOpenChange,
@@ -129,11 +129,11 @@ export const TaskDetailDialog: React.FC<TaskDetailDialogProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="border-b border-border pb-3">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent size="xl" className="overflow-y-auto">
+        <DrawerHeader className="border-b border-border pb-3">
           <div className="flex items-center justify-between gap-2 pr-6">
-            <DialogTitle className="text-xl font-bold leading-tight">{task.title}</DialogTitle>
+            <DrawerTitle className="text-xl font-bold leading-tight">{task.title}</DrawerTitle>
           </div>
           <div className="flex flex-wrap items-center gap-2 pt-2">
             {getStatusBadge(task.status)}
@@ -150,7 +150,7 @@ export const TaskDetailDialog: React.FC<TaskDetailDialogProps> = ({
               </div>
             )}
           </div>
-        </DialogHeader>
+        </DrawerHeader>
 
         <div className="space-y-5 py-3">
           {/* Descrição */}
@@ -354,7 +354,7 @@ export const TaskDetailDialog: React.FC<TaskDetailDialogProps> = ({
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 };

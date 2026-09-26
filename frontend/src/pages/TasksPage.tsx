@@ -3,6 +3,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import type { BadgeProps } from '@/components/ui/badge';
 import {
   CheckSquare,
   Plus,
@@ -12,19 +13,15 @@ import {
   Trash2,
   Edit,
   Eye,
-  Calendar as CalendarIcon,
-  Bell,
-  ListTodo,
 } from 'lucide-react';
 import type { Task, TaskCreatePayload, TaskUpdatePayload } from '@/types/tasks';
 import { organizationService } from '@/services/organizationService';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
-import { TaskDetailDialog } from '@/components/tasks/TaskDetailDialog';
+import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import { RemindersSection } from '@/components/tasks/RemindersSection';
 import { CalendarSection } from '@/components/tasks/CalendarSection';
 
 export const TasksPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'tasks' | 'reminders' | 'calendar'>('tasks');
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,7 +31,7 @@ export const TasksPage: React.FC = () => {
   // Dialogs state
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
-  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const loadTasks = useCallback(async () => {
@@ -84,7 +81,7 @@ export const TasksPage: React.FC = () => {
     try {
       await organizationService.deleteTask(taskId);
       if (selectedTask?.id === taskId) {
-        setDetailDialogOpen(false);
+        setDetailDrawerOpen(false);
         setSelectedTask(null);
       }
       loadTasks();
@@ -103,9 +100,16 @@ export const TasksPage: React.FC = () => {
     setFormDialogOpen(true);
   };
 
-  const openDetailDialog = (task: Task) => {
+  const openDetailDrawer = (task: Task) => {
     setSelectedTask(task);
-    setDetailDialogOpen(true);
+    setDetailDrawerOpen(true);
+  };
+
+  const getTaskPriorityVariant = (priority: string): BadgeProps['variant'] => {
+    if (priority === 'urgente') return 'destructive';
+    if (priority === 'alta') return 'warning';
+    if (priority === 'baixa') return 'secondary';
+    return 'default';
   };
 
   // Metricas rápidas
@@ -116,7 +120,7 @@ export const TasksPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header com Navegação de Sub-abas */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -127,45 +131,11 @@ export const TasksPage: React.FC = () => {
             Gerenciamento de tarefas técnicas, procedimentos com checklist, lembretes de escala e calendário
           </p>
         </div>
-
-        {/* Abas */}
-        <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg border border-border">
-          <Button
-            variant={activeTab === 'tasks' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('tasks')}
-            className="h-8 text-xs font-medium flex items-center gap-1.5"
-          >
-            <ListTodo className="h-3.5 w-3.5" />
-            <span>Tarefas e Checklists</span>
-          </Button>
-          <Button
-            variant={activeTab === 'reminders' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('reminders')}
-            className="h-8 text-xs font-medium flex items-center gap-1.5"
-          >
-            <Bell className="h-3.5 w-3.5" />
-            <span>Lembretes</span>
-          </Button>
-          <Button
-            variant={activeTab === 'calendar' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setActiveTab('calendar')}
-            className="h-8 text-xs font-medium flex items-center gap-1.5"
-          >
-            <CalendarIcon className="h-3.5 w-3.5" />
-            <span>Calendário</span>
-          </Button>
-        </div>
       </div>
 
-      {activeTab === 'reminders' ? (
-        <RemindersSection />
-      ) : activeTab === 'calendar' ? (
-        <CalendarSection />
-      ) : (
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Coluna Principal: Tarefas */}
+        <div className="xl:col-span-2 space-y-6">
           {/* Métricas Rápidas */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="rounded-xl border border-border bg-card p-4 shadow-xs">
@@ -186,25 +156,25 @@ export const TasksPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Filtros e Busca */}
-          <Card>
+          {/* Filtros e Lista de Tarefas */}
+          <Card className="flex-1 flex flex-col min-h-[500px]">
             <CardHeader className="p-4 pb-3">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-1 items-center gap-2">
                   <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Pesquisar tarefas, descrição ou OTRS..."
+                      placeholder="Pesquisar tarefas ou OTRS..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-8 h-9 text-xs"
+                      className="pl-8 h-9 text-xs bg-muted/30"
                     />
                   </div>
 
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-2.5 text-xs text-foreground font-medium"
+                    className="h-9 rounded-md border border-input bg-muted/30 px-2.5 text-xs text-foreground font-medium"
                   >
                     <option value="">Todos os Status</option>
                     <option value="pendente">Pendente</option>
@@ -216,9 +186,9 @@ export const TasksPage: React.FC = () => {
                   <select
                     value={priorityFilter}
                     onChange={(e) => setPriorityFilter(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-background px-2.5 text-xs text-foreground font-medium"
+                    className="h-9 rounded-md border border-input bg-muted/30 px-2.5 text-xs text-foreground font-medium"
                   >
-                    <option value="">Todas as Prioridades</option>
+                    <option value="">Prioridades</option>
                     <option value="urgente">Urgente</option>
                     <option value="alta">Alta</option>
                     <option value="media">Média</option>
@@ -233,14 +203,16 @@ export const TasksPage: React.FC = () => {
               </div>
             </CardHeader>
 
-            <CardContent className="p-0 border-t border-border">
+            <CardContent className="p-0 border-t border-border/50 flex-1 flex flex-col">
               {loading ? (
-                <div className="text-center py-12 text-sm text-muted-foreground">Carregando tarefas operacionais...</div>
+                <div className="flex-1 flex items-center justify-center py-12 text-sm text-muted-foreground">
+                  Carregando tarefas operacionais...
+                </div>
               ) : tasks.length === 0 ? (
-                <div className="text-center py-12 text-sm text-muted-foreground flex flex-col items-center justify-center gap-2">
+                <div className="flex-1 flex flex-col items-center justify-center py-12 text-sm text-muted-foreground gap-2">
                   <CheckSquare className="h-8 w-8 text-muted-foreground/40 mb-1" />
                   <p className="font-semibold text-foreground">Nenhuma tarefa encontrada.</p>
-                  <p className="text-xs text-muted-foreground max-w-sm">
+                  <p className="text-xs text-muted-foreground max-w-sm text-center">
                     Crie uma nova tarefa operacional para organizar os procedimentos internos da equipe de suporte.
                   </p>
                   <Button size="sm" variant="outline" onClick={openCreateDialog} className="mt-2 text-xs">
@@ -248,7 +220,7 @@ export const TasksPage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="divide-y divide-border">
+                <div className="divide-y divide-border/50 flex-1">
                   {tasks.map((task) => {
                     const totalItems = task.checklists?.reduce((acc, c) => acc + c.items.length, 0) || 0;
                     const doneItems =
@@ -257,7 +229,7 @@ export const TasksPage: React.FC = () => {
                     return (
                       <div
                         key={task.id}
-                        className="p-4 hover:bg-muted/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                        className="p-4 hover:bg-muted/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
                       >
                         <div className="space-y-1.5 flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
@@ -265,35 +237,27 @@ export const TasksPage: React.FC = () => {
                               className={`text-sm font-bold cursor-pointer hover:underline ${
                                 task.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
                               }`}
-                              onClick={() => openDetailDialog(task)}
+                              onClick={() => openDetailDrawer(task)}
                             >
                               {task.title}
                             </span>
 
                             <Badge
-                              variant={
-                                task.priority === 'urgente'
-                                  ? 'destructive'
-                                  : task.priority === 'alta'
-                                  ? 'warning'
-                                  : task.priority === 'baixa'
-                                  ? 'secondary'
-                                  : 'default'
-                              }
+                              variant={getTaskPriorityVariant(task.priority)}
                               className="text-[10px] py-0 h-4 uppercase"
                             >
                               {task.priority}
                             </Badge>
 
                             {task.category && (
-                              <Badge variant="outline" className="text-[10px] py-0 h-4">
+                              <Badge variant="outline" className="text-[10px] py-0 h-4 bg-background">
                                 {task.category}
                               </Badge>
                             )}
 
                             {task.otrs_reference && (
                               <div
-                                className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 shrink-0"
+                                className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0"
                                 title="Chamado oficial associado no OTRS"
                               >
                                 <ExternalLink className="h-2.5 w-2.5" />
@@ -306,7 +270,7 @@ export const TasksPage: React.FC = () => {
                             <p className="text-xs text-muted-foreground line-clamp-1 max-w-2xl">{task.description}</p>
                           )}
 
-                          <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground pt-0.5">
+                          <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground pt-1">
                             {task.due_date && (
                               <div className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />
@@ -330,7 +294,7 @@ export const TasksPage: React.FC = () => {
                         </div>
 
                         {/* Ações Rápidas */}
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
                           <select
                             className="h-8 rounded-md border border-input bg-background px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             value={task.status}
@@ -346,10 +310,10 @@ export const TasksPage: React.FC = () => {
                             variant="outline"
                             size="sm"
                             className="h-8 text-xs flex items-center gap-1"
-                            onClick={() => openDetailDialog(task)}
+                            onClick={() => openDetailDrawer(task)}
                           >
                             <Eye className="h-3.5 w-3.5" />
-                            <span>Detalhes</span>
+                            <span className="hidden sm:inline">Detalhes</span>
                           </Button>
 
                           <Button
@@ -380,9 +344,19 @@ export const TasksPage: React.FC = () => {
             </CardContent>
           </Card>
         </div>
-      )}
 
-      {/* Dialogs */}
+        {/* Coluna Lateral: Lembretes e Calendário */}
+        <div className="space-y-6 flex flex-col">
+          <div className="flex-1 min-h-[350px] max-h-[500px]">
+            <RemindersSection />
+          </div>
+          <div className="flex-1 min-h-[350px] max-h-[500px]">
+            <CalendarSection />
+          </div>
+        </div>
+      </div>
+
+      {/* Dialogs e Drawers */}
       <TaskFormDialog
         open={formDialogOpen}
         onOpenChange={setFormDialogOpen}
@@ -390,10 +364,10 @@ export const TasksPage: React.FC = () => {
         onSave={handleSaveTask}
       />
 
-      <TaskDetailDialog
+      <TaskDetailDrawer
         task={selectedTask}
-        open={detailDialogOpen}
-        onOpenChange={setDetailDialogOpen}
+        open={detailDrawerOpen}
+        onOpenChange={setDetailDrawerOpen}
         onTaskUpdated={loadTasks}
         onEditTask={openEditDialog}
       />

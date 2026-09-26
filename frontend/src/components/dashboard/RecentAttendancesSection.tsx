@@ -8,7 +8,7 @@ import type { AttendanceItem } from '@/types/attendance';
 interface RecentAttendancesSectionProps {
   attendances: AttendanceItem[];
   loading?: boolean;
-  onNavigateToAttendance?: () => void;
+  onNavigateToAttendance?: (id?: number) => void;
 }
 
 export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> = ({ attendances, loading, onNavigateToAttendance }) => {
@@ -38,7 +38,7 @@ export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> =
             <Button
               variant="ghost"
               size="sm"
-              onClick={onNavigateToAttendance}
+              onClick={() => onNavigateToAttendance?.()}
               className="h-7 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer hover:bg-muted/50"
             >
               <span>Ver todos</span>

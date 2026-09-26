@@ -111,12 +111,6 @@ describe('AttendancePage (Phase 7)', () => {
       id: 20,
       title: 'Procedimento: Falha Spooler de Impressão PDV 02',
       status: 'rascunho',
-      created_at: '2026-09-24T10:30:00Z',
-      updated_at: '2026-09-24T10:30:00Z',
-      author_id: 1,
-      category: 'Geral',
-      views: 0,
-      helpful_count: 0
     });
     vi.mocked(attendanceService.addNote).mockResolvedValue({
       id: 11,

@@ -63,13 +63,14 @@ describe('TasksPage', () => {
     vi.mocked(organizationService.getCalendarEvents).mockResolvedValue([]);
   });
 
-  it('renders header, tabs, and metrics cards', async () => {
+  it('renders header, metrics cards, reminders and calendar', async () => {
     render(<TasksPage />);
 
     expect(screen.getByText('Organização Operacional')).toBeInTheDocument();
-    expect(screen.getByText('Tarefas e Checklists')).toBeInTheDocument();
-    expect(screen.getByText('Lembretes')).toBeInTheDocument();
-    expect(screen.getByText('Calendário')).toBeInTheDocument();
+    
+    // Reminders and Calendar should be in the document right away
+    expect(screen.getByText('Lembretes de Turno')).toBeInTheDocument();
+    expect(screen.getByText('Eventos e Manutenções Programadas')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Verificar switch de distribuição')).toBeInTheDocument();
@@ -105,6 +106,8 @@ describe('TasksPage', () => {
       expect(screen.getByText('Verificar switch de distribuição')).toBeInTheDocument();
     });
 
+    // Instead of button click by text, we might have 'Detalhes' visually hidden in small screens or wrapped in an Eye icon. 
+    // Wait, the button has `span className="hidden sm:inline">Detalhes</span>`.
     fireEvent.click(screen.getByText('Detalhes'));
 
     await waitFor(() => {
@@ -113,24 +116,6 @@ describe('TasksPage', () => {
       expect(screen.getByText('Inspeção Física')).toBeInTheDocument();
       expect(screen.getByText('Conectar cabo de console')).toBeInTheDocument();
       expect(screen.getByText('Testar uplink')).toBeInTheDocument();
-    });
-  });
-
-  it('switches between tabs to Reminders and Calendar', async () => {
-    render(<TasksPage />);
-
-    // Click Lembretes
-    fireEvent.click(screen.getByText('Lembretes'));
-    await waitFor(() => {
-      expect(screen.getByText('Lembretes de Turno')).toBeInTheDocument();
-      expect(screen.getByText('Novo Lembrete')).toBeInTheDocument();
-    });
-
-    // Click Calendario
-    fireEvent.click(screen.getByText('Calendário'));
-    await waitFor(() => {
-      expect(screen.getByText('Eventos e Manutenções Programadas')).toBeInTheDocument();
-      expect(screen.getByText('Agendar Evento')).toBeInTheDocument();
     });
   });
 });
