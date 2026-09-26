@@ -44,6 +44,29 @@ import type {
 
 type ActiveTab = 'commands' | 'responses';
 
+
+const copyToClipboard = async (text: string) => {
+  if (!navigator.clipboard || !window.isSecureContext) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand('copy');
+    } catch (err) {
+      throw err;
+    } finally {
+      textArea.remove();
+    }
+    return;
+  }
+  await copyToClipboard(text);
+};
+
 export const CommandsPage: React.FC = () => {
   const { user } = useAuth();
   const { success, error: toastError } = useToast();
@@ -157,7 +180,7 @@ export const CommandsPage: React.FC = () => {
   const handleCopyCommand = async (cmd: CommandItem) => {
     try {
       const fullCommand = cmd.steps?.map(s => s.command_text).join('\n') || '';
-      await navigator.clipboard.writeText(fullCommand);
+      await copyToClipboard(fullCommand);
       setCopiedId(`cmd-${cmd.id}`);
       success('Procedimento copiado!', 'O procedimento foi copiado para a área de transferência.');
 
@@ -177,7 +200,7 @@ export const CommandsPage: React.FC = () => {
 
   const handleCopyStep = async (cmd: CommandItem, step: any) => {
     try {
-      await navigator.clipboard.writeText(step.command_text);
+      await copyToClipboard(step.command_text);
       setCopiedId(`cmd-${cmd.id}-step-${step.id}`);
       success('Passo copiado!', 'Comando copiado para a área de transferência.');
       setCommands((prev) => prev.map((c) => (c.id === cmd.id ? { ...c, copies_count: c.copies_count + 1 } : c)));
@@ -192,7 +215,7 @@ export const CommandsPage: React.FC = () => {
   // One-click Copy Handler for Responses
   const handleCopyResponse = async (resp: StandardResponseItem) => {
     try {
-      await navigator.clipboard.writeText(resp.content);
+      await copyToClipboard(resp.content);
       setCopiedId(`resp-${resp.id}`);
       success('Resposta copiada!', 'O texto padrão foi copiado para a área de transferência.');
 
@@ -725,7 +748,7 @@ export const CommandsPage: React.FC = () => {
                       )}
 
                       {/* Steps Code blocks */}
-                      <div className="space-y-3">
+                      <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
                         {cmd.steps?.map((step) => {
                           const stepCopiedId = `cmd-${cmd.id}-step-${step.id}`;
                           const isStepCopied = copiedId === stepCopiedId;
@@ -978,7 +1001,7 @@ export const CommandsPage: React.FC = () => {
       {/* 5. MODAL: CREATE / EDIT COMMAND */}
       <Drawer open={isCommandDrawerOpen} onOpenChange={setIsCommandDrawerOpen}>
         <DrawerContent size="lg" side="right">
-          <form onSubmit={handleSaveCommand} className="space-y-4">
+          <form onSubmit={handleSaveCommand} className="space-y-4 overflow-y-auto max-h-[85vh] px-4 pb-8 custom-scrollbar">
             <DrawerHeader>
               <DrawerTitle className="flex items-center gap-2 font-heading">
                 <Terminal className="h-5 w-5 text-blue-400" />
@@ -1213,7 +1236,7 @@ export const CommandsPage: React.FC = () => {
       {/* 6. MODAL: CREATE / EDIT STANDARD RESPONSE */}
       <Drawer open={isResponseDrawerOpen} onOpenChange={setIsResponseDrawerOpen}>
         <DrawerContent size="lg" side="right">
-          <form onSubmit={handleSaveResponse} className="space-y-4">
+          <form onSubmit={handleSaveResponse} className="space-y-4 overflow-y-auto max-h-[85vh] px-4 pb-8 custom-scrollbar">
             <DrawerHeader>
               <DrawerTitle className="flex items-center gap-2 font-heading">
                 <MessageSquare className="h-5 w-5 text-blue-400" />
