@@ -214,12 +214,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
         <RecentAttendancesSection
           attendances={attendances.slice(0, 5)}
           loading={loading}
-          onNavigateToAttendance={() => onSelectTab?.('attendance')}
+          onNavigateToAttendance={(id) => onSelectTab?.(id ? `attendance?id=${id}` : 'attendance')}
         />
         <QuickKnowledgeSection
           articles={articles.slice(0, 5)}
           loading={loading}
-          onNavigateToKnowledge={() => onSelectTab?.('knowledge')}
+          onNavigateToKnowledge={(id) => onSelectTab?.(id ? `knowledge?id=${id}` : 'knowledge')}
         />
       </div>
 

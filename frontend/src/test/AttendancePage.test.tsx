@@ -126,6 +126,7 @@ describe('AttendancePage (Phase 7)', () => {
       note: 'Nota de acompanhamento do chamado',
       created_at: '2026-09-24T10:30:00Z',
     });
+    window.location.hash = '';
   });
 
   it('renders page header and OTRS boundary banner', async () => {

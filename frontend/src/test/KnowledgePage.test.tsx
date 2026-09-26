@@ -104,6 +104,7 @@ describe('KnowledgePage', () => {
       action: 'added',
       is_favorite: true,
     });
+    window.location.hash = '';
   });
 
   it('renders header, categories, and articles list', async () => {

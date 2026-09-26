@@ -114,15 +114,25 @@ export const AttendancePage: React.FC = () => {
 
   // Deep linking: Open drawer if ID is in hash
   useEffect(() => {
-    const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
-    const id = hashParams.get('id');
-    if (id && attendances.length > 0) {
-      const att = attendances.find(a => a.id === Number(id));
-      if (att && (!selectedAttendanceDetails || selectedAttendanceDetails.id !== att.id)) {
-        setSelectedAttendanceDetails(att);
-        setDetailsTab('info');
+    const handleHashChange = () => {
+      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+      const id = hashParams.get('id');
+      if (id && attendances.length > 0) {
+        const att = attendances.find(a => a.id === Number(id));
+        if (att && (!selectedAttendanceDetails || selectedAttendanceDetails.id !== att.id)) {
+          setSelectedAttendanceDetails(att);
+          setDetailsTab('info');
+        }
+      } else {
+        // If there's no ID in the hash, close the drawer
+        setSelectedAttendanceDetails(null);
       }
-    }
+    };
+
+    // Run initially and on popstate
+    handleHashChange();
+    window.addEventListener('popstate', handleHashChange);
+    return () => window.removeEventListener('popstate', handleHashChange);
   }, [attendances, selectedAttendanceDetails]);
 
   // One-click copy commands used
@@ -454,6 +464,7 @@ export const AttendancePage: React.FC = () => {
                   onClick={() => {
                     setSelectedAttendanceDetails(att);
                     setDetailsTab('info');
+                    window.history.pushState(null, '', `#attendance?id=${att.id}`);
                   }}
                 >
                   <CardContent className="p-4">

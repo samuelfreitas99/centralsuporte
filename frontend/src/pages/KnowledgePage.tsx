@@ -70,6 +70,36 @@ export const KnowledgePage: React.FC = () => {
     loadData();
   }, [loadData]);
 
+  // Deep linking: Open view dialog if ID is in hash
+  useEffect(() => {
+    const handleHashChange = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+      const id = hashParams.get('id');
+      if (id && articles.length > 0) {
+        if (!selectedArticle || selectedArticle.id !== Number(id)) {
+          try {
+            const detailed = await knowledgeService.getArticleById(Number(id));
+            setSelectedArticle(detailed);
+            setViewDialogOpen(true);
+            setArticles((prev) =>
+              prev.map((a) => (a.id === detailed.id ? { ...a, views_count: detailed.views_count } : a))
+            );
+          } catch (err) {
+            console.error('Failed to load article from hash', err);
+          }
+        }
+      } else {
+        setViewDialogOpen(false);
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('popstate', handleHashChange);
+    return () => window.removeEventListener('popstate', handleHashChange);
+  }, [articles, selectedArticle]);
+
+
+
   const handleSaveArticle = async (payload: KnowledgeArticleCreatePayload | KnowledgeArticleUpdatePayload) => {
     if (articleToEdit) {
       await knowledgeService.updateArticle(articleToEdit.id, payload);
@@ -94,6 +124,8 @@ export const KnowledgePage: React.FC = () => {
       const detailed = await knowledgeService.getArticleById(article.id);
       setSelectedArticle(detailed);
       setViewDialogOpen(true);
+      window.history.pushState(null, '', `#knowledge?id=${article.id}`);
+      
       // update view counter in list
       setArticles((prev) =>
         prev.map((a) => (a.id === detailed.id ? { ...a, views_count: detailed.views_count } : a))
@@ -401,7 +433,12 @@ export const KnowledgePage: React.FC = () => {
       <ArticleViewDialog
         article={selectedArticle}
         open={viewDialogOpen}
-        onOpenChange={setViewDialogOpen}
+        onOpenChange={(open) => {
+          setViewDialogOpen(open);
+          if (!open && window.location.hash.includes('?id=')) {
+            window.history.replaceState(null, '', '#knowledge');
+          }
+        }}
         onEdit={handleOpenEdit}
         onDeleted={loadData}
         onFavoriteToggled={loadData}

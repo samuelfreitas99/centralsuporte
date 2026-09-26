@@ -1,16 +1,15 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase Visual 4 (Dashboard V2) refinada e concluída com sucesso. O Dashboard recuperou profundidade visual e foi integrado aos serviços de API reais existentes.
-**Fase atual**: Fase Visual 4 concluída -> Próxima: Fase Visual 5 (Refatoração de Telas de Domínio - Tarefas).
+**Estado atual**: Fase Visual 5 (Atendimentos) refinada e concluída com sucesso. O módulo de atendimentos recebeu Drawer para listagens ricas e o roteamento foi aprimorado com Deep Linking via History API.
+**Fase atual**: Fase Visual 5 concluída -> Próxima: Fase Visual 6 (Refatoração de Telas de Domínio - Base de Conhecimento, Infraestrutura e Manutenções).
 **Última implementação**: 
+- **Fase Visual 5 — Refinamento (AttendancePage)**:
+  - **Componente Drawer**: Substituição do Modal antigo pelo Drawer, permitindo progressive disclosure. 
+  - **Deep Linking Integrado**: Implementação de `popstate` e escuta do `window.location.hash` em `AuthenticatedView`, `AttendancePage` e `KnowledgePage`, permitindo recarregamento e uso do botão Voltar do navegador sem quebrar o fluxo SPA.
 - **Fase Visual 4 — Refinamento (Dashboard V2)**:
   - **Integração de Dados Reais**: Substituição dos mocks estáticos (`dashboardMock.ts`) por requisições aos serviços existentes (`organizationService`, `attendanceService`, `knowledgeService`), trazendo integridade operacional ao Dashboard.
   - **Recuperação de Profundidade Visual**: Ajuste no uso de superfícies, bordas e sombras (Cards alterados de `ghost` para `default`), eliminando o aspecto excessivamente "flat" em ambos os modos (Dark e Light), sem reintroduzir poluição visual.
   - **Hierarquia Visual e Acessibilidade**: Aprimoramento da distinção de backgrounds nas listas e separação clara entre as ações rápidas ("O Meu Turno") e métricas.
-- **Fase Visual 4 — Dashboard V2 (`DashboardPage.tsx`, `DashboardHeader.tsx`, `MetricCard.tsx`, `TaskListSection.tsx`, `RecentAttendancesSection.tsx`, `QuickKnowledgeSection.tsx`, `RemindersSection.tsx`)**:
-  - **Hierarquia Visual (Critical Alerts e O Meu Turno)**: Implementação condicional para tarefas urgentes. Reestruturação do cabeçalho e grid usando componentes `Flat/Ghost` em CSS Grid.
-  - **Refatoração Semântica do Código**: Simplificação e nivelamento da hierarquia visual, abandonando caixas superpostas e utilizando micro-interações semânticas com Framer Motion.
-  - **Layout de Central Operacional**: Ações rápidas foram unificadas no topo de maneira utilitária, KPIs foram centralizados, e o histórico operacional (timeline) tornou-se contínuo.
 - **Fase Visual 3 — Sistema de Componentes Base**:
   - **Botões Padronizados**: Eliminação definitiva de gradientes neon (`from-blue-600 to-indigo-600`) e sombras azuis saturadas; integração direta aos tokens semânticos (`bg-primary`, `bg-destructive`, etc.), com suporte nativo a indicador de `loading` acessível.
   - **Superfícies e Resolução de "Box dentro de Box"**: Suporte a variantes no `Card` (`default`, `flat`, `outline`, `ghost`), garantindo que seções internas possam ser agrupadas sem acúmulo de bordas duplas ou triplas.
@@ -24,12 +23,12 @@
   - 44 testes de backend (Pytest) 100% aprovados.
   - Linter (`oxlint`) com 0 erros em 108 arquivos.
   - Build de produção (`tsc -b && vite build`) validado sem erros ou alertas de compilação.
-**Último commit**: style(ui): refine dashboard visual hierarchy and data integration
-**Próxima tarefa**: Fase Visual 5 — Refatoração das Telas de Domínio (ex: Tarefas, Infraestrutura).
+**Último commit**: fix(ui): fix deep linking back button reactivity
+**Próxima tarefa**: Fase Visual 6 — Refatoração das Telas de Domínio (ex: Tarefas, Infraestrutura).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma nesta unidade.
 **Testes**: 96 testes de frontend (vitest) e 44 testes de backend (pytest) executados e aprovados com 100% de sucesso.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Adoção de variante `Drawer` e sistema de hash/roteamento `window.location.hash` e `popstate` nativos para suportar Deep Linking, sem acoplar a uma biblioteca pesada de rotas (já que a SPA é simples).
 - Adoção de variantes no Card (`flat`, `ghost`) para resolver estruturalmente o problema de "caixa dentro de caixa".
-- Criação de Drawer lateral baseado em Radix Dialog para viabilizar progressive disclosure nas telas densas sem estourar modais.

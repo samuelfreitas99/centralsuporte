@@ -58,8 +58,9 @@ export const AuthenticatedView: React.FC = () => {
   }, []);
 
   const handleSelectTab = useCallback((tab: string) => {
-    setCurrentTab(tab);
+    setCurrentTab(tab.split('?')[0]);
     window.history.pushState(null, '', `#${tab}`);
+    window.dispatchEvent(new Event('popstate'));
   }, []);
 
   const activeNavItem = NAV_ITEMS.find((item) => item.id === currentTab);
