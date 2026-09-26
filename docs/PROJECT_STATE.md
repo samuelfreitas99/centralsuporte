@@ -1,11 +1,15 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase Visual 4 (Dashboard V2) concluída com sucesso. O Dashboard foi refatorado para uma verdadeira Estação de Comando Operacional.
+**Estado atual**: Fase Visual 4 (Dashboard V2) refinada e concluída com sucesso. O Dashboard recuperou profundidade visual e foi integrado aos serviços de API reais existentes.
 **Fase atual**: Fase Visual 4 concluída -> Próxima: Fase Visual 5 (Refatoração de Telas de Domínio - Tarefas).
 **Última implementação**: 
+- **Fase Visual 4 — Refinamento (Dashboard V2)**:
+  - **Integração de Dados Reais**: Substituição dos mocks estáticos (`dashboardMock.ts`) por requisições aos serviços existentes (`organizationService`, `attendanceService`, `knowledgeService`), trazendo integridade operacional ao Dashboard.
+  - **Recuperação de Profundidade Visual**: Ajuste no uso de superfícies, bordas e sombras (Cards alterados de `ghost` para `default`), eliminando o aspecto excessivamente "flat" em ambos os modos (Dark e Light), sem reintroduzir poluição visual.
+  - **Hierarquia Visual e Acessibilidade**: Aprimoramento da distinção de backgrounds nas listas e separação clara entre as ações rápidas ("O Meu Turno") e métricas.
 - **Fase Visual 4 — Dashboard V2 (`DashboardPage.tsx`, `DashboardHeader.tsx`, `MetricCard.tsx`, `TaskListSection.tsx`, `RecentAttendancesSection.tsx`, `QuickKnowledgeSection.tsx`, `RemindersSection.tsx`)**:
   - **Hierarquia Visual (Critical Alerts e O Meu Turno)**: Implementação condicional para tarefas urgentes. Reestruturação do cabeçalho e grid usando componentes `Flat/Ghost` em CSS Grid.
-  - **Refatoração Semântica do Código**: Simplificação e nivelamento da hierarquia visual, abandonando caixas superpostas e utilizando micro-interações semânticas com Framer Motion, totalmente acessível e responsivo.
+  - **Refatoração Semântica do Código**: Simplificação e nivelamento da hierarquia visual, abandonando caixas superpostas e utilizando micro-interações semânticas com Framer Motion.
   - **Layout de Central Operacional**: Ações rápidas foram unificadas no topo de maneira utilitária, KPIs foram centralizados, e o histórico operacional (timeline) tornou-se contínuo.
 - **Fase Visual 3 — Sistema de Componentes Base**:
   - **Botões Padronizados**: Eliminação definitiva de gradientes neon (`from-blue-600 to-indigo-600`) e sombras azuis saturadas; integração direta aos tokens semânticos (`bg-primary`, `bg-destructive`, etc.), com suporte nativo a indicador de `loading` acessível.
@@ -20,7 +24,7 @@
   - 44 testes de backend (Pytest) 100% aprovados.
   - Linter (`oxlint`) com 0 erros em 108 arquivos.
   - Build de produção (`tsc -b && vite build`) validado sem erros ou alertas de compilação.
-**Último commit**: style(ui): redesign dashboard as operations command center
+**Último commit**: style(ui): refine dashboard visual hierarchy and data integration
 **Próxima tarefa**: Fase Visual 5 — Refatoração das Telas de Domínio (ex: Tarefas, Infraestrutura).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma nesta unidade.

@@ -20,27 +20,25 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   variant = 'default',
   onClick,
 }) => {
-
-
   const bgStyles = {
     default: 'bg-muted/40 text-muted-foreground',
-    primary: 'bg-primary/10 text-primary',
-    warning: 'bg-warning/10 text-warning',
-    success: 'bg-success/10 text-success',
+    primary: 'bg-primary/10 text-primary border border-primary/20',
+    warning: 'bg-warning/10 text-warning border border-warning/20',
+    success: 'bg-success/10 text-success border border-success/20',
   };
 
   return (
     <Card
       onClick={onClick}
-      variant="ghost"
+      variant="default"
       className={cn(
-        'group relative overflow-hidden bg-card/40 transition-all duration-200 hover:bg-card/80',
+        'group relative overflow-hidden bg-card border-border/60 shadow-sm transition-all duration-200 hover:border-border hover:shadow-md',
         onClick && 'cursor-pointer'
       )}
     >
       <CardContent className="p-4 sm:p-5 flex flex-col justify-between h-full gap-4">
         <div className="flex items-center justify-between">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
             {title}
           </p>
           <div className={cn('flex h-8 w-8 items-center justify-center rounded-lg', bgStyles[variant])}>
@@ -57,7 +55,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
               <ArrowUpRight className="h-4 w-4 text-muted-foreground/40 opacity-0 transition-opacity group-hover:opacity-100 group-hover:text-primary translate-y-1 group-hover:translate-y-0" />
             )}
           </div>
-          <p className="text-xs text-muted-foreground/70 mt-1">{subtitle}</p>
+          <p className="text-xs text-muted-foreground mt-1 font-medium">{subtitle}</p>
         </div>
       </CardContent>
     </Card>

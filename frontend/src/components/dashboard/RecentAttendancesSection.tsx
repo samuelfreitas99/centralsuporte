@@ -1,35 +1,45 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Headset, ExternalLink, HardDrive, ArrowRight } from 'lucide-react';
+import { Headset, ExternalLink, ArrowRight, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { RecentAttendance } from '@/types/dashboard';
+import type { AttendanceItem } from '@/types/attendance';
 
 interface RecentAttendancesSectionProps {
-  attendances: RecentAttendance[];
+  attendances: AttendanceItem[];
+  loading?: boolean;
   onNavigateToAttendance?: () => void;
 }
 
-export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> = ({
-  attendances,
-  onNavigateToAttendance,
-}) => {
+export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> = ({ attendances, loading, onNavigateToAttendance }) => {
+  const getStatusBadge = (status: string) => {
+    const statusMap: Record<string, { variant: 'default'|'success'|'warning'|'secondary'|'destructive', label: string }> = {
+      aberto: { variant: 'warning', label: 'Aberto' },
+      em_andamento: { variant: 'default', label: 'Em Andamento' },
+      pausado: { variant: 'secondary', label: 'Pausado' },
+      concluido: { variant: 'success', label: 'Concluído' },
+      cancelado: { variant: 'destructive', label: 'Cancelado' },
+    };
+    const s = statusMap[status] || { variant: 'outline', label: status };
+    return <Badge variant={s.variant} className="text-[10px] uppercase py-0 leading-tight">{s.label}</Badge>;
+  };
+
   return (
-    <Card variant="ghost" className="h-full flex flex-col">
-      <CardHeader className="pb-4 px-0">
+    <Card variant="default" className="h-full flex flex-col shadow-sm border-border/60">
+      <CardHeader className="pb-4 px-4 pt-4 border-b border-border/40 bg-muted/20">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-info/10 text-info">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
               <Headset className="h-3.5 w-3.5" />
             </div>
-            <CardTitle className="font-heading text-lg">Atendimentos Recentes</CardTitle>
+            <CardTitle className="font-heading text-base font-bold">Atendimentos</CardTitle>
           </div>
           {onNavigateToAttendance && (
             <Button
               variant="ghost"
               size="sm"
               onClick={onNavigateToAttendance}
-              className="h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer"
+              className="h-7 px-2 text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer hover:bg-muted/50"
             >
               <span>Ver todos</span>
               <ArrowRight className="h-3 w-3" />
@@ -37,41 +47,63 @@ export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> =
           )}
         </div>
       </CardHeader>
-      <CardContent className="space-y-2 px-0 pb-0 flex-1">
-        {attendances.map((item) => (
-          <div
-            key={item.id}
-            onClick={onNavigateToAttendance}
-            className="group flex flex-col gap-2 rounded-lg bg-card/40 p-3 text-sm transition-all duration-200 hover:bg-card/80 border border-transparent hover:border-info/20 cursor-pointer sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[11px] font-semibold text-info flex items-center gap-1">
-                  {item.otrsTicket}
-                  <ExternalLink className="h-3 w-3 opacity-60" />
-                </span>
-                <span className="text-[10px] text-muted-foreground/60">•</span>
-                <span className="text-[11px] text-muted-foreground">{item.updatedAt}</span>
-              </div>
-              <p className="font-medium text-foreground group-hover:text-info transition-colors truncate max-w-[280px] sm:max-w-xs">{item.title}</p>
-              {item.equipment && (
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <HardDrive className="h-3 w-3 text-muted-foreground/60" />
-                  <span className="truncate">{item.equipment}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-2 self-start sm:self-center shrink-0 mt-1 sm:mt-0">
-              <Badge
-                variant={item.status === 'Concluído' ? 'success' : 'secondary'}
-                className="text-[10px] uppercase font-bold"
-              >
-                {item.status}
-              </Badge>
-            </div>
+      <CardContent className="space-y-1.5 px-3 py-3 flex-1 bg-card">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground">
+            <Loader2 className="h-6 w-6 mb-2 animate-spin opacity-40" />
+            <p className="text-xs font-medium">Carregando...</p>
           </div>
-        ))}
+        ) : attendances.length > 0 ? (
+          attendances.map((attendance) => (
+            <div
+              key={attendance.id}
+              className="flex items-center justify-between gap-3 rounded-md p-3 text-sm border border-border/40 bg-background hover:bg-muted/40 transition-colors shadow-xs"
+            >
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  {attendance.otrs_ticket ? (
+                    <div
+                      className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0"
+                      title="Ticket OTRS associado"
+                    >
+                      <ExternalLink className="h-2.5 w-2.5" />
+                      <span>{attendance.otrs_ticket}</span>
+                    </div>
+                  ) : (
+                    <div
+                      className="flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-muted text-muted-foreground border border-border shrink-0"
+                    >
+                      <span>Interno</span>
+                    </div>
+                  )}
+                  {getStatusBadge(attendance.status)}
+                </div>
+                <p className="truncate font-semibold text-[13px] text-foreground">
+                  {attendance.title}
+                </p>
+                <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-medium mt-1">
+                  <span className="text-muted-foreground/80">{attendance.technician?.username || 'Sistema'}</span>
+                  {attendance.equipment && (
+                    <>
+                      <span>•</span>
+                      <span className="truncate">{attendance.equipment.name}</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              <div className="shrink-0 flex flex-col items-end gap-1 justify-center text-right">
+                <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                  {new Date(attendance.updated_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+            </div>
+          ))
+        ) : (
+          <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground">
+            <Info className="h-6 w-6 mb-2 opacity-40" />
+            <p className="text-xs font-medium">Nenhum atendimento listado.</p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );
