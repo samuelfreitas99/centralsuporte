@@ -15,6 +15,7 @@ from app.models import (
     LicenseAssignment,
     StockItem,
     StockMovement,
+    TechnicalLocation,
 )
 from app.schemas import (
     StoreCreate,
@@ -23,6 +24,9 @@ from app.schemas import (
     DepartmentCreate,
     DepartmentUpdate,
     DepartmentResponse,
+    TechnicalLocationCreate,
+    TechnicalLocationUpdate,
+    TechnicalLocationResponse,
     EquipmentCreate,
     EquipmentUpdate,
     EquipmentResponse,
@@ -42,6 +46,7 @@ from app.schemas import (
 from app.auth import get_current_active_user
 
 router = APIRouter(
+    prefix="/infrastructure",
     tags=["Infrastructure"],
 )
 
@@ -135,6 +140,11 @@ def delete_store(
     if not store:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Loja não encontrada.")
 
+    # Check for active equipment or locations before archiving
+    active_equipment = db.query(Equipment).filter(Equipment.store_id == store.id, Equipment.status != "descartado").first()
+    if active_equipment:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não é possível arquivar loja com equipamentos ativos.")
+        
     store.status = "inativa"
     db.commit()
     return None
@@ -170,6 +180,31 @@ def create_department(
     return dept
 
 
+@router.put("/departments/{department_id}", response_model=DepartmentResponse)
+def update_department(
+    department_id: int,
+    dept_in: DepartmentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    dept = db.query(Department).filter(Department.id == department_id).first()
+    if not dept:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Departamento não encontrado.")
+
+    update_data = dept_in.model_dump(exclude_unset=True)
+    if "store_id" in update_data and update_data["store_id"]:
+        store = db.query(Store).filter(Store.id == update_data["store_id"]).first()
+        if not store:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Loja informada não existe.")
+
+    for field, value in update_data.items():
+        setattr(dept, field, value)
+
+    db.commit()
+    db.refresh(dept)
+    return dept
+
+
 @router.delete("/departments/{department_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_department(
     department_id: int,
@@ -180,12 +215,127 @@ def delete_department(
     if not dept:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Departamento não encontrado.")
 
-    db.delete(dept)
+    active_equipment = db.query(Equipment).filter(Equipment.department_id == dept.id, Equipment.status != "descartado").first()
+    if active_equipment:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não é possível arquivar setor com equipamentos ativos.")
+
+    dept.status = "inativa"
+    db.commit()
+    return None
+
+# ============================================================================
+# 1.5 LOCAIS TÉCNICOS (TECHNICAL LOCATIONS)
+# ============================================================================
+
+@router.get("/locations", response_model=List[TechnicalLocationResponse])
+def list_locations(
+    store_id: Optional[int] = Query(None, description="Filtrar por loja"),
+    department_id: Optional[int] = Query(None, description="Filtrar por departamento"),
+    location_type: Optional[str] = Query(None, description="Filtrar por tipo"),
+    q: Optional[str] = Query(None, description="Busca textual por nome"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    query = db.query(TechnicalLocation)
+
+    if store_id:
+        query = query.filter(TechnicalLocation.store_id == store_id)
+    if department_id:
+        query = query.filter(TechnicalLocation.department_id == department_id)
+    if location_type:
+        query = query.filter(TechnicalLocation.location_type == location_type)
+    if q:
+        query = query.filter(TechnicalLocation.name.ilike(f"%{q}%"))
+
+    return query.order_by(TechnicalLocation.name.asc()).all()
+
+
+@router.get("/locations/{location_id}", response_model=TechnicalLocationResponse)
+def get_location(
+    location_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == location_id).first()
+    if not loc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local técnico não encontrado.")
+    return loc
+
+
+@router.post("/locations", response_model=TechnicalLocationResponse, status_code=status.HTTP_201_CREATED)
+def create_location(
+    loc_in: TechnicalLocationCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    store = db.query(Store).filter(Store.id == loc_in.store_id).first()
+    if not store:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Loja informada não existe.")
+
+    if loc_in.department_id:
+        dept = db.query(Department).filter(Department.id == loc_in.department_id).first()
+        if not dept:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Departamento informado não existe.")
+        if dept.store_id != loc_in.store_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Departamento não pertence à loja informada.")
+
+    loc = TechnicalLocation(**loc_in.model_dump())
+    db.add(loc)
+    db.commit()
+    db.refresh(loc)
+    return loc
+
+
+@router.put("/locations/{location_id}", response_model=TechnicalLocationResponse)
+def update_location(
+    location_id: int,
+    loc_in: TechnicalLocationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == location_id).first()
+    if not loc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local técnico não encontrado.")
+
+    update_data = loc_in.model_dump(exclude_unset=True)
+    
+    new_store_id = update_data.get("store_id", loc.store_id)
+    new_department_id = update_data.get("department_id", loc.department_id)
+
+    if new_department_id:
+        dept = db.query(Department).filter(Department.id == new_department_id).first()
+        if not dept:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Departamento informado não existe.")
+        if dept.store_id != new_store_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Departamento não pertence à loja do local técnico.")
+
+    for key, value in update_data.items():
+        setattr(loc, key, value)
+
+    db.commit()
+    db.refresh(loc)
+    return loc
+
+
+@router.delete("/locations/{location_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_location(
+    location_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == location_id).first()
+    if not loc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local técnico não encontrado.")
+
+    active_equipment = db.query(Equipment).filter(Equipment.technical_location_id == loc.id, Equipment.status != "descartado").first()
+    if active_equipment:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Não é possível arquivar local técnico com equipamentos ativos.")
+
+    loc.status = "inativa"
     db.commit()
     return None
 
 
-# ============================================================================
 # 2. EQUIPAMENTOS (EQUIPMENT) & HISTÓRICO
 # ============================================================================
 
@@ -194,6 +344,7 @@ def list_equipment(
     q: Optional[str] = Query(None, description="Busca textual por hostname, patrimônio, IP, modelo"),
     store_id: Optional[int] = Query(None, description="Filtrar por loja"),
     department_id: Optional[int] = Query(None, description="Filtrar por departamento"),
+    technical_location_id: Optional[int] = Query(None, description="Filtrar por local técnico"),
     equipment_type: Optional[str] = Query(None, description="Filtrar por tipo de equipamento"),
     status: Optional[str] = Query(None, description="Filtrar por status: ativo, em_manutencao, reserva, descartado"),
     db: Session = Depends(get_db),
@@ -220,6 +371,8 @@ def list_equipment(
         query = query.filter(Equipment.store_id == store_id)
     if department_id:
         query = query.filter(Equipment.department_id == department_id)
+    if technical_location_id:
+        query = query.filter(Equipment.technical_location_id == technical_location_id)
     if equipment_type:
         query = query.filter(Equipment.equipment_type == equipment_type)
     if status:
@@ -243,6 +396,15 @@ def create_equipment(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Patrimônio '{eq_in.patrimony}' já está cadastrado em outro equipamento.",
             )
+
+    if eq_in.technical_location_id:
+        loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == eq_in.technical_location_id).first()
+        if not loc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local técnico não encontrado.")
+        if eq_in.store_id and eq_in.store_id != loc.store_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Local técnico não pertence à loja selecionada.")
+        if eq_in.department_id and loc.department_id and eq_in.department_id != loc.department_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Local técnico não pertence ao setor selecionado.")
 
     equipment = Equipment(**eq_in.model_dump())
     db.add(equipment)
@@ -293,6 +455,19 @@ def update_equipment(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Patrimônio '{update_data['patrimony']}' já está em uso.",
             )
+
+    new_store_id = update_data.get("store_id", equipment.store_id)
+    new_department_id = update_data.get("department_id", equipment.department_id)
+    new_tech_loc_id = update_data.get("technical_location_id", equipment.technical_location_id)
+
+    if new_tech_loc_id:
+        loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == new_tech_loc_id).first()
+        if not loc:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Local técnico não encontrado.")
+        if new_store_id and new_store_id != loc.store_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Local técnico não pertence à loja selecionada.")
+        if new_department_id and loc.department_id and new_department_id != loc.department_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Local técnico não pertence ao setor selecionado.")
 
     # Automatic history tracking for key infrastructure changes
     history_events = []

@@ -18,7 +18,7 @@ def test_maintenance_lifecycle_and_equipment_integration():
 
     # 1. Create a store and an equipment
     store_res = client.post(
-        "/stores",
+        "/infrastructure/stores",
         json={"name": f"Loja {uid}", "code": f"LJ-{uid}"},
         headers=headers,
     )
@@ -26,7 +26,7 @@ def test_maintenance_lifecycle_and_equipment_integration():
     store_id = store_res.json()["id"]
 
     eq_res = client.post(
-        "/equipment",
+        "/infrastructure/equipment",
         json={
             "hostname": f"PDV-{uid}",
             "equipment_type": "pdv",
@@ -89,7 +89,7 @@ def test_maintenance_lifecycle_and_equipment_integration():
     assert start_res.json()["status"] == "em_andamento"
 
     # Verify equipment status is now em_manutencao
-    eq_check = client.get(f"/equipment/{equipment_id}", headers=headers)
+    eq_check = client.get(f"/infrastructure/equipment/{equipment_id}", headers=headers)
     assert eq_check.status_code == 200
     assert eq_check.json()["status"] == "em_manutencao"
 
@@ -109,7 +109,7 @@ def test_maintenance_lifecycle_and_equipment_integration():
     assert conclude_res.json()["performed_date"] is not None
 
     # Verify equipment returned to status ativo
-    eq_after = client.get(f"/equipment/{equipment_id}", headers=headers)
+    eq_after = client.get(f"/infrastructure/equipment/{equipment_id}", headers=headers)
     assert eq_after.status_code == 200
     assert eq_after.json()["status"] == "ativo"
 
