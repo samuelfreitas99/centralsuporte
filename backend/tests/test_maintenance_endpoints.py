@@ -137,3 +137,83 @@ def test_maintenance_lifecycle_and_equipment_integration():
     # 9. Verify 404 after deletion
     get_404 = client.get(f"/maintenances/{maint_id}", headers=headers)
     assert get_404.status_code == 404
+
+def test_maintenance_phase9_features():
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    uid = uuid.uuid4().hex[:6]
+
+    # 1. Create Location Context
+    st_res = client.post("/infrastructure/stores", json={"name": f"ST-{uid}", "code": f"S{uid}"}, headers=headers)
+    store_id = st_res.json()["id"]
+
+    dep_res = client.post("/infrastructure/departments", json={"name": f"DEP-{uid}", "store_id": store_id}, headers=headers)
+    dep_id = dep_res.json()["id"]
+
+    loc_res = client.post("/infrastructure/locations", json={"name": f"LOC-{uid}", "store_id": store_id, "department_id": dep_id, "location_type": "rack"}, headers=headers)
+    assert loc_res.status_code == 201, loc_res.json()
+    loc_id = loc_res.json()["id"]
+
+    # 2. Create Equipment
+    eq_res = client.post("/infrastructure/equipment", json={
+        "hostname": f"EQ-{uid}",
+        "equipment_type": "desktop",
+        "patrimony": f"P-{uid}",
+        "store_id": store_id,
+        "department_id": dep_id,
+        "technical_location_id": loc_id,
+        "status": "ativo"
+    }, headers=headers)
+    eq_id = eq_res.json()["id"]
+
+    # 3. Create Attendance
+    att_res = client.post("/attendances", json={
+        "title": f"ATT-{uid}",
+        "user_name": "Test",
+        "description": "Hardware failure"
+    }, headers=headers)
+    att_id = att_res.json()["id"]
+
+    # 4. Create Maintenance 1 (Inherits context)
+    m1_res = client.post("/maintenances", json={
+        "title": f"M1-{uid}",
+        "equipment_id": eq_id,
+        "attendance_id": att_id,
+        "otrs_ticket": "202401010001",
+        "parts_used": "RAM 8GB"
+    }, headers=headers)
+    assert m1_res.status_code == 201
+    m1_data = m1_res.json()
+    assert m1_data["department_id"] == dep_id
+    assert m1_data["technical_location_id"] == loc_id
+    assert m1_data["attendance_id"] == att_id
+    m1_id = m1_data["id"]
+
+    # 5. Move Equipment to new location
+    dep2_res = client.post("/infrastructure/departments", json={"name": f"DEP2-{uid}", "store_id": store_id}, headers=headers)
+    dep2_id = dep2_res.json()["id"]
+    client.put(f"/infrastructure/equipment/{eq_id}", json={"department_id": dep2_id}, headers=headers)
+
+    # 6. Verify Maintenance 1 still points to old location (Snapshot)
+    m1_check = client.get(f"/maintenances/{m1_id}", headers=headers)
+    assert m1_check.json()["department_id"] == dep_id
+
+    # 7. Create Maintenance 2
+    m2_res = client.post("/maintenances", json={"title": f"M2-{uid}", "equipment_id": eq_id}, headers=headers)
+    m2_id = m2_res.json()["id"]
+
+    # 8. Start M1 -> Eq = em_manutencao
+    client.patch(f"/maintenances/{m1_id}/status", json={"status": "em_andamento"}, headers=headers)
+    assert client.get(f"/infrastructure/equipment/{eq_id}", headers=headers).json()["status"] == "em_manutencao"
+
+    # 9. Start M2 -> Eq = em_manutencao
+    client.patch(f"/maintenances/{m2_id}/status", json={"status": "em_andamento"}, headers=headers)
+    assert client.get(f"/infrastructure/equipment/{eq_id}", headers=headers).json()["status"] == "em_manutencao"
+
+    # 10. Conclude M1 -> Eq still em_manutencao because M2 is active
+    client.patch(f"/maintenances/{m1_id}/status", json={"status": "concluida"}, headers=headers)
+    assert client.get(f"/infrastructure/equipment/{eq_id}", headers=headers).json()["status"] == "em_manutencao"
+
+    # 11. Cancel M2 -> Eq returns to ativo
+    client.patch(f"/maintenances/{m2_id}/status", json={"status": "cancelada"}, headers=headers)
+    assert client.get(f"/infrastructure/equipment/{eq_id}", headers=headers).json()["status"] == "ativo"

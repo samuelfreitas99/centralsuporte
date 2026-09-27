@@ -368,6 +368,7 @@ class Department(Base):
     name = Column(String(100), nullable=False)
     store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
     description = Column(String(255), nullable=True)
+    status = Column(String(32), default="ativa", nullable=False)  # ativa, inativa
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     # Relationships
@@ -386,6 +387,7 @@ class TechnicalLocation(Base):
     department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
     description = Column(String(255), nullable=True)
     notes = Column(Text, nullable=True)
+    status = Column(String(32), default="ativa", nullable=False)  # ativa, inativa
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -524,6 +526,9 @@ class MaintenanceRecord(Base):
     title = Column(String(200), nullable=False, index=True)
     equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="CASCADE"), nullable=False, index=True)
     store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
+    department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
+    technical_location_id = Column(Integer, ForeignKey('technical_locations.id', ondelete="SET NULL"), nullable=True, index=True)
+    attendance_id = Column(Integer, ForeignKey('attendances.id', ondelete="SET NULL"), nullable=True, index=True)
     technician_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True, index=True)
     maintenance_type = Column(String(50), default="preventiva", nullable=False, index=True)  # preventiva, corretiva, substituicao, atualizacao, configuracao, instalacao, outro
     status = Column(String(32), default="agendada", nullable=False, index=True)  # agendada, em_andamento, concluida, cancelada
@@ -533,6 +538,8 @@ class MaintenanceRecord(Base):
     description = Column(Text, nullable=True)
     diagnosis = Column(Text, nullable=True)
     procedure_performed = Column(Text, nullable=True)
+    parts_used = Column(Text, nullable=True)
+    otrs_ticket = Column(String(64), nullable=True)
     result = Column(String(32), nullable=True)  # sucesso, parcial, falha
     cost = Column(Float, nullable=True)
     internal_notes = Column(Text, nullable=True)
@@ -542,6 +549,9 @@ class MaintenanceRecord(Base):
     # Relationships
     equipment = relationship("Equipment", back_populates="maintenances")
     store = relationship("Store")
+    department = relationship("Department")
+    technical_location = relationship("TechnicalLocation")
+    attendance = relationship("Attendance")
     technician = relationship("User")
     checklists = relationship("Checklist", back_populates="maintenance", cascade="all, delete-orphan")
 

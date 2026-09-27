@@ -748,6 +748,9 @@ class MaintenanceRecordBase(BaseModel):
     title: str
     equipment_id: int
     store_id: Optional[int] = None
+    department_id: Optional[int] = None
+    technical_location_id: Optional[int] = None
+    attendance_id: Optional[int] = None
     technician_id: Optional[int] = None
     maintenance_type: str = "preventiva"  # preventiva, corretiva, substituicao, atualizacao, configuracao, instalacao, outro
     status: str = "agendada"  # agendada, em_andamento, concluida, cancelada
@@ -757,9 +760,18 @@ class MaintenanceRecordBase(BaseModel):
     description: Optional[str] = None
     diagnosis: Optional[str] = None
     procedure_performed: Optional[str] = None
+    parts_used: Optional[str] = None
+    otrs_ticket: Optional[str] = None
     result: Optional[str] = None  # sucesso, parcial, falha
     cost: Optional[float] = None
     internal_notes: Optional[str] = None
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 class MaintenanceRecordCreate(MaintenanceRecordBase):
     checklist_title: Optional[str] = None
@@ -769,6 +781,9 @@ class MaintenanceRecordUpdate(BaseModel):
     title: Optional[str] = None
     equipment_id: Optional[int] = None
     store_id: Optional[int] = None
+    department_id: Optional[int] = None
+    technical_location_id: Optional[int] = None
+    attendance_id: Optional[int] = None
     technician_id: Optional[int] = None
     maintenance_type: Optional[str] = None
     status: Optional[str] = None
@@ -778,9 +793,18 @@ class MaintenanceRecordUpdate(BaseModel):
     description: Optional[str] = None
     diagnosis: Optional[str] = None
     procedure_performed: Optional[str] = None
+    parts_used: Optional[str] = None
+    otrs_ticket: Optional[str] = None
     result: Optional[str] = None
     cost: Optional[float] = None
     internal_notes: Optional[str] = None
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 class MaintenanceRecordStatusUpdate(BaseModel):
     status: str
@@ -792,6 +816,9 @@ class MaintenanceRecordResponse(MaintenanceRecordBase):
     id: int
     equipment: Optional[EquipmentResponse] = None
     store: Optional[StoreResponse] = None
+    department: Optional[DepartmentResponse] = None
+    technical_location: Optional[TechnicalLocationResponse] = None
+    attendance: Optional[AttendanceResponse] = None
     technician: Optional[UserSimpleResponse] = None
     checklists: List[ChecklistResponse] = []
     created_at: datetime

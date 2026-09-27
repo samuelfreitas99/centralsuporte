@@ -130,10 +130,14 @@ def create_maintenance(
 
     # If store_id not provided, inherit from equipment
     store_id = payload.store_id or equipment.store_id
+    department_id = payload.department_id or equipment.department_id
+    technical_location_id = payload.technical_location_id or equipment.technical_location_id
     technician_id = payload.technician_id or current_user.id
 
     maintenance_dict = payload.model_dump(exclude={"checklist_title", "checklist_items"})
     maintenance_dict["store_id"] = store_id
+    maintenance_dict["department_id"] = department_id
+    maintenance_dict["technical_location_id"] = technical_location_id
     maintenance_dict["technician_id"] = technician_id
 
     maintenance = MaintenanceRecord(**maintenance_dict)
@@ -199,10 +203,18 @@ def update_maintenance(
         setattr(maintenance, field, value)
 
     # Sync equipment status if changed to em_andamento
-    if payload.status == "em_andamento" and maintenance.equipment:
-        maintenance.equipment.status = "em_manutencao"
-    elif payload.status == "concluida" and maintenance.equipment and maintenance.equipment.status == "em_manutencao":
-        maintenance.equipment.status = "ativo"
+    if payload.status:
+        if payload.status == "em_andamento" and maintenance.equipment:
+            if maintenance.equipment.status != "em_manutencao":
+                maintenance.equipment.status = "em_manutencao"
+        elif payload.status in ["concluida", "cancelada"] and maintenance.equipment and maintenance.equipment.status == "em_manutencao":
+            other_active = db.query(MaintenanceRecord).filter(
+                MaintenanceRecord.equipment_id == maintenance.equipment_id,
+                MaintenanceRecord.id != maintenance.id,
+                MaintenanceRecord.status == "em_andamento"
+            ).first()
+            if not other_active:
+                maintenance.equipment.status = "ativo"
 
     db.commit()
     db.refresh(maintenance)
@@ -233,32 +245,41 @@ def update_maintenance_status(
     elif payload.status == "concluida" and not maintenance.performed_date:
         maintenance.performed_date = datetime.utcnow()
 
-    # If concluded, log history and return equipment status
-    if payload.status == "concluida":
+    # If concluded or cancelled, log history and return equipment status
+    if payload.status in ["concluida", "cancelada"]:
         equipment = maintenance.equipment
         type_label = maintenance.maintenance_type.capitalize()
         res_label = maintenance.result or "Sucesso"
 
-        history = EquipmentHistory(
-            equipment_id=maintenance.equipment_id,
-            user_id=current_user.id,
-            event_type="manutencao",
-            description=f"Manutenção {type_label} Concluída: {maintenance.title}. Resultado: {res_label}. Procedimento: {maintenance.procedure_performed or 'Realizado conforme checklist'}",
-        )
-        db.add(history)
+        if payload.status == "concluida":
+            history = EquipmentHistory(
+                equipment_id=maintenance.equipment_id,
+                user_id=current_user.id,
+                event_type="manutencao",
+                description=f"Manutenção {type_label} Concluída: {maintenance.title}. Resultado: {res_label}. Procedimento: {maintenance.procedure_performed or 'Realizado conforme checklist'}",
+            )
+            db.add(history)
 
         if equipment and equipment.status == "em_manutencao":
-            equipment.status = "ativo"
-            history_eq = EquipmentHistory(
-                equipment_id=equipment.id,
-                user_id=current_user.id,
-                event_type="mudanca_status",
-                description="Status retornado para Ativo após conclusão dos procedimentos de manutenção.",
-            )
-            db.add(history_eq)
+            other_active = db.query(MaintenanceRecord).filter(
+                MaintenanceRecord.equipment_id == equipment.id,
+                MaintenanceRecord.id != maintenance.id,
+                MaintenanceRecord.status == "em_andamento"
+            ).first()
+            
+            if not other_active:
+                equipment.status = "ativo"
+                history_eq = EquipmentHistory(
+                    equipment_id=equipment.id,
+                    user_id=current_user.id,
+                    event_type="mudanca_status",
+                    description=f"Status retornado para Ativo após {payload.status} dos procedimentos de manutenção.",
+                )
+                db.add(history_eq)
 
     elif payload.status == "em_andamento" and maintenance.equipment:
-        maintenance.equipment.status = "em_manutencao"
+        if maintenance.equipment.status != "em_manutencao":
+            maintenance.equipment.status = "em_manutencao"
 
     db.commit()
     db.refresh(maintenance)
