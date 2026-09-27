@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # --- Auth & Users Schemas ---
 
@@ -234,6 +234,7 @@ class KnowledgeCategoryCreate(KnowledgeCategoryBase):
 class KnowledgeCategoryUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    status: Optional[str] = None
     color: Optional[str] = None
 
 class KnowledgeCategoryResponse(KnowledgeCategoryBase):
@@ -477,6 +478,13 @@ class StoreBase(BaseModel):
     status: str = "ativa"
     notes: Optional[str] = None
 
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
 class StoreCreate(StoreBase):
     pass
 
@@ -487,6 +495,13 @@ class StoreUpdate(BaseModel):
     phone: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 class StoreResponse(StoreBase):
     id: int
@@ -499,6 +514,7 @@ class DepartmentBase(BaseModel):
     name: str
     store_id: Optional[int] = None
     description: Optional[str] = None
+    status: Optional[str] = "ativa"
 
 class DepartmentCreate(DepartmentBase):
     pass
@@ -507,6 +523,7 @@ class DepartmentUpdate(BaseModel):
     name: Optional[str] = None
     store_id: Optional[int] = None
     description: Optional[str] = None
+    status: Optional[str] = None
 
 class DepartmentResponse(DepartmentBase):
     id: int
@@ -522,6 +539,7 @@ class TechnicalLocationBase(BaseModel):
     department_id: Optional[int] = None
     description: Optional[str] = None
     notes: Optional[str] = None
+    status: Optional[str] = "ativa"
 
 class TechnicalLocationCreate(TechnicalLocationBase):
     pass
@@ -533,6 +551,7 @@ class TechnicalLocationUpdate(BaseModel):
     department_id: Optional[int] = None
     description: Optional[str] = None
     notes: Optional[str] = None
+    status: Optional[str] = None
 
 class TechnicalLocationResponse(TechnicalLocationBase):
     id: int
@@ -575,6 +594,13 @@ class EquipmentBase(BaseModel):
     status: str = "ativo"
     notes: Optional[str] = None
 
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
 class EquipmentCreate(EquipmentBase):
     pass
 
@@ -594,6 +620,13 @@ class EquipmentUpdate(BaseModel):
     assigned_user: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
 
 class EquipmentResponse(EquipmentBase):
     id: int
