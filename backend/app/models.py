@@ -358,6 +358,7 @@ class Store(Base):
     # Relationships
     departments = relationship("Department", back_populates="store", cascade="all, delete-orphan")
     equipment = relationship("Equipment", back_populates="store")
+    technical_locations = relationship("TechnicalLocation", back_populates="store", cascade="all, delete-orphan")
 
 
 class Department(Base):
@@ -372,6 +373,26 @@ class Department(Base):
     # Relationships
     store = relationship("Store", back_populates="departments")
     equipment = relationship("Equipment", back_populates="department")
+    technical_locations = relationship("TechnicalLocation", back_populates="department")
+
+
+class TechnicalLocation(Base):
+    __tablename__ = "technical_locations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    location_type = Column(String(50), nullable=False) # rack, cpd, armario, etc.
+    store_id = Column(Integer, ForeignKey('stores.id', ondelete="CASCADE"), nullable=False, index=True)
+    department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
+    description = Column(String(255), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Relationships
+    store = relationship("Store", back_populates="technical_locations")
+    department = relationship("Department", back_populates="technical_locations")
+    equipment = relationship("Equipment", back_populates="technical_location")
 
 
 class Equipment(Base):
@@ -389,6 +410,7 @@ class Equipment(Base):
     operating_system = Column(String(100), nullable=True)
     store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
     department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
+    technical_location_id = Column(Integer, ForeignKey('technical_locations.id', ondelete="SET NULL"), nullable=True, index=True)
     assigned_user = Column(String(150), nullable=True)
     status = Column(String(32), default="ativo", nullable=False, index=True)  # ativo, em_manutencao, reserva, descartado
     notes = Column(Text, nullable=True)
@@ -398,6 +420,7 @@ class Equipment(Base):
     # Relationships
     store = relationship("Store", back_populates="equipment")
     department = relationship("Department", back_populates="equipment")
+    technical_location = relationship("TechnicalLocation", back_populates="equipment")
     history = relationship("EquipmentHistory", back_populates="equipment", cascade="all, delete-orphan", order_by="EquipmentHistory.created_at.desc()")
     attendances = relationship("Attendance", back_populates="equipment")
     license_assignments = relationship("LicenseAssignment", back_populates="equipment")
@@ -427,6 +450,7 @@ class License(Base):
     license_type = Column(String(50), nullable=False, default="perpetua")  # perpetua, saas, volume, oem, open_source
     vendor = Column(String(100), nullable=True)
     license_key = Column(String(255), nullable=True)
+    account_email = Column(String(255), nullable=True)
     total_seats = Column(Integer, default=1, nullable=False)
     cost = Column(Float, nullable=True)
     expiration_date = Column(DateTime(timezone=True), nullable=True)

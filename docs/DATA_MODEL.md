@@ -32,8 +32,8 @@ Este documento descreve o **modelo conceitual** das entidades para orientar a ev
   - `visibility` (pessoal, equipe), `owner_id`
   - Relacionamentos opcionais: `store_id`, `equipment_id`
 * **License:**
-  - `id`, `name`, `license_key` (Mascarada na UI, armazenada de forma segura), `total_seats`
-  - `vault_secret_id` (opcional, caso a ativação exija login no portal do fornecedor).
+  - `id`, `name`, `license_key` (Mascarada na UI, armazenada de forma segura), `account_email` (E-mail ou conta de ativação associada), `total_seats`
+  - *Integração Futura*: `vault_secret_id` (opcional, caso a ativação exija login no portal do fornecedor - **A ser implementado somente quando o módulo Vault existir**).
 * **LicenseAssignment:** Atribuição do "assento" da licença a um `user_id`, `equipment_id`, ou email genérico.
 
 ## 6. Documentos

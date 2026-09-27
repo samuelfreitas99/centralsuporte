@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   Trash2,
   Lock,
+  Mail,
+  Pencil,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,11 +52,14 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
   const [selectedLicenseForAssign, setSelectedLicenseForAssign] = useState<LicenseItem | null>(null);
   const [assigneeName, setAssigneeName] = useState('');
 
+  const [editingLicenseId, setEditingLicenseId] = useState<number | null>(null);
+
   const [licForm, setLicForm] = useState<LicenseCreatePayload>({
     name: '',
     license_type: 'perpetua',
     vendor: '',
     license_key: '',
+    account_email: '',
     total_seats: 1,
     cost: null,
     status: 'ativa',
@@ -77,26 +82,37 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
   const handleSaveLicense = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await infrastructureService.createLicense(licForm);
-      setLicenses((prev) => [...prev, created]);
+      if (editingLicenseId) {
+        const { license_key, ...updatePayload } = licForm; // prevent overriding key if not provided securely
+        const payloadToSend = license_key ? licForm : updatePayload;
+        
+        const updated = await infrastructureService.updateLicense(editingLicenseId, payloadToSend);
+        setLicenses((prev) => prev.map((item) => (item.id === editingLicenseId ? updated : item)));
+        addToast({ title: 'Licença Atualizada', description: 'Metadados da licença atualizados.', type: 'success' });
+      } else {
+        const created = await infrastructureService.createLicense(licForm);
+        setLicenses((prev) => [...prev, created]);
+        addToast({
+          title: 'Licença Cadastrada',
+          description: `Licença ${created.name} registrada.`,
+          type: 'success',
+        });
+      }
       setIsLicenseModalOpen(false);
+      setEditingLicenseId(null);
       setLicForm({
         name: '',
         license_type: 'perpetua',
         vendor: '',
         license_key: '',
+        account_email: '',
         total_seats: 1,
         cost: null,
         status: 'ativa',
         notes: '',
       });
-      addToast({
-        title: 'Licença Cadastrada',
-        description: `Licença ${created.name} registrada.`,
-        type: 'success',
-      });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao cadastrar licença.';
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar licença.';
       addToast({ title: 'Erro', description: msg, type: 'error' });
     }
   };
@@ -222,7 +238,11 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
                 Cadastre chaves de software para gerenciar alocações, assentos e uso na equipe.
               </p>
             </div>
-            <Button onClick={() => setIsLicenseModalOpen(true)} className="mt-2 flex items-center gap-2 shadow-sm">
+            <Button onClick={() => {
+              setEditingLicenseId(null);
+              setLicForm({ name: '', license_type: 'perpetua', vendor: '', license_key: '', account_email: '', total_seats: 1, cost: null, status: 'ativa', notes: '' });
+              setIsLicenseModalOpen(true);
+            }} className="mt-2 flex items-center gap-2 shadow-sm cursor-pointer">
               <Plus className="h-4 w-4" />
               <span>Cadastrar Licença</span>
             </Button>
@@ -256,10 +276,17 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
                   >
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 items-center">
                       <div className="col-span-1 md:col-span-3 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-sm font-semibold text-foreground truncate">{lic.name}</h3>
                         </div>
-                        <p className="text-xs text-muted-foreground truncate">{lic.vendor || 'Interno / Vários'}</p>
+                        <div className="flex flex-col gap-0.5">
+                          <p className="text-xs text-muted-foreground truncate">{lic.vendor || 'Interno / Vários'}</p>
+                          {lic.account_email && (
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5 truncate" title={lic.account_email}>
+                              <Mail className="h-3 w-3" /> {lic.account_email}
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <div className="col-span-1 md:col-span-3">
@@ -325,19 +352,43 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
                           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                             <Users className="h-3 w-3" /> Atribuições
                           </span>
-                          {availableSeats > 0 && (
+                          <div className="flex items-center gap-2">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                setSelectedLicenseForAssign(lic);
-                                setIsAssignSeatModalOpen(true);
+                                setEditingLicenseId(lic.id);
+                                setLicForm({
+                                  name: lic.name,
+                                  license_type: lic.license_type,
+                                  vendor: lic.vendor || '',
+                                  license_key: '',
+                                  account_email: lic.account_email || '',
+                                  total_seats: lic.total_seats,
+                                  cost: lic.cost || null,
+                                  status: lic.status,
+                                  notes: lic.notes || '',
+                                });
+                                setIsLicenseModalOpen(true);
                               }}
-                              className="h-6 px-2 text-[10px] text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 cursor-pointer"
+                              className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
                             >
-                              <Plus className="h-3 w-3 mr-1" /> Atribuir
+                              <Pencil className="h-3 w-3 mr-1" /> Editar
                             </Button>
-                          )}
+                            {availableSeats > 0 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedLicenseForAssign(lic);
+                                  setIsAssignSeatModalOpen(true);
+                                }}
+                                className="h-6 px-2 text-[10px] text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 cursor-pointer"
+                              >
+                                <Plus className="h-3 w-3 mr-1" /> Atribuir
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         
                         <div className="flex flex-wrap gap-2">
@@ -379,9 +430,9 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
             <DrawerHeader>
               <DrawerTitle className="flex items-center gap-2">
                 <Key className="h-5 w-5 text-blue-400" />
-                <span>Nova Licença de Software</span>
+                <span>{editingLicenseId ? 'Editar Licença' : 'Nova Licença de Software'}</span>
               </DrawerTitle>
-              <DrawerDescription>Controle de quantidade de assentos e chaves de software.</DrawerDescription>
+              <DrawerDescription>Controle de quantidade de assentos, chaves de software e contas associadas.</DrawerDescription>
             </DrawerHeader>
 
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
@@ -420,11 +471,24 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-foreground mb-1.5 block">Chave / Token Seguro</label>
+                <label className="text-xs font-semibold text-foreground mb-1.5 block">Conta / E-mail Administrativo</label>
+                <Input
+                  value={licForm.account_email || ''}
+                  onChange={(e) => setLicForm({ ...licForm, account_email: e.target.value })}
+                  placeholder="Ex: admin@empresa.com ou Microsoft 365 Admin"
+                  className="bg-background/50"
+                />
+                <p className="text-[10px] text-muted-foreground mt-1.5">
+                  E-mail ou conta usada para registro da licença. Não armazene senhas aqui. A integração com Vault será implementada em fase futura.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1.5 block">Chave / Token Seguro {editingLicenseId ? '(Opcional)' : ''}</label>
                 <Input
                   value={licForm.license_key || ''}
                   onChange={(e) => setLicForm({ ...licForm, license_key: e.target.value })}
-                  placeholder="Ex: XXXXX-YYYYY-ZZZZZ"
+                  placeholder={editingLicenseId ? "Deixe em branco para manter a chave atual" : "Ex: XXXXX-YYYYY-ZZZZZ"}
                   className="bg-background/50 font-mono"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1.5">
@@ -434,8 +498,8 @@ export const LicensesTab: React.FC<LicensesTabProps> = ({
             </div>
 
             <DrawerFooter>
-              <Button type="button" variant="outline" onClick={() => setIsLicenseModalOpen(false)}>Cancelar</Button>
-              <Button type="submit">Cadastrar Licença</Button>
+              <Button type="button" variant="outline" onClick={() => { setIsLicenseModalOpen(false); setEditingLicenseId(null); }}>Cancelar</Button>
+              <Button type="submit">{editingLicenseId ? 'Salvar Alterações' : 'Cadastrar Licença'}</Button>
             </DrawerFooter>
           </form>
         </DrawerContent>

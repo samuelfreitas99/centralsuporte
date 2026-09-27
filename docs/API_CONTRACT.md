@@ -30,3 +30,8 @@ Como os arquivos se transformarão em Documentos independentes:
 
 ## 5. Cotações e Estoque
 * `POST /quotations/{id}/approve` - Processamento lógico que marca a cotação como aprovada e, se estipulado, pode automaticamente triggar a injeção do quantitativo no endpoint `POST /stock/movements`.
+
+## 6. Licenças
+* A criação e edição de licenças via `POST /infrastructure/licenses` e `PUT /infrastructure/licenses/{id}` permitem o envio de `account_email` como metadado administrativo opcional.
+* Senhas ou credenciais de ativação **nunca** devem trafegar em requisições de Licenças; futuras implementações do Cofre (Vault) deverão usar `vault_credential_id` como referência.
+* O `license_key` pode ser omitido do payload de `PUT` para preservar a chave existente sem reescrevê-la.

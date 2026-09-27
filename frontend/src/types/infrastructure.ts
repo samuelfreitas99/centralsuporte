@@ -34,6 +34,29 @@ export interface DepartmentCreatePayload {
   description?: string;
 }
 
+export interface TechnicalLocationItem {
+  id: number;
+  name: string;
+  location_type: string;
+  store_id: number;
+  store?: StoreItem | null;
+  department_id?: number | null;
+  department?: DepartmentItem | null;
+  description?: string | null;
+  notes?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TechnicalLocationCreatePayload {
+  name: string;
+  location_type: string;
+  store_id: number;
+  department_id?: number | null;
+  description?: string;
+  notes?: string;
+}
+
 export interface EquipmentHistoryItem {
   id: number;
   equipment_id: number;
@@ -83,6 +106,8 @@ export interface EquipmentItem {
   store?: StoreItem | null;
   department_id?: number | null;
   department?: DepartmentItem | null;
+  technical_location_id?: number | null;
+  technical_location?: TechnicalLocationItem | null;
   assigned_user?: string | null;
   status: EquipmentStatus;
   notes?: string | null;
@@ -103,6 +128,7 @@ export interface EquipmentCreatePayload {
   operating_system?: string;
   store_id?: number | null;
   department_id?: number | null;
+  technical_location_id?: number | null;
   assigned_user?: string;
   status?: EquipmentStatus;
   notes?: string;
@@ -129,6 +155,7 @@ export interface LicenseItem {
   license_type: 'perpetua' | 'saas' | 'volume' | 'oem' | 'open_source';
   vendor?: string | null;
   license_key?: string | null;
+  account_email?: string | null;
   total_seats: number;
   used_seats?: number;
   cost?: number | null;
@@ -145,6 +172,7 @@ export interface LicenseCreatePayload {
   license_type?: string;
   vendor?: string;
   license_key?: string;
+  account_email?: string;
   total_seats: number;
   cost?: number | null;
   expiration_date?: string | null;

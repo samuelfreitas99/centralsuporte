@@ -84,3 +84,8 @@
 - **Decisão**: A entidade `Command` passa a suportar múltiplos passos ordenados através de relacionamento 1:N com a nova tabela `command_steps`. A persistência do código do comando foi migrada da coluna `command` na tabela `commands` para `command_text` em `command_steps`. A UI foi atualizada para permitir adicionar, reordenar, excluir e copiar passos individualmente, além de um botão para "Copiar Todos" que consolida os scripts de um procedimento.
 - **Contexto**: A necessidade operacional em suporte técnico exige execução de procedimentos sequenciais.
 - **Consequências**: Maior clareza e redução de erros ao seguir procedimentos compostos. Suporte a pesquisa aprimorado cobrindo o texto em todos os passos.
+
+### 2026-09-27: Preparação de Licenças para o Password Vault
+- **Decisão**: A entidade `License` não armazena credenciais do Vault neste momento. O campo `account_email` foi introduzido apenas para referenciar a conta ou e-mail administrativo usado na ativação da licença, que não é uma credencial ou senha.
+- **Contexto**: O projeto prevê integração futura com um Password Vault (Fase 12), mas não se deve criar tabelas fantasma, chaves estrangeiras (`vault_credential_id`) inválidas, ou armazenar senhas precariamente (em `notes` ou colunas não encriptadas) para adiantar essa etapa.
+- **Consequências**: A integração futura será feita de forma segura e atômica quando o domínio Password Vault existir. O campo de `account_email` continuará atuando como metadado auxiliar. A chave (`license_key`) continua mascarada.

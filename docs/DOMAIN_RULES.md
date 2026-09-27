@@ -28,7 +28,8 @@ Este documento estabelece as **Regras de Negócio Fundamentais** que governam as
 * Cotações devem representar o estágio de aprovação: "Estou sem mouse, fiz 3 orçamentos, gestor aprova o do Fornecedor B". Concluída a cotação, a entrada no `StockItem` é realizada.
 
 ## 5. Regras de Licenças e Credenciais
-* **Não Duplicar Segredos:** Se uma licença necessita de um usuário e senha para ativação no portal da fabricante, esses dados entram no *Cofre*. O registro da *Licença* deverá ter um relacionamento referencial à credencial do cofre, e não duplicar o input de senha em seu próprio formulário.
+* **Associação Administrativa (account_email)**: O campo `account_email` da Licença reflete unicamente qual e-mail foi usado no registro do software (ex: conta do portal do fornecedor) e não deve armazenar senhas.
+* **Integração com Vault (Futura):** Se uma licença necessita de um usuário e senha para ativação no portal da fabricante, esses dados entram no *Cofre*. O registro da *Licença* deverá ter um relacionamento referencial à credencial do cofre (a ser implementado quando o Vault existir), e não duplicar o input de senha em seu próprio formulário nem em notas.
 
 ## 6. Estratégia de Editor de Texto
 A Central usará a seguinte regra para interfaces de texto longo:

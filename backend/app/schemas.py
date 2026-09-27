@@ -626,6 +626,7 @@ class LicenseBase(BaseModel):
     license_type: str = "perpetua"
     vendor: Optional[str] = None
     license_key: Optional[str] = None
+    account_email: Optional[str] = None
     total_seats: int = 1
     cost: Optional[float] = None
     expiration_date: Optional[datetime] = None
@@ -640,6 +641,7 @@ class LicenseUpdate(BaseModel):
     license_type: Optional[str] = None
     vendor: Optional[str] = None
     license_key: Optional[str] = None
+    account_email: Optional[str] = None
     total_seats: Optional[int] = None
     cost: Optional[float] = None
     expiration_date: Optional[datetime] = None
