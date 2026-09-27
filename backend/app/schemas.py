@@ -515,6 +515,34 @@ class DepartmentResponse(DepartmentBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class TechnicalLocationBase(BaseModel):
+    name: str
+    location_type: str
+    store_id: int
+    department_id: Optional[int] = None
+    description: Optional[str] = None
+    notes: Optional[str] = None
+
+class TechnicalLocationCreate(TechnicalLocationBase):
+    pass
+
+class TechnicalLocationUpdate(BaseModel):
+    name: Optional[str] = None
+    location_type: Optional[str] = None
+    store_id: Optional[int] = None
+    department_id: Optional[int] = None
+    description: Optional[str] = None
+    notes: Optional[str] = None
+
+class TechnicalLocationResponse(TechnicalLocationBase):
+    id: int
+    store: Optional[StoreResponse] = None
+    department: Optional[DepartmentResponse] = None
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
 class EquipmentHistoryCreate(BaseModel):
     event_type: str
     description: str
@@ -542,6 +570,7 @@ class EquipmentBase(BaseModel):
     operating_system: Optional[str] = None
     store_id: Optional[int] = None
     department_id: Optional[int] = None
+    technical_location_id: Optional[int] = None
     assigned_user: Optional[str] = None
     status: str = "ativo"
     notes: Optional[str] = None
@@ -561,6 +590,7 @@ class EquipmentUpdate(BaseModel):
     operating_system: Optional[str] = None
     store_id: Optional[int] = None
     department_id: Optional[int] = None
+    technical_location_id: Optional[int] = None
     assigned_user: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
@@ -569,6 +599,7 @@ class EquipmentResponse(EquipmentBase):
     id: int
     store: Optional[StoreResponse] = None
     department: Optional[DepartmentResponse] = None
+    technical_location: Optional[TechnicalLocationResponse] = None
     history: List[EquipmentHistoryResponse] = []
     created_at: datetime
     updated_at: datetime
@@ -662,7 +693,6 @@ class StockItemUpdate(BaseModel):
     name: Optional[str] = None
     category: Optional[str] = None
     part_number: Optional[str] = None
-    current_quantity: Optional[int] = None
     min_quantity: Optional[int] = None
     unit: Optional[str] = None
     location: Optional[str] = None

@@ -7,6 +7,7 @@ import {
   ArrowDownRight,
   Clock,
   Plus,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,6 +46,7 @@ export const StockTab: React.FC<StockTabProps> = ({
   };
 
   const [selectedStock, setSelectedStock] = useState<StockItem | null>(null);
+  const [editingStockId, setEditingStockId] = useState<number | null>(null);
   const [isSubmittingMovement, setIsSubmittingMovement] = useState(false);
 
   const [stockForm, setStockForm] = useState<StockItemCreatePayload>({
@@ -82,9 +84,26 @@ export const StockTab: React.FC<StockTabProps> = ({
   const handleSaveStockItem = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await infrastructureService.createStockItem(stockForm);
-      setStockItems((prev) => [...prev, created]);
+      if (editingStockId) {
+        const { current_quantity, ...updatePayload } = stockForm;
+        const updated = await infrastructureService.updateStockItem(editingStockId, updatePayload);
+        setStockItems((prev) => prev.map((item) => (item.id === editingStockId ? updated : item)));
+        if (selectedStock?.id === editingStockId) {
+          setSelectedStock(updated);
+        }
+        addToast({ title: 'Item Atualizado', description: 'Cadastro atualizado com sucesso.', type: 'success' });
+      } else {
+        const created = await infrastructureService.createStockItem(stockForm);
+        setStockItems((prev) => [...prev, created]);
+        setSelectedStock(created);
+        addToast({
+          title: 'Item Cadastrado',
+          description: `${created.name} adicionado ao controle operacional.`,
+          type: 'success',
+        });
+      }
       setIsStockModalOpen(false);
+      setEditingStockId(null);
       setStockForm({
         name: '',
         category: 'perifericos',
@@ -95,14 +114,8 @@ export const StockTab: React.FC<StockTabProps> = ({
         location: '',
         notes: '',
       });
-      addToast({
-        title: 'Item Cadastrado',
-        description: `${created.name} adicionado ao controle operacional.`,
-        type: 'success',
-      });
-      setSelectedStock(created);
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao cadastrar item de estoque.';
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar item de estoque.';
       addToast({ title: 'Erro', description: msg, type: 'error' });
     }
   };
@@ -149,7 +162,11 @@ export const StockTab: React.FC<StockTabProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsStockModalOpen(true)}
+              onClick={() => {
+                setEditingStockId(null);
+                setStockForm({ name: '', category: 'perifericos', part_number: '', current_quantity: 0, min_quantity: 2, unit: 'unidade', location: '', notes: '' });
+                setIsStockModalOpen(true);
+              }}
               className="h-7 px-2 text-[11px] text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 cursor-pointer"
             >
               <Plus className="h-3 w-3 mr-1" /> Novo Item
@@ -225,7 +242,30 @@ export const StockTab: React.FC<StockTabProps> = ({
               <div className="p-5 border-b border-border/40 bg-muted/10">
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <h3 className="text-lg font-bold text-foreground">{selectedStock.name}</h3>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-lg font-bold text-foreground">{selectedStock.name}</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setEditingStockId(selectedStock.id);
+                          setStockForm({
+                            name: selectedStock.name,
+                            category: selectedStock.category || 'perifericos',
+                            part_number: selectedStock.part_number || '',
+                            current_quantity: selectedStock.current_quantity,
+                            min_quantity: selectedStock.min_quantity || 2,
+                            unit: selectedStock.unit || 'unidade',
+                            location: selectedStock.location || '',
+                            notes: selectedStock.notes || '',
+                          });
+                          setIsStockModalOpen(true);
+                        }}
+                        className="h-7 px-2 text-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
+                      >
+                        <Pencil className="h-3 w-3 mr-1" /> Editar Cadastro
+                      </Button>
+                    </div>
                     <p className="text-xs text-muted-foreground font-mono mt-1">
                       P/N: {selectedStock.part_number || 'Sem código'}
                     </p>
@@ -350,9 +390,9 @@ export const StockTab: React.FC<StockTabProps> = ({
             <DrawerHeader>
               <DrawerTitle className="flex items-center gap-2">
                 <Package className="h-5 w-5 text-blue-400" />
-                <span>Novo Item de Estoque Operacional</span>
+                <span>{editingStockId ? 'Editar Item de Estoque' : 'Novo Item de Estoque Operacional'}</span>
               </DrawerTitle>
-              <DrawerDescription>Controle de suprimentos rápidos e materiais sob custódia do suporte.</DrawerDescription>
+              <DrawerDescription>{editingStockId ? 'Altere os metadados do cadastro.' : 'Controle de suprimentos rápidos e materiais sob custódia do suporte.'}</DrawerDescription>
             </DrawerHeader>
 
             <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
@@ -401,8 +441,10 @@ export const StockTab: React.FC<StockTabProps> = ({
                     min={0}
                     value={stockForm.current_quantity}
                     onChange={(e) => setStockForm({ ...stockForm, current_quantity: Number(e.target.value) })}
+                    disabled={!!editingStockId}
                     className="bg-background/50"
                   />
+                  {editingStockId && <span className="text-[10px] text-muted-foreground mt-1 block">Saldo é controlado por movimentações.</span>}
                 </div>
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1.5 block">Estoque Mínimo (Alerta)</label>
@@ -428,8 +470,8 @@ export const StockTab: React.FC<StockTabProps> = ({
             </div>
 
             <DrawerFooter>
-              <Button type="button" variant="outline" onClick={() => setIsStockModalOpen(false)}>Cancelar</Button>
-              <Button type="submit">Cadastrar Item</Button>
+              <Button type="button" variant="outline" onClick={() => { setIsStockModalOpen(false); setEditingStockId(null); }}>Cancelar</Button>
+              <Button type="submit">{editingStockId ? 'Salvar Alterações' : 'Cadastrar Item'}</Button>
             </DrawerFooter>
           </form>
         </DrawerContent>
