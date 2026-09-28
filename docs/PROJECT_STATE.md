@@ -1,13 +1,19 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 9.3.1 concluída (Fechamento Funcional de Templates e Manutenções).
-**Fase atual**: Fase 9.4.
+**Estado atual**: Fase 9.4.1 concluída (Homologação da Nova UI de Manutenções).
+**Fase atual**: Fase 9 Finalizada.
 **Última implementação**:
+- **Fase 9.4.1 — Homologação Funcional**:
+  - Testes e-2-e manuais garantindo todas as features da Fase 9 (criação, edição, concorrência, status, templates).
+  - Integrado suporte ao campo `attendance_id` no frontend garantindo paridade com backend.
+  - Testes aprovados no Backend via Pytest e compilação do Frontend via `npm run build`.
+- **Fase 9.4 — Redesign do Painel de Manutenções**:
+  - `MaintenancePage` reescrita com padrão de Workspace Operacional.
+  - Implementado alternador de visualização Lista (Tabela densa) vs Calendário.
+  - Substituído formulário modal complexo por `MaintenanceCreateDrawer` com divulgação progressiva (Progressive Disclosure).
+  - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
+  - Ações de atualização rápida de status embutidas na visualização de detalhes.
 - **Fase 9.3.1 — Fechamento Funcional**:
-  - Adicionado suporte de `is_active` nos templates de checklist no backend via migração Alembic e Schema.
-  - Implementada funcionalidade para ativar/inativar e editar um template existente com reflexo em tempo real.
-  - Criado o componente `MaintenanceEditDialog.tsx` com as integrações para editar manutenções já cadastradas através do Frontend de forma segura.
-  - Atualizados e adicionados testes de integração (editar manutenções e atualizar estado is_active dos templates).
 - **Fase 9.3 — Checklist Templates**:
   - Criados os modelos `ChecklistTemplate` e `ChecklistTemplateItem`.
   - Migração Alembic criada e aplicada para as novas tabelas.
@@ -20,8 +26,8 @@
   - Lógica de sincronização de status de equipamentos aprimorada para lidar com concorrência (somente retornar a `ativo` se não houver outras manutenções em andamento).
   - Testes integrados abrangentes da Fase 9.2 para validar regras de negócio, herança de localidade e ciclo de vida de status.
 - **Fase 8 Finalizada**: Soft delete de infraestrutura, Technical Locations, refatorações visuais da aba de Lojas/Equipamentos e integração segura de licenças.
-**Último commit**: feat: checklist templates maintenance phase 9.3
-**Próxima tarefa**: Fase 9.4 — Interface do Painel de Manutenções.
+**Último commit**: feat: complete phase 9.4 maintenance panel redesign
+**Próxima tarefa**: Fase 10 — Base de Conhecimento, ou qualquer próxima especificada no roadmap.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: Todos testes (Backend/Frontend) aprovados.

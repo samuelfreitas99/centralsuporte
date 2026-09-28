@@ -44,6 +44,7 @@ export interface MaintenanceRecord {
   result?: MaintenanceResult | null;
   parts_used?: string | null;
   otrs_ticket?: string | null;
+  attendance_id?: number | null;
   cost?: number | null;
   internal_notes?: string | null;
   equipment?: EquipmentItem | null;
@@ -70,6 +71,7 @@ export interface MaintenanceCreatePayload {
   result?: string;
   parts_used?: string;
   otrs_ticket?: string;
+  attendance_id?: number | null;
   cost?: number | null;
   internal_notes?: string;
   checklist_title?: string;
@@ -93,6 +95,7 @@ export interface MaintenanceUpdatePayload {
   result?: string;
   parts_used?: string;
   otrs_ticket?: string;
+  attendance_id?: number | null;
   cost?: number | null;
   internal_notes?: string;
 }
