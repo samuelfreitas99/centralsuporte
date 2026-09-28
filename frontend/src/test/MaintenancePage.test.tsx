@@ -293,16 +293,16 @@ describe('MaintenancePage (Phase 9)', () => {
     const newBtn = screen.getByRole('button', { name: /nova manutenção/i });
     fireEvent.click(newBtn);
 
-    expect(screen.getByText('Agendar Nova Manutenção')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Nova Manutenção' })).toBeInTheDocument();
 
-    const titleInput = screen.getByPlaceholderText(/ex: revisão trimestral/i);
+    const titleInput = screen.getByPlaceholderText(/ex: preventiva semestral pdv/i);
     fireEvent.change(titleInput, { target: { value: 'Revisão Preventiva Switch 01' } });
 
     // Select equipment
-    const eqSelect = screen.getByDisplayValue(/selecione um equipamento cadastrado/i);
+    const eqSelect = screen.getByDisplayValue(/selecione um equipamento.../i);
     fireEvent.change(eqSelect, { target: { value: '1' } });
 
-    const submitBtn = screen.getByRole('button', { name: /agendar manutenção/i });
+    const submitBtn = screen.getByRole('button', { name: /salvar/i });
     fireEvent.click(submitBtn);
 
     await waitFor(() => {

@@ -537,7 +537,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                           disabled={!eqForm.store_id}
                         >
                           <option value="">Não Alocado</option>
-                          {technicalLocations
+                          {(technicalLocations || [])
                             .filter(loc => loc.store_id === eqForm.store_id && (!loc.department_id || !eqForm.department_id || loc.department_id === eqForm.department_id))
                             .map((loc) => (
                               <option key={loc.id} value={loc.id}>
