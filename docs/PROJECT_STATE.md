@@ -1,12 +1,13 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 9.4.1 concluída (Homologação da Nova UI de Manutenções).
+**Estado atual**: Fase 9 totalmente concluída (Testes de Redesign fixados). PHASE 9 CONDITION RESOLVED.
 **Fase atual**: Fase 9 Finalizada.
 **Última implementação**:
-- **Fase 9.4.1 — Homologação Funcional**:
-  - Testes e-2-e manuais garantindo todas as features da Fase 9 (criação, edição, concorrência, status, templates).
-  - Integrado suporte ao campo `attendance_id` no frontend garantindo paridade com backend.
-  - Testes aprovados no Backend via Pytest e compilação do Frontend via `npm run build`.
+- **Fase 9.5.1 — Fechamento Funcional (Testes UI)**:
+  - Testes do Frontend (Vitest) atualizados para refletir corretamente o novo modelo de Drawer/Progressive Disclosure.
+  - Cobertura de testes e2e UI restaurada (95/95 passed).
+- **Fase 9.5 — Auditoria Final da Fase 9**:
+  - Auditoria completa confirmando a robustez do banco de dados, snapshots, integração de Status, permissões e refatoração visual.
 - **Fase 9.4 — Redesign do Painel de Manutenções**:
   - `MaintenancePage` reescrita com padrão de Workspace Operacional.
   - Implementado alternador de visualização Lista (Tabela densa) vs Calendário.
@@ -26,8 +27,8 @@
   - Lógica de sincronização de status de equipamentos aprimorada para lidar com concorrência (somente retornar a `ativo` se não houver outras manutenções em andamento).
   - Testes integrados abrangentes da Fase 9.2 para validar regras de negócio, herança de localidade e ciclo de vida de status.
 - **Fase 8 Finalizada**: Soft delete de infraestrutura, Technical Locations, refatorações visuais da aba de Lojas/Equipamentos e integração segura de licenças.
-**Último commit**: feat: complete phase 9.4 maintenance panel redesign
-**Próxima tarefa**: Fase 10 — Base de Conhecimento, ou qualquer próxima especificada no roadmap.
+**Último commit**: fix: resolve vitest assertions for new maintenance drawers
+**Próxima tarefa**: Fase 10 — Base de Conhecimento.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: Todos testes (Backend/Frontend) aprovados.

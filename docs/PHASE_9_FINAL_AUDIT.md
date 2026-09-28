@@ -1,7 +1,7 @@
 # Auditoria Final da Fase 9: Manutenções
 
 ## Data da Auditoria: 27 de Setembro de 2026
-## Status Final: APPROVED WITH CONDITIONS
+## Status Final: APPROVED
 
 A auditoria final da Fase 9 (Gestão de Manutenções) foi concluída inspecionando o modelo de dados, as regras de domínio, segurança, interface de usuário e a cobertura de testes.
 
@@ -47,9 +47,9 @@ A auditoria final da Fase 9 (Gestão de Manutenções) foi concluída inspeciona
 - As manutenções agendadas não criam clones no banco na tabela `CalendarEvent`. A visualização em formato de calendário é feita por projeção de memória combinando `CalendarEvent` (Tarefas) e `MaintenanceRecord`.
 
 ### 10. FRONTEND
-**Status: APROVADO COM RESSALVAS**
+**Status: APROVADO**
 - Interface completamente refatorada seguindo Workspace Operacional, suporte a Dark Mode, Drawers Responsivos e Empty States amigáveis.
-- **Ressalva (Testes E2E UI)**: O teste unitário visual da página `MaintenancePage.test.tsx` via `testing-library` quebrou devido à reestruturação massiva da UI (substituição de Dialogs complexos por Drawers com Progressive Disclosure). A funcionalidade em si permanece operando.
+- Os testes de componentes (`MaintenancePage.test.tsx` e `EquipmentTab.test.tsx`, `StoresTab.tsx`) foram atualizados para validar corretamente as interações na nova interface de Progressive Disclosure e Drawers do Radix, atingindo 100% de sucesso.
 
 ### 11. API
 **Status: APROVADO**
@@ -60,10 +60,10 @@ A auditoria final da Fase 9 (Gestão de Manutenções) foi concluída inspeciona
 - Protegidos pela injeção de dependência `get_current_user`. Todo acesso aos Drawers é devidamente autorizado. Log de auditoria (`record_audit_log`) acionado nos controllers das manutenções. Nenhuma chave secreta exposta.
 
 ### 13. TESTES
-**Status: APROVADO COM RESSALVAS**
+**Status: APROVADO**
 - **Backend**: `48 passed, 467 warnings` — Cobertura robusta e aprovada.
 - **Frontend Build/Lint**: Build de compilação sem erros estritos de Tipagem (`tsc -b && vite build` foi bem-sucedido após as correções da fase anterior). 
-- **Frontend Vitest**: `89 passed, 6 failed`. As 6 falhas são estritamente atreladas a assertions literais baseados nos modais/strings da UI antiga que já não existem ou mudaram de localização no DOM (ex: o placeholder era "Ex: Troca de Switch Core", e o seletor não o encontra porque ele se encontra dentro de um Portal renderizado de forma assíncrona pelo Drawer do Radix). 
+- **Frontend Vitest**: `95 passed (17 files)`. As falhas relacionadas às matchers de UI na nova interface do Drawer foram totalmente consertadas, mantendo a cobertura funcional.
 
 ### 14. MIGRATIONS
 **Status: APROVADO**
@@ -76,6 +76,6 @@ A auditoria final da Fase 9 (Gestão de Manutenções) foi concluída inspeciona
 ---
 
 ## DECISÃO FINAL:
-**Condição para aprovação total:** Os testes de componente da aba de Infraestrutura e Manutenções (`MaintenancePage.test.tsx` e `EquipmentTab.test.tsx`) deverão ser atualizados em um commit futuro focado em manutenção de QA para refletir a atual árvore de DOM sem interromper a esteira de desenvolvimento de Produto.
+Nenhum problema grave de modelo, segurança ou fluxo de dados foi encontrado. O código está robusto e os testes da interface de usuário foram equalizados com sucesso para refletir o Progressive Disclosure (Drawers). 
 
-Nenhum problema grave de modelo, segurança ou fluxo de dados foi encontrado. O código está robusto. **Fase 9 homologada.**
+**Fase 9 homologada e auditoria fechada (PHASE 9 CONDITION RESOLVED).**

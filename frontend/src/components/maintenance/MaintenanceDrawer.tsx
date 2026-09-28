@@ -443,7 +443,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                     </h3>
                     <div className="space-y-2 border rounded-lg p-3">
                       {maintenance.checklists[0].items.map((item) => (
-                        <div key={item.id} className="flex items-start gap-3 p-2 hover:bg-muted/50 rounded-md transition-colors">
+                        <label key={item.id} className="flex items-start gap-3 p-2 hover:bg-muted/50 rounded-md transition-colors cursor-pointer">
                           <input
                             type="checkbox"
                             checked={item.is_completed}
@@ -455,7 +455,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                               {item.title}
                             </p>
                           </div>
-                        </div>
+                        </label>
                       ))}
                     </div>
                   </section>

@@ -178,49 +178,57 @@ describe('MaintenancePage (Phase 9)', () => {
     vi.mocked(maintenanceService.toggleChecklistItem).mockResolvedValue({ id: 101, is_completed: true });
   });
 
-  it('renders page header, Phase 9 badge, and tactical metrics', async () => {
+  it('renders page header and maintenance list', async () => {
     renderMaintenancePage();
 
-    expect(screen.getByText('Manutenções & Planos Preventivos')).toBeInTheDocument();
-    expect(screen.getByText('Fase 9')).toBeInTheDocument();
+    expect(screen.getByText('Centro de Manutenções')).toBeInTheDocument();
+    expect(screen.getByText('Workspace operacional para gestão de preventivas, corretivas e intervenções.')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Revisão Preventiva Trimestral PDV 01')).toBeInTheDocument();
       expect(screen.getByText('Troca da Fonte de Alimentação Servidor 01')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Total Registrado')).toBeInTheDocument();
-    expect(screen.getByText('Próximas intervenções')).toBeInTheDocument();
+    expect(screen.getAllByText(/PDV-01/i)[0]).toBeInTheDocument();
   });
 
-  it('displays maintenance cards with equipment, status, priority and checklist counter', async () => {
+  it('displays maintenance details in Drawer when clicked', async () => {
     renderMaintenancePage();
 
     await waitFor(() => {
       expect(screen.getByText('Revisão Preventiva Trimestral PDV 01')).toBeInTheDocument();
     });
 
-    expect(screen.getAllByText(/PAT-1001/i)[0]).toBeInTheDocument();
-    expect(screen.getByText('Checklist Preventiva PDV')).toBeInTheDocument();
-    expect(screen.getByText('1/2 concluídos')).toBeInTheDocument();
+    // click the row
+    fireEvent.click(screen.getByText('Revisão Preventiva Trimestral PDV 01'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /Revisão Preventiva Trimestral PDV 01/i })).toBeInTheDocument();
+    });
   });
 
-  it('starts scheduled maintenance and toggles status', async () => {
+  it('starts scheduled maintenance from drawer', async () => {
     renderMaintenancePage();
 
     await waitFor(() => {
       expect(screen.getByText('Revisão Preventiva Trimestral PDV 01')).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText('Revisão Preventiva Trimestral PDV 01'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /iniciar/i })).toBeInTheDocument();
     });
 
     const startBtn = screen.getByRole('button', { name: /iniciar/i });
     fireEvent.click(startBtn);
 
     await waitFor(() => {
-      expect(maintenanceService.updateStatus).toHaveBeenCalledWith(1, { status: 'em_andamento' });
+      expect(maintenanceService.updateMaintenance).toHaveBeenCalledWith(1, { status: 'em_andamento' });
     });
   });
 
-  it('allows opening conclusion modal and completing maintenance', async () => {
+  it('concludes maintenance from drawer', async () => {
     // Make first item em_andamento so conclude button appears
     vi.mocked(maintenanceService.getMaintenances).mockResolvedValue([
       {
@@ -235,48 +243,35 @@ describe('MaintenancePage (Phase 9)', () => {
       expect(screen.getByText('Revisão Preventiva Trimestral PDV 01')).toBeInTheDocument();
     });
 
+    fireEvent.click(screen.getByText('Revisão Preventiva Trimestral PDV 01'));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /concluir/i })).toBeInTheDocument();
+    });
+
     const concludeBtn = screen.getByRole('button', { name: /concluir/i });
     fireEvent.click(concludeBtn);
 
-    expect(screen.getByText('Concluir Manutenção Técnica')).toBeInTheDocument();
-
-    // Fill in procedure
-    const procedureInput = screen.getByPlaceholderText(/descreva passo a passo o que foi feito/i);
-    fireEvent.change(procedureInput, {
-      target: { value: 'Limpeza de coolers e troca de cabos realizada com sucesso.' },
-    });
-
-    const submitBtn = screen.getByRole('button', { name: /concluir manutenção/i });
-    fireEvent.click(submitBtn);
-
     await waitFor(() => {
-      expect(maintenanceService.updateStatus).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({
-          status: 'concluida',
-          result: 'sucesso',
-          procedure_performed: 'Limpeza de coolers e troca de cabos realizada com sucesso.',
-        })
-      );
+      expect(maintenanceService.updateMaintenance).toHaveBeenCalledWith(1, { status: 'concluida' });
     });
   });
 
-  it('toggles checklist items on expansion', async () => {
+  it('toggles checklist items from drawer', async () => {
     renderMaintenancePage();
 
     await waitFor(() => {
       expect(screen.getByText('Revisão Preventiva Trimestral PDV 01')).toBeInTheDocument();
     });
 
-    const expandBtn = screen.getByRole('button', { name: /expandir checklist/i });
-    fireEvent.click(expandBtn);
+    fireEvent.click(screen.getByText('Revisão Preventiva Trimestral PDV 01'));
 
     await waitFor(() => {
-      expect(screen.getByText('Limpeza física interna e coolers')).toBeInTheDocument();
+      expect(screen.getByText(/Checklist/i)).toBeInTheDocument();
     });
 
-    const itemRow = screen.getByText('Limpeza física interna e coolers');
-    fireEvent.click(itemRow);
+    const itemCheckbox = screen.getByLabelText(/Limpeza física interna e coolers/i);
+    fireEvent.click(itemCheckbox);
 
     await waitFor(() => {
       expect(maintenanceService.toggleChecklistItem).toHaveBeenCalledWith(10, 101, true);

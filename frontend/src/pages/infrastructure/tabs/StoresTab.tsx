@@ -237,7 +237,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
           <AnimatePresence>
             {filteredStores.map((s) => {
               const storeDepts = departments.filter((d) => d.store_id === s.id);
-              const storeLocs = technicalLocations.filter((l) => l.store_id === s.id && !l.department_id);
+              const storeLocs = (technicalLocations || []).filter((l) => l.store_id === s.id && !l.department_id);
               const storeEquipment = equipmentList.filter((e) => e.store_id === s.id);
 
               return (
