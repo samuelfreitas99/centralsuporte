@@ -3,6 +3,15 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, Date
 from sqlalchemy.orm import relationship
 from app.database import Base
 
+# Association table for Project and Equipment
+project_equipment = Table(
+    'project_equipment',
+    Base.metadata,
+    Column('project_id', Integer, ForeignKey('projects.id', ondelete="CASCADE"), primary_key=True),
+    Column('equipment_id', Integer, ForeignKey('equipment.id', ondelete="CASCADE"), primary_key=True),
+    Column('added_at', DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+)
+
 # Association table for many-to-many relationship between Role and Permission
 role_permissions = Table(
     'role_permissions',
@@ -87,6 +96,10 @@ class User(Base):
     attendances = relationship("Attendance", foreign_keys="Attendance.technician_id", back_populates="technician")
     attendance_notes = relationship("AttendanceNote", foreign_keys="AttendanceNote.author_id", back_populates="author")
 
+    # Relationships for Phase 10 (Projects)
+    owned_projects = relationship("Project", foreign_keys="Project.owner_id", back_populates="owner")
+    project_notes = relationship("ProjectNote", foreign_keys="ProjectNote.author_id", back_populates="author")
+
 class Task(Base):
     __tablename__ = "tasks"
     
@@ -101,6 +114,8 @@ class Task(Base):
     visibility = Column(String(20), default="equipe", nullable=False)  # privado, equipe, todos
     category = Column(String(50), nullable=True)
     otrs_reference = Column(String(100), nullable=True)  # Referência complementar ao OTRS (número ou link)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="SET NULL"), nullable=True, index=True)
+    project_stage = Column(String(100), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     
@@ -109,6 +124,7 @@ class Task(Base):
     assigned_users = relationship("User", secondary=task_assignments, back_populates="assigned_tasks")
     checklists = relationship("Checklist", back_populates="task", cascade="all, delete-orphan")
     reminders = relationship("Reminder", back_populates="task", cascade="all, delete-orphan")
+    project = relationship("Project", back_populates="tasks")
 
 class ChecklistTemplate(Base):
     __tablename__ = "checklist_templates"
@@ -142,12 +158,14 @@ class Checklist(Base):
     description = Column(String(500), nullable=True)
     task_id = Column(Integer, ForeignKey('tasks.id', ondelete="CASCADE"), nullable=True)
     maintenance_id = Column(Integer, ForeignKey('maintenance_records.id', ondelete="CASCADE"), nullable=True, index=True)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="SET NULL"), nullable=True, index=True)
     creator_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     
     # Relationships
     task = relationship("Task", back_populates="checklists")
     maintenance = relationship("MaintenanceRecord", back_populates="checklists")
+    project = relationship("Project", back_populates="checklists")
     creator = relationship("User", back_populates="created_checklists")
     items = relationship("ChecklistItem", back_populates="checklist", cascade="all, delete-orphan", order_by="ChecklistItem.position")
 
@@ -191,12 +209,14 @@ class CalendarEvent(Base):
     description = Column(Text, nullable=True)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=False)
-    event_type = Column(String(50), default="atividade", nullable=False)  # atividade, manutencao, compromisso, lembrete, escala
+    event_type = Column(String(50), default="atividade", nullable=False)  # atividade, manutencao, compromisso, lembrete, escala, projeto
     user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     
     # Relationships
     user = relationship("User", back_populates="calendar_events")
+    project = relationship("Project", back_populates="calendar_events")
 
 # --- Phase 5 (Knowledge Base) Models ---
 
@@ -340,6 +360,7 @@ class Attendance(Base):
     commands_used = Column(Text, nullable=True)
     internal_notes = Column(Text, nullable=True)
     knowledge_article_id = Column(Integer, ForeignKey('knowledge_articles.id', ondelete="SET NULL"), nullable=True)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -347,6 +368,7 @@ class Attendance(Base):
     technician = relationship("User", foreign_keys=[technician_id], back_populates="attendances")
     knowledge_article = relationship("KnowledgeArticle", foreign_keys=[knowledge_article_id])
     equipment = relationship("Equipment", foreign_keys=[equipment_id], back_populates="attendances")
+    project = relationship("Project", back_populates="attendances")
     notes = relationship("AttendanceNote", back_populates="attendance", cascade="all, delete-orphan", order_by="AttendanceNote.created_at.asc()")
 
 
@@ -383,6 +405,7 @@ class Store(Base):
     departments = relationship("Department", back_populates="store", cascade="all, delete-orphan")
     equipment = relationship("Equipment", back_populates="store")
     technical_locations = relationship("TechnicalLocation", back_populates="store", cascade="all, delete-orphan")
+    projects = relationship("Project", back_populates="store")
 
 
 class Department(Base):
@@ -451,6 +474,7 @@ class Equipment(Base):
     attendances = relationship("Attendance", back_populates="equipment")
     license_assignments = relationship("LicenseAssignment", back_populates="equipment")
     maintenances = relationship("MaintenanceRecord", back_populates="equipment", cascade="all, delete-orphan", order_by="MaintenanceRecord.created_at.desc()")
+    projects = relationship("Project", secondary=project_equipment, back_populates="equipment_list")
 
 
 class EquipmentHistory(Base):
@@ -533,6 +557,7 @@ class StockMovement(Base):
     quantity = Column(Integer, nullable=False)
     store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True)
     attendance_id = Column(Integer, ForeignKey('attendances.id', ondelete="SET NULL"), nullable=True)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="SET NULL"), nullable=True, index=True)
     reason = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
@@ -541,6 +566,7 @@ class StockMovement(Base):
     user = relationship("User")
     store = relationship("Store")
     attendance = relationship("Attendance")
+    project = relationship("Project", back_populates="stock_movements")
 
 
 class MaintenanceRecord(Base):
@@ -567,6 +593,7 @@ class MaintenanceRecord(Base):
     result = Column(String(32), nullable=True)  # sucesso, parcial, falha
     cost = Column(Float, nullable=True)
     internal_notes = Column(Text, nullable=True)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="SET NULL"), nullable=True, index=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
@@ -577,6 +604,7 @@ class MaintenanceRecord(Base):
     technical_location = relationship("TechnicalLocation")
     attendance = relationship("Attendance")
     technician = relationship("User")
+    project = relationship("Project", back_populates="maintenances")
     checklists = relationship("Checklist", back_populates="maintenance", cascade="all, delete-orphan")
 
 
@@ -592,7 +620,7 @@ class Attachment(Base):
     file_size = Column(Integer, nullable=False)  # in bytes
     mime_type = Column(String(100), nullable=False, default="application/octet-stream")
     file_hash = Column(String(64), nullable=True, index=True)  # SHA-256
-    entity_type = Column(String(50), nullable=False, index=True)  # 'attendance', 'knowledge', 'maintenance', 'equipment', 'task'
+    entity_type = Column(String(50), nullable=False, index=True)  # 'attendance', 'knowledge', 'maintenance', 'equipment', 'task', 'project'
     entity_id = Column(Integer, nullable=False, index=True)
     description = Column(String(255), nullable=True)
     uploader_id = Column(Integer, ForeignKey('users.id', ondelete="SET NULL"), nullable=True, index=True)
@@ -600,6 +628,52 @@ class Attachment(Base):
 
     # Relationships
     uploader = relationship("User")
+
+
+# --- Phase 10.1 (Projetos Operacionais) ---
+
+class Project(Base):
+    __tablename__ = "projects"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    status = Column(String(50), default="planejado", nullable=False) # planejado, em_andamento, pausado, concluido, cancelado
+    start_date = Column(DateTime(timezone=True), nullable=True)
+    end_date = Column(DateTime(timezone=True), nullable=True)
+    expected_end_date = Column(DateTime(timezone=True), nullable=True)
+    
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
+    store_id = Column(Integer, ForeignKey("stores.id", ondelete="SET NULL"), nullable=True, index=True)
+    
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    owner = relationship("User", foreign_keys=[owner_id], back_populates="owned_projects")
+    store = relationship("Store", back_populates="projects")
+    tasks = relationship("Task", back_populates="project")
+    checklists = relationship("Checklist", back_populates="project")
+    maintenances = relationship("MaintenanceRecord", back_populates="project")
+    attendances = relationship("Attendance", back_populates="project")
+    calendar_events = relationship("CalendarEvent", back_populates="project")
+    stock_movements = relationship("StockMovement", back_populates="project")
+    equipment_list = relationship("Equipment", secondary=project_equipment, back_populates="projects")
+    notes = relationship("ProjectNote", back_populates="project", cascade="all, delete-orphan", order_by="ProjectNote.created_at.asc()")
+
+
+class ProjectNote(Base):
+    __tablename__ = "project_notes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    project_id = Column(Integer, ForeignKey('projects.id', ondelete="CASCADE"), nullable=False, index=True)
+    author_id = Column(Integer, ForeignKey('users.id', ondelete="RESTRICT"), nullable=False, index=True)
+    note = Column(Text, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    project = relationship("Project", back_populates="notes")
+    author = relationship("User", foreign_keys=[author_id], back_populates="project_notes")
 
 
 # --- Phase 12 (Auditoria e Segurança) ---

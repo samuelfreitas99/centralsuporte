@@ -24,6 +24,10 @@ INITIAL_PERMISSIONS = [
     {"name": "attachment:upload", "description": "Fazer upload de anexos"},
     {"name": "attachment:delete", "description": "Excluir arquivos e anexos"},
     {"name": "audit:read", "description": "Consultar trilhas e logs de auditoria do sistema"},
+    {"name": "project:read", "description": "Visualizar projetos operacionais"},
+    {"name": "project:create", "description": "Criar novos projetos operacionais"},
+    {"name": "project:update", "description": "Atualizar projetos operacionais"},
+    {"name": "project:delete", "description": "Excluir projetos operacionais"},
 ]
 
 ROLE_PERMISSIONS_MAP = {
@@ -32,17 +36,19 @@ ROLE_PERMISSIONS_MAP = {
         "users:read", "roles:read", "knowledge:read", "knowledge:write",
         "attendance:read", "attendance:write", "equipment:read", "equipment:write",
         "tasks:read", "tasks:write", "maintenance:read", "maintenance:write",
-        "attachment:read", "attachment:upload", "attachment:delete", "audit:read"
+        "attachment:read", "attachment:upload", "attachment:delete", "audit:read",
+        "project:read", "project:create", "project:update", "project:delete"
     ],
     "Técnico": [
         "knowledge:read", "knowledge:write", "attendance:read", "attendance:write",
         "equipment:read", "equipment:write", "tasks:read", "tasks:write",
         "maintenance:read", "maintenance:write",
-        "attachment:read", "attachment:upload", "attachment:delete"
+        "attachment:read", "attachment:upload", "attachment:delete",
+        "project:read", "project:create", "project:update"
     ],
     "Consulta": [
         "knowledge:read", "attendance:read", "equipment:read", "tasks:read",
-        "maintenance:read", "attachment:read"
+        "maintenance:read", "attachment:read", "project:read"
     ]
 }
 

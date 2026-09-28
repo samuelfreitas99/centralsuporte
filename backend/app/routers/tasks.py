@@ -85,6 +85,8 @@ def create_task(
         visibility=payload.visibility or "equipe",
         category=payload.category,
         otrs_reference=payload.otrs_reference,
+        project_id=payload.project_id,
+        project_stage=payload.project_stage,
     )
     if task.status == "concluida":
         task.completed_at = datetime.now(timezone.utc)
@@ -146,6 +148,10 @@ def update_task(
         task.otrs_reference = payload.otrs_reference
     if payload.due_date is not None:
         task.due_date = payload.due_date
+    if payload.project_id is not None:
+        task.project_id = payload.project_id
+    if payload.project_stage is not None:
+        task.project_stage = payload.project_stage
 
     if payload.status is not None:
         if payload.status == "concluida" and task.status != "concluida":

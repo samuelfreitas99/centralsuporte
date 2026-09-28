@@ -96,6 +96,7 @@ class ChecklistBase(BaseModel):
 class ChecklistCreate(ChecklistBase):
     task_id: Optional[int] = None
     maintenance_id: Optional[int] = None
+    project_id: Optional[int] = None
     items: Optional[List[ChecklistItemCreate]] = None
 
 class ChecklistUpdate(BaseModel):
@@ -106,6 +107,7 @@ class ChecklistResponse(ChecklistBase):
     id: int
     task_id: Optional[int] = None
     maintenance_id: Optional[int] = None
+    project_id: Optional[int] = None
     creator_id: int
     creator: Optional[UserSimpleResponse] = None
     created_at: datetime
@@ -155,6 +157,7 @@ class CalendarEventBase(BaseModel):
     start_time: datetime
     end_time: datetime
     event_type: str = "atividade"
+    project_id: Optional[int] = None
 
 class CalendarEventCreate(CalendarEventBase):
     event_type: Optional[str] = "atividade"
@@ -184,6 +187,8 @@ class TaskBase(BaseModel):
     visibility: str = "equipe"
     category: Optional[str] = None
     otrs_reference: Optional[str] = None
+    project_id: Optional[int] = None
+    project_stage: Optional[str] = None
 
 class TaskCreate(BaseModel):
     title: str
@@ -195,6 +200,8 @@ class TaskCreate(BaseModel):
     category: Optional[str] = None
     otrs_reference: Optional[str] = None
     assigned_user_ids: Optional[List[int]] = []
+    project_id: Optional[int] = None
+    project_stage: Optional[str] = None
 
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
@@ -206,6 +213,8 @@ class TaskUpdate(BaseModel):
     category: Optional[str] = None
     otrs_reference: Optional[str] = None
     assigned_user_ids: Optional[List[int]] = None
+    project_id: Optional[int] = None
+    project_stage: Optional[str] = None
 
 class TaskStatusUpdate(BaseModel):
     status: str  # pendente, em_andamento, concluida, cancelada
@@ -435,6 +444,7 @@ class AttendanceBase(BaseModel):
     solution: Optional[str] = None
     commands_used: Optional[str] = None
     internal_notes: Optional[str] = None
+    project_id: Optional[int] = None
 
 class AttendanceCreate(AttendanceBase):
     technician_id: Optional[int] = None
@@ -456,6 +466,7 @@ class AttendanceUpdate(BaseModel):
     solution: Optional[str] = None
     commands_used: Optional[str] = None
     internal_notes: Optional[str] = None
+    project_id: Optional[int] = None
 
 class AttendanceResponse(AttendanceBase):
     id: int
@@ -695,6 +706,7 @@ class StockMovementCreate(BaseModel):
     quantity: int
     store_id: Optional[int] = None
     attendance_id: Optional[int] = None
+    project_id: Optional[int] = None
     reason: Optional[str] = None
 
 class StockMovementResponse(BaseModel):
@@ -706,6 +718,7 @@ class StockMovementResponse(BaseModel):
     quantity: int
     store_id: Optional[int] = None
     attendance_id: Optional[int] = None
+    project_id: Optional[int] = None
     reason: Optional[str] = None
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
@@ -765,6 +778,7 @@ class MaintenanceRecordBase(BaseModel):
     result: Optional[str] = None  # sucesso, parcial, falha
     cost: Optional[float] = None
     internal_notes: Optional[str] = None
+    project_id: Optional[int] = None
 
     @field_validator('*', mode='before')
     @classmethod
@@ -834,6 +848,7 @@ class MaintenanceRecordUpdate(BaseModel):
     result: Optional[str] = None
     cost: Optional[float] = None
     internal_notes: Optional[str] = None
+    project_id: Optional[int] = None
 
     @field_validator('*', mode='before')
     @classmethod
@@ -994,3 +1009,77 @@ class AutomationStatusResponse(BaseModel):
 
 
 
+
+# --- Project Schemas (Phase 10.1) ---
+
+class ProjectBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    status: str = "planejado"
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    expected_end_date: Optional[datetime] = None
+    store_id: Optional[int] = None
+    
+    @field_validator('*', mode='before')
+    @classmethod
+    def empty_str_to_none(cls, v):
+        if isinstance(v, str) and v.strip() == "":
+            return None
+        return v
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: Optional[str] = None
+    start_date: Optional[datetime] = None
+    end_date: Optional[datetime] = None
+    expected_end_date: Optional[datetime] = None
+    store_id: Optional[int] = None
+    owner_id: Optional[int] = None
+
+class ProjectResponse(ProjectBase):
+    id: int
+    owner_id: int
+    owner: Optional[UserSimpleResponse] = None
+    store: Optional[StoreResponse] = None
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class ProjectNoteBase(BaseModel):
+    note: str
+
+class ProjectNoteCreate(ProjectNoteBase):
+    pass
+
+class ProjectNoteResponse(ProjectNoteBase):
+    id: int
+    project_id: int
+    author_id: int
+    author: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class ProjectTimelineEvent(BaseModel):
+    id: int
+    type: str # 'note', 'audit'
+    title: str
+    description: str
+    author: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    metadata: dict = {}
+
+class ProjectSummaryResponse(BaseModel):
+    total_tasks: int = 0
+    completed_tasks: int = 0
+    pending_tasks: int = 0
+    progress_percentage: float = 0.0
+    total_equipment: int = 0
+    total_maintenances: int = 0
+    total_attendances: int = 0
+    total_events: int = 0
+    total_stock_movements: int = 0

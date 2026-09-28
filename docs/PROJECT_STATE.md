@@ -1,8 +1,15 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 9 totalmente concluída (Testes de Redesign fixados). PHASE 9 CONDITION RESOLVED.
-**Fase atual**: Fase 9 Finalizada.
+**Estado atual**: Fase 10.1 parcialmente concluída (Fundação Backend de Projetos Operacionais implementada).
+**Fase atual**: Fase 10.1
 **Última implementação**:
+- **Fase 10.1 — Fundação Backend de Projetos Operacionais**:
+  - Geração de migração para tabelas de `projects`, `project_notes` e `project_equipment`.
+  - Inclusão do campo `project_id` em Tarefas, Manutenções, Atendimentos, Eventos, Checklists e Movimentações de Estoque (`ON DELETE SET NULL`).
+  - Implementação do roteador de Projetos (CRUD, Resumo, Notas e Timeline).
+  - Testes automatizados escritos com 100% de aprovação (pytest).
+- **Fase 10.0 — Arquitetura de Projetos Operacionais**:
+  - Criação do plano arquitetural detalhado em `docs/PHASE_10_PROJECTS_PLAN.md` definindo que os projetos atuarão como agregadores de entidades preexistentes sem invasão de responsabilidades.
 - **Fase 9.5.1 — Fechamento Funcional (Testes UI)**:
   - Testes do Frontend (Vitest) atualizados para refletir corretamente o novo modelo de Drawer/Progressive Disclosure.
   - Cobertura de testes e2e UI restaurada (95/95 passed).
@@ -14,25 +21,13 @@
   - Substituído formulário modal complexo por `MaintenanceCreateDrawer` com divulgação progressiva (Progressive Disclosure).
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
-- **Fase 9.3.1 — Fechamento Funcional**:
-- **Fase 9.3 — Checklist Templates**:
-  - Criados os modelos `ChecklistTemplate` e `ChecklistTemplateItem`.
-  - Migração Alembic criada e aplicada para as novas tabelas.
-  - Adicionado schema Pydantic, rotas de CRUD em `checklist_templates.py` integradas com o sistema de `record_audit_log`.
-  - Implementado Teste de integração do backend de Lifecycle.
-  - Implementado interface simplificada (Frontend) com Dialog no botão de gerenciar templates na `MaintenancePage.tsx`.
-- **Fase 9.2 — Fundação Backend de Manutenções**:
-  - Modelo `MaintenanceRecord` atualizado via Alembic para incluir `department_id`, `technical_location_id`, `attendance_id`, `otrs_ticket` e `parts_used`.
-  - Rotas de manutenções refatoradas para preservar o contexto geográfico (snapshot físico implícito via persistência de chaves estrangeiras *soft deleted*).
-  - Lógica de sincronização de status de equipamentos aprimorada para lidar com concorrência (somente retornar a `ativo` se não houver outras manutenções em andamento).
-  - Testes integrados abrangentes da Fase 9.2 para validar regras de negócio, herança de localidade e ciclo de vida de status.
-- **Fase 8 Finalizada**: Soft delete de infraestrutura, Technical Locations, refatorações visuais da aba de Lojas/Equipamentos e integração segura de licenças.
-**Último commit**: fix: resolve vitest assertions for new maintenance drawers
-**Próxima tarefa**: Fase 10 — Base de Conhecimento.
+
+**Último commit**: feat: implement projects backend foundation (Phase 10.1)
+**Próxima tarefa**: Frontend de Projetos Operacionais.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
-**Testes**: Todos testes (Backend/Frontend) aprovados.
+**Testes**: Todos testes backend de Projects passaram com sucesso (8/8).
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
-- Utilização exclusiva de componentes Drawer do Radix UI para exibições de formulários/edição no módulo de infraestrutura para aliviar a carga visual da página principal.
-- Chaves de licenças agora retornam truncadas no endpoint de listagem, sendo o endpoint `/reveal` acionado somente por demanda.
+- Utilização de `project_id` na modelagem com FK nula em cascata para evitar perdas acidentais de tarefas, registros de manutenção, ou notas se um projeto for deletado.
+- Os Projetos mantêm o padrão unificado de Timeline (agregando AuditLogs e Notes criadas).
