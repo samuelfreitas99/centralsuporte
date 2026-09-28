@@ -134,7 +134,7 @@ def create_maintenance(
     technical_location_id = payload.technical_location_id or equipment.technical_location_id
     technician_id = payload.technician_id or current_user.id
 
-    maintenance_dict = payload.model_dump(exclude={"checklist_title", "checklist_items"})
+    maintenance_dict = payload.model_dump(exclude={"checklist_title", "checklist_items", "checklist_template_id"})
     maintenance_dict["store_id"] = store_id
     maintenance_dict["department_id"] = department_id
     maintenance_dict["technical_location_id"] = technical_location_id
@@ -145,7 +145,28 @@ def create_maintenance(
     db.flush()
 
     # Optional checklist generation
-    if payload.checklist_items:
+    if payload.checklist_template_id:
+        from app.models import ChecklistTemplate
+        template = db.query(ChecklistTemplate).filter(ChecklistTemplate.id == payload.checklist_template_id).first()
+        if template:
+            checklist_title = payload.checklist_title or template.name
+            checklist = Checklist(
+                title=checklist_title,
+                description=template.description,
+                maintenance_id=maintenance.id,
+                creator_id=current_user.id,
+            )
+            db.add(checklist)
+            db.flush()
+            for item in template.items:
+                db.add(
+                    ChecklistItem(
+                        checklist_id=checklist.id,
+                        title=item.title,
+                        position=item.position,
+                    )
+                )
+    elif payload.checklist_items:
         checklist_title = payload.checklist_title or f"Checklist de Manutenção: {maintenance.title}"
         checklist = Checklist(
             title=checklist_title,
@@ -198,19 +219,33 @@ def update_maintenance(
             detail="Registro de manutenção não encontrado",
         )
 
+    old_equipment_id = maintenance.equipment_id
+
     update_data = payload.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(maintenance, field, value)
 
-    # Sync equipment status if changed to em_andamento
-    if payload.status:
-        if payload.status == "em_andamento" and maintenance.equipment:
+    if payload.status is not None or payload.equipment_id is not None:
+        db.flush()
+        
+        # Se mudou de equipamento, reavalia o equipamento antigo
+        if old_equipment_id and old_equipment_id != maintenance.equipment_id:
+            old_eq = db.query(Equipment).filter(Equipment.id == old_equipment_id).first()
+            if old_eq and old_eq.status == "em_manutencao":
+                other_active = db.query(MaintenanceRecord).filter(
+                    MaintenanceRecord.equipment_id == old_eq.id,
+                    MaintenanceRecord.status == "em_andamento"
+                ).first()
+                if not other_active:
+                    old_eq.status = "ativo"
+
+        # Reavalia o equipamento atual
+        if maintenance.status == "em_andamento" and maintenance.equipment:
             if maintenance.equipment.status != "em_manutencao":
                 maintenance.equipment.status = "em_manutencao"
-        elif payload.status in ["concluida", "cancelada"] and maintenance.equipment and maintenance.equipment.status == "em_manutencao":
+        elif maintenance.status in ["concluida", "cancelada"] and maintenance.equipment and maintenance.equipment.status == "em_manutencao":
             other_active = db.query(MaintenanceRecord).filter(
                 MaintenanceRecord.equipment_id == maintenance.equipment_id,
-                MaintenanceRecord.id != maintenance.id,
                 MaintenanceRecord.status == "em_andamento"
             ).first()
             if not other_active:

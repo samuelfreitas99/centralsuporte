@@ -31,12 +31,14 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
-import type { EquipmentItem, EquipmentType, EquipmentStatus, EquipmentCreatePayload, StoreItem } from '@/types/infrastructure';
+import type { EquipmentItem, EquipmentType, EquipmentStatus, EquipmentCreatePayload, StoreItem, DepartmentItem, TechnicalLocationItem } from '@/types/infrastructure';
 
 export interface EquipmentTabProps {
   equipmentList: EquipmentItem[];
   setEquipmentList: React.Dispatch<React.SetStateAction<EquipmentItem[]>>;
   stores: StoreItem[];
+  departments: DepartmentItem[];
+  technicalLocations: TechnicalLocationItem[];
   searchQuery: string;
   selectedStoreFilter: string;
   selectedTypeFilter: string;
@@ -53,6 +55,8 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   equipmentList,
   setEquipmentList,
   stores,
+  departments,
+  technicalLocations,
   searchQuery,
   selectedStoreFilter,
   selectedTypeFilter,
@@ -312,8 +316,10 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                       <span className="truncate">{eq.ip_address || '—'}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
-                      <MapPin className="h-3 w-3" />
-                      <span className="truncate">{eq.store?.name || 'Sem Loja'}</span>
+                      <MapPin className="h-3 w-3 shrink-0" />
+                      <span className="truncate" title={[eq.store?.name, eq.department?.name, eq.technical_location?.name].filter(Boolean).join(' • ')}>
+                        {[eq.store?.name, eq.department?.name, eq.technical_location?.name].filter(Boolean).join(' • ') || 'Sem Loja'}
+                      </span>
                     </div>
                   </div>
 
@@ -490,10 +496,10 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                     <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Localização</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Local / Rack (Loja)</label>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Unidade (Loja)</label>
                         <select
                           value={eqForm.store_id || ''}
-                          onChange={(e) => setEqForm({ ...eqForm, store_id: e.target.value ? Number(e.target.value) : null })}
+                          onChange={(e) => setEqForm({ ...eqForm, store_id: e.target.value ? Number(e.target.value) : null, department_id: null, technical_location_id: null })}
                           className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
                         >
                           <option value="">Não Alocado</option>
@@ -502,6 +508,42 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                               {s.name}
                             </option>
                           ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Setor</label>
+                        <select
+                          value={eqForm.department_id || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, department_id: e.target.value ? Number(e.target.value) : null, technical_location_id: null })}
+                          className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                          disabled={!eqForm.store_id}
+                        >
+                          <option value="">Não Alocado</option>
+                          {departments
+                            .filter(d => d.store_id === eqForm.store_id)
+                            .map((d) => (
+                              <option key={d.id} value={d.id}>
+                                {d.name}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-xs font-semibold text-foreground mb-1.5 block">Local Técnico</label>
+                        <select
+                          value={eqForm.technical_location_id || ''}
+                          onChange={(e) => setEqForm({ ...eqForm, technical_location_id: e.target.value ? Number(e.target.value) : null })}
+                          className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                          disabled={!eqForm.store_id}
+                        >
+                          <option value="">Não Alocado</option>
+                          {technicalLocations
+                            .filter(loc => loc.store_id === eqForm.store_id && (!loc.department_id || !eqForm.department_id || loc.department_id === eqForm.department_id))
+                            .map((loc) => (
+                              <option key={loc.id} value={loc.id}>
+                                {loc.name} {loc.location_type ? `(${loc.location_type})` : ''}
+                              </option>
+                            ))}
                         </select>
                       </div>
                       <div>

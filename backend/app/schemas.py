@@ -773,9 +773,45 @@ class MaintenanceRecordBase(BaseModel):
             return None
         return v
 
+class ChecklistTemplateItemBase(BaseModel):
+    title: str
+    position: int = 0
+
+class ChecklistTemplateItemCreate(ChecklistTemplateItemBase):
+    pass
+
+class ChecklistTemplateItemResponse(ChecklistTemplateItemBase):
+    id: int
+    template_id: int
+    model_config = ConfigDict(from_attributes=True)
+
+class ChecklistTemplateBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    maintenance_type: str = "preventiva"
+    is_active: bool = True
+
+class ChecklistTemplateCreate(ChecklistTemplateBase):
+    items: Optional[List[ChecklistTemplateItemCreate]] = None
+
+class ChecklistTemplateUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    maintenance_type: Optional[str] = None
+    is_active: Optional[bool] = None
+    items: Optional[List[ChecklistTemplateItemCreate]] = None
+
+class ChecklistTemplateResponse(ChecklistTemplateBase):
+    id: int
+    items: List[ChecklistTemplateItemResponse] = []
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 class MaintenanceRecordCreate(MaintenanceRecordBase):
     checklist_title: Optional[str] = None
     checklist_items: Optional[List[str]] = None
+    checklist_template_id: Optional[int] = None
 
 class MaintenanceRecordUpdate(BaseModel):
     title: Optional[str] = None

@@ -110,6 +110,30 @@ class Task(Base):
     checklists = relationship("Checklist", back_populates="task", cascade="all, delete-orphan")
     reminders = relationship("Reminder", back_populates="task", cascade="all, delete-orphan")
 
+class ChecklistTemplate(Base):
+    __tablename__ = "checklist_templates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(String(500), nullable=True)
+    maintenance_type = Column(String(50), default="preventiva", nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    items = relationship("ChecklistTemplateItem", back_populates="template", cascade="all, delete-orphan", order_by="ChecklistTemplateItem.position")
+
+class ChecklistTemplateItem(Base):
+    __tablename__ = "checklist_template_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    template_id = Column(Integer, ForeignKey('checklist_templates.id', ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    position = Column(Integer, default=0, nullable=False)
+
+    template = relationship("ChecklistTemplate", back_populates="items")
+
+
 class Checklist(Base):
     __tablename__ = "checklists"
     

@@ -9,6 +9,9 @@ import {
   Server,
   Camera,
   ChevronRight,
+  Trash,
+  Pencil,
+  Archive,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,13 +28,15 @@ import {
 import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
-import type { StoreItem, DepartmentItem, EquipmentItem } from '@/types/infrastructure';
+import type { StoreItem, DepartmentItem, EquipmentItem, TechnicalLocationItem } from '@/types/infrastructure';
 
 export interface StoresTabProps {
   stores: StoreItem[];
   setStores: React.Dispatch<React.SetStateAction<StoreItem[]>>;
   departments: DepartmentItem[];
   setDepartments: React.Dispatch<React.SetStateAction<DepartmentItem[]>>;
+  technicalLocations: TechnicalLocationItem[];
+  setTechnicalLocations: React.Dispatch<React.SetStateAction<TechnicalLocationItem[]>>;
   equipmentList: EquipmentItem[];
   searchQuery: string;
   isStoreModalOpen: boolean;
@@ -43,6 +48,8 @@ export const StoresTab: React.FC<StoresTabProps> = ({
   setStores,
   departments,
   setDepartments,
+  technicalLocations,
+  setTechnicalLocations,
   equipmentList,
   searchQuery,
   isStoreModalOpen,
@@ -55,6 +62,9 @@ export const StoresTab: React.FC<StoresTabProps> = ({
 
   const [isDeptModalOpen, setIsDeptModalOpen] = useState(false);
   const [selectedStoreForDept, setSelectedStoreForDept] = useState<number | null>(null);
+  
+  const [editingStoreId, setEditingStoreId] = useState<number | null>(null);
+  const [editingDeptId, setEditingDeptId] = useState<number | null>(null);
   
   // Drawer state for viewing a specific Department / Rack
   const [selectedDeptDrawer, setSelectedDeptDrawer] = useState<DepartmentItem | null>(null);
@@ -73,6 +83,17 @@ export const StoresTab: React.FC<StoresTabProps> = ({
     description: '',
   });
 
+  const [isLocModalOpen, setIsLocModalOpen] = useState(false);
+  const [locForm, setLocForm] = useState({
+    name: '',
+    location_type: 'rack',
+    store_id: null as number | null,
+    department_id: null as number | null,
+    description: '',
+    notes: '',
+  });
+  const [editingLocId, setEditingLocId] = useState<number | null>(null);
+
   const filteredStores = stores.filter((s) => {
     if (!searchQuery) return true;
     return (
@@ -84,38 +105,121 @@ export const StoresTab: React.FC<StoresTabProps> = ({
   const handleSaveStore = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await infrastructureService.createStore(storeForm);
-      setStores((prev) => [...prev, created]);
+      if (editingStoreId) {
+        const updated = await infrastructureService.updateStore(editingStoreId, storeForm);
+        setStores((prev) => prev.map((s) => (s.id === editingStoreId ? updated : s)));
+        addToast({ title: 'Unidade Atualizada', description: 'Dados atualizados com sucesso.', type: 'success' });
+      } else {
+        const created = await infrastructureService.createStore(storeForm);
+        setStores((prev) => [...prev, created]);
+        addToast({
+          title: 'Loja Cadastrada',
+          description: `Unidade ${created.name} cadastrada com sucesso.`,
+          type: 'success',
+        });
+      }
       setIsStoreModalOpen(false);
+      setEditingStoreId(null);
       setStoreForm({ name: '', code: '', address: '', phone: '', status: 'ativa', notes: '' });
-      addToast({
-        title: 'Loja Cadastrada',
-        description: `Unidade ${created.name} cadastrada com sucesso.`,
-        type: 'success',
-      });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao cadastrar loja.';
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar loja.';
       addToast({ title: 'Erro', description: msg, type: 'error' });
+    }
+  };
+
+  const handleDeleteStore = async (id: number) => {
+    if (!window.confirm('Arquivar/Inativar esta unidade? Dependências (se ativas) podem impedir a inativação.')) return;
+    try {
+      await infrastructureService.deleteStore(id);
+      setStores((prev) => prev.map((s) => s.id === id ? { ...s, status: 'inativa' } : s));
+      addToast({ title: 'Unidade Arquivada', type: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao arquivar unidade.';
+      addToast({ title: 'Erro de Inativação', description: msg, type: 'error' });
     }
   };
 
   const handleSaveDept = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const created = await infrastructureService.createDepartment({
-        ...deptForm,
-        store_id: selectedStoreForDept,
-      });
-      setDepartments((prev) => [...prev, created]);
+      if (editingDeptId) {
+        const updated = await infrastructureService.updateDepartment(editingDeptId, {
+          ...deptForm,
+          store_id: selectedStoreForDept,
+        });
+        setDepartments((prev) => prev.map((d) => (d.id === editingDeptId ? updated : d)));
+        addToast({ title: 'Setor Atualizado', description: 'Dados atualizados.', type: 'success' });
+      } else {
+        const created = await infrastructureService.createDepartment({
+          ...deptForm,
+          store_id: selectedStoreForDept,
+        });
+        setDepartments((prev) => [...prev, created]);
+        addToast({
+          title: 'Departamento Criado',
+          description: `Setor ${created.name} adicionado.`,
+          type: 'success',
+        });
+      }
       setIsDeptModalOpen(false);
+      setEditingDeptId(null);
       setDeptForm({ name: '', description: '' });
-      addToast({
-        title: 'Departamento Criado',
-        description: `Setor ${created.name} adicionado.`,
-        type: 'success',
-      });
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao criar departamento.';
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar departamento.';
+      addToast({ title: 'Erro', description: msg, type: 'error' });
+    }
+  };
+
+  const handleDeleteDept = async (id: number) => {
+    if (!window.confirm('Arquivar/Inativar este setor?')) return;
+    try {
+      await infrastructureService.deleteDepartment(id);
+      setDepartments((prev) => prev.map((d) => d.id === id ? { ...d, status: 'inativa' } : d));
+      addToast({ title: 'Setor Arquivado', type: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao arquivar setor.';
+      addToast({ title: 'Erro de Inativação', description: msg, type: 'error' });
+    }
+  };
+
+  const handleSaveLoc = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!locForm.store_id || !locForm.name.trim()) return;
+    
+    const payload = {
+      ...locForm,
+      name: locForm.name.trim(),
+      store_id: locForm.store_id as number,
+      department_id: locForm.department_id as number | undefined,
+    };
+
+    try {
+      if (editingLocId) {
+        const updated = await infrastructureService.updateLocation(editingLocId, payload);
+        setTechnicalLocations((prev) => prev.map((loc) => (loc.id === editingLocId ? updated : loc)));
+        addToast({ title: 'Local Atualizado', type: 'success' });
+      } else {
+        const created = await infrastructureService.createLocation(payload);
+        setTechnicalLocations((prev) => [...prev, created]);
+        addToast({ title: 'Local Criado', type: 'success' });
+      }
+      setIsLocModalOpen(false);
+      setEditingLocId(null);
+      setLocForm({ name: '', location_type: 'rack', store_id: null, department_id: null, description: '', notes: '' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao salvar local técnico.';
+      addToast({ title: 'Erro', description: msg, type: 'error' });
+    }
+  };
+
+  const handleDeleteLoc = async (id: number) => {
+    if (!window.confirm('Arquivar este local técnico?')) return;
+    try {
+      await infrastructureService.deleteLocation(id);
+      setTechnicalLocations((prev) => prev.map((l) => l.id === id ? { ...l, status: 'inativa' } : l));
+      addToast({ title: 'Local Arquivado', type: 'success' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Falha ao excluir local técnico.';
       addToast({ title: 'Erro', description: msg, type: 'error' });
     }
   };
@@ -133,6 +237,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
           <AnimatePresence>
             {filteredStores.map((s) => {
               const storeDepts = departments.filter((d) => d.store_id === s.id);
+              const storeLocs = technicalLocations.filter((l) => l.store_id === s.id && !l.department_id);
               const storeEquipment = equipmentList.filter((e) => e.store_id === s.id);
 
               return (
@@ -170,9 +275,38 @@ export const StoresTab: React.FC<StoresTabProps> = ({
                               )}
                             </div>
                           </div>
-                          <Badge variant={s.status === 'ativa' ? 'outline' : 'destructive'} className="capitalize bg-background text-[10px]">
-                            {s.status}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-blue-500"
+                              onClick={() => {
+                                setEditingStoreId(s.id);
+                                setStoreForm({
+                                  name: s.name,
+                                  code: s.code || '',
+                                  address: s.address || '',
+                                  phone: s.phone || '',
+                                  status: s.status,
+                                  notes: s.notes || '',
+                                });
+                                setIsStoreModalOpen(true);
+                              }}
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500"
+                              onClick={() => handleDeleteStore(s.id)}
+                            >
+                              <Archive className="h-3.5 w-3.5" />
+                            </Button>
+                            <Badge variant={s.status === 'ativa' ? 'outline' : 'destructive'} className="capitalize bg-background text-[10px]">
+                              {s.status}
+                            </Badge>
+                          </div>
                         </div>
                       </div>
 
@@ -182,20 +316,33 @@ export const StoresTab: React.FC<StoresTabProps> = ({
                           <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                             <Layers className="h-3.5 w-3.5" /> Setores / Locais
                           </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedStoreForDept(s.id);
-                              setIsDeptModalOpen(true);
-                            }}
-                            className="h-7 px-2 text-[11px] text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 cursor-pointer"
-                          >
-                            <Plus className="h-3 w-3 mr-1" /> Setor
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedStoreForDept(s.id);
+                                setIsDeptModalOpen(true);
+                              }}
+                              className="h-7 px-2 text-[11px] text-blue-500 hover:text-blue-400 hover:bg-blue-500/10 cursor-pointer"
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Setor
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setLocForm(prev => ({ ...prev, store_id: s.id, department_id: null }));
+                                setIsLocModalOpen(true);
+                              }}
+                              className="h-7 px-2 text-[11px] text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer"
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Local (Unidade)
+                            </Button>
+                          </div>
                         </div>
 
-                        {storeDepts.length > 0 ? (
+                        {storeDepts.length > 0 || storeLocs.length > 0 ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             {storeDepts.map((d) => {
                               const deptEqs = storeEquipment.filter((e) => e.department_id === d.id);
@@ -211,7 +358,73 @@ export const StoresTab: React.FC<StoresTabProps> = ({
                                       <Server className="h-3 w-3" /> {deptEqs.length} ativos alocados
                                     </p>
                                   </div>
-                                  <ChevronRight className="h-4 w-4 text-muted-foreground opacity-50 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 text-muted-foreground hover:text-blue-500"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingDeptId(d.id);
+                                        setSelectedStoreForDept(s.id);
+                                        setDeptForm({
+                                          name: d.name,
+                                          description: d.description || '',
+                                        });
+                                        setIsDeptModalOpen(true);
+                                      }}
+                                    >
+                                      <Pencil className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 text-muted-foreground hover:text-red-500"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteDept(d.id);
+                                      }}
+                                    >
+                                      <Archive className="h-3.5 w-3.5" />
+                                    </Button>
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground ml-1" />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            {storeLocs.map((loc) => {
+                              const locEqs = storeEquipment.filter((e) => e.technical_location_id === loc.id);
+                              return (
+                                <div
+                                  key={`loc-${loc.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setEditingLocId(loc.id);
+                                    setLocForm({
+                                      name: loc.name,
+                                      location_type: loc.location_type || 'rack',
+                                      store_id: loc.store_id,
+                                      department_id: loc.department_id ?? null,
+                                      description: loc.description || '',
+                                      notes: loc.notes || '',
+                                    });
+                                    setIsLocModalOpen(true);
+                                  }}
+                                  className="group flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/30 hover:border-amber-500/30 cursor-pointer transition-colors"
+                                >
+                                  <div>
+                                    <div className="text-sm font-semibold text-foreground/90 group-hover:text-foreground transition-colors flex items-center gap-1.5">
+                                      {loc.name}
+                                      {loc.location_type && (
+                                        <Badge variant="outline" className="text-[9px] py-0 px-1 border-amber-500/30 text-amber-500/80 uppercase">
+                                          {loc.location_type}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-[10px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                                      <Server className="h-3 w-3" /> {locEqs.length} ativos alocados
+                                    </p>
+                                  </div>
                                 </div>
                               );
                             })}
@@ -247,6 +460,66 @@ export const StoresTab: React.FC<StoresTabProps> = ({
           <div className="flex-1 overflow-y-auto p-5 sm:p-6 custom-scrollbar space-y-6">
             {selectedDeptDrawer && (
               <>
+                {/* Technical Locations in this Dept */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                      <Layers className="h-3.5 w-3.5" /> Locais Técnicos
+                    </h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setLocForm(prev => ({ ...prev, store_id: selectedDeptDrawer.store_id ?? null, department_id: selectedDeptDrawer.id, name: '', location_type: 'rack', description: '', notes: '' }));
+                        setEditingLocId(null);
+                        setIsLocModalOpen(true);
+                      }}
+                      className="h-7 px-2 text-[11px] text-amber-500 hover:text-amber-400 hover:bg-amber-500/10 cursor-pointer"
+                    >
+                      <Plus className="h-3 w-3 mr-1" /> Local (Setor)
+                    </Button>
+                  </div>
+                  {technicalLocations.filter((l) => l.department_id === selectedDeptDrawer.id).length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {technicalLocations.filter((l) => l.department_id === selectedDeptDrawer.id).map((loc) => (
+                        <div
+                          key={loc.id}
+                          onClick={() => {
+                            setEditingLocId(loc.id);
+                            setLocForm({
+                              name: loc.name,
+                              location_type: loc.location_type || 'rack',
+                              store_id: loc.store_id ?? null,
+                              department_id: loc.department_id ?? null,
+                              description: loc.description || '',
+                              notes: loc.notes || '',
+                            });
+                            setIsLocModalOpen(true);
+                          }}
+                          className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-background/50 hover:bg-muted/30 hover:border-amber-500/30 cursor-pointer transition-colors"
+                        >
+                          <div>
+                            <div className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                              {loc.name}
+                              {loc.location_type && (
+                                <Badge variant="outline" className="text-[9px] py-0 px-1 border-amber-500/30 text-amber-500/80 uppercase">
+                                  {loc.location_type}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg">
+                      Nenhum local técnico cadastrado neste setor.
+                    </p>
+                  )}
+                </div>
+
+                <div className="h-px bg-border/40 w-full" />
+
                 {/* Equipment in this Dept */}
                 <div className="space-y-3">
                   <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -400,6 +673,86 @@ export const StoresTab: React.FC<StoresTabProps> = ({
             <DrawerFooter>
               <Button type="button" variant="outline" onClick={() => setIsDeptModalOpen(false)}>Cancelar</Button>
               <Button type="submit">Adicionar Setor</Button>
+            </DrawerFooter>
+          </form>
+        </DrawerContent>
+      </Drawer>
+      {/* DRAWER: CREATE LOCATION */}
+      <Drawer open={isLocModalOpen} onOpenChange={setIsLocModalOpen}>
+        <DrawerContent size="default">
+          <form onSubmit={handleSaveLoc} className="flex flex-col h-full">
+            <DrawerHeader>
+              <DrawerTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Server className="h-5 w-5 text-amber-500" />
+                  <span>{editingLocId ? 'Editar Local Técnico' : (locForm.department_id ? 'Novo Local Técnico do Setor' : 'Novo Local Técnico da Unidade')}</span>
+                </div>
+                {editingLocId && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setIsLocModalOpen(false);
+                      handleDeleteLoc(editingLocId);
+                    }}
+                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                    title="Excluir Local"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                )}
+              </DrawerTitle>
+              <DrawerDescription>Cadastre um rack, armário ou ponto de rede específico.</DrawerDescription>
+            </DrawerHeader>
+
+            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1.5 block">Nome do Local *</label>
+                <Input
+                  value={locForm.name}
+                  onChange={(e) => setLocForm({ ...locForm, name: e.target.value })}
+                  placeholder="Ex: Rack Principal, Armário 02"
+                  className="bg-background/50"
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1.5 block">Tipo de Local</label>
+                <select
+                  value={locForm.location_type || 'rack'}
+                  onChange={(e) => setLocForm({ ...locForm, location_type: e.target.value })}
+                  className="w-full h-9 rounded-lg border border-border/80 bg-background/50 px-3 text-sm text-foreground focus:outline-none cursor-pointer"
+                >
+                  <option value="rack">Rack</option>
+                  <option value="network_cabinet">Armário de Rede</option>
+                  <option value="cpd">CPD</option>
+                  <option value="other">Outro</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1.5 block">Descrição</label>
+                <Input
+                  value={locForm.description || ''}
+                  onChange={(e) => setLocForm({ ...locForm, description: e.target.value })}
+                  placeholder="Ex: Rack fechado com chave"
+                  className="bg-background/50"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-foreground mb-1.5 block">Observações Internas</label>
+                <textarea
+                  value={locForm.notes || ''}
+                  onChange={(e) => setLocForm({ ...locForm, notes: e.target.value })}
+                  placeholder="Informações adicionais..."
+                  className="w-full h-20 rounded-lg border border-border/80 bg-background/50 p-3 text-sm text-foreground focus:outline-none resize-none"
+                />
+              </div>
+            </div>
+
+            <DrawerFooter>
+              <Button type="button" variant="outline" onClick={() => setIsLocModalOpen(false)}>Cancelar</Button>
+              <Button type="submit">{editingLocId ? 'Salvar Alterações' : 'Criar Local Técnico'}</Button>
             </DrawerFooter>
           </form>
         </DrawerContent>

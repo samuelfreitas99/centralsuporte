@@ -19,6 +19,7 @@ import {
   FileText,
   Trash2,
   Paperclip,
+  Edit2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -44,6 +45,10 @@ import type {
   MaintenanceMetrics,
 } from '@/types/maintenance';
 import type { EquipmentItem } from '@/types/infrastructure';
+import type { ChecklistTemplate } from '@/types/checklistTemplate';
+import { checklistTemplateService } from '@/services/checklistTemplateService';
+import { ChecklistTemplatesDialog } from '@/components/maintenance/ChecklistTemplatesDialog';
+import { MaintenanceEditDialog } from '@/components/maintenance/MaintenanceEditDialog';
 
 export const MaintenancePage: React.FC = () => {
   const { success, error: toastError } = useToast();
@@ -60,6 +65,9 @@ export const MaintenancePage: React.FC = () => {
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const [checklistTemplates, setChecklistTemplates] = useState<ChecklistTemplate[]>([]);
+  const [isTemplatesModalOpen, setIsTemplatesModalOpen] = useState(false);
 
   // Expanded checklist map
   const [expandedChecklists, setExpandedChecklists] = useState<Record<number, boolean>>({});
@@ -76,14 +84,19 @@ export const MaintenancePage: React.FC = () => {
     scheduled_date: '',
     description: '',
     checklist_title: 'Checklist Preventiva',
-    checklist_items: [
-      'Limpeza física dos componentes e coolers',
-      'Inspeção dos cabos de força e conexões de rede',
-      'Verificação e teste das portas periféricas',
-      'Validação de temperatura e funcionamento operacional',
-    ],
+    checklist_items: [],
+    checklist_template_id: undefined,
   });
   const [newChecklistItemInput, setNewChecklistItemInput] = useState('');
+
+  // Dialog state: Edit Maintenance
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingMaintenance, setEditingMaintenance] = useState<MaintenanceRecord | null>(null);
+
+  const handleEditClick = (maint: MaintenanceRecord) => {
+    setEditingMaintenance(maint);
+    setIsEditModalOpen(true);
+  };
 
   // Dialog state: Complete / Resolve Maintenance
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
@@ -129,7 +142,17 @@ export const MaintenancePage: React.FC = () => {
 
   useEffect(() => {
     loadData();
+    loadTemplates();
   }, [loadData]);
+
+  const loadTemplates = async () => {
+    try {
+      const data = await checklistTemplateService.getTemplates();
+      setChecklistTemplates(data);
+    } catch (err) {
+      console.error('Falha ao carregar templates', err);
+    }
+  };
 
   // Toggle checklist expansion
   const toggleChecklistExpansion = (maintId: number) => {
@@ -351,6 +374,16 @@ export const MaintenancePage: React.FC = () => {
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Atualizar</span>
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsTemplatesModalOpen(true)}
+            className="flex items-center gap-1.5 cursor-pointer shadow-sm"
+          >
+            <FileText className="h-4 w-4" />
+            <span>Templates</span>
           </Button>
 
           <Button
@@ -597,6 +630,17 @@ export const MaintenancePage: React.FC = () => {
                           <span>Concluir</span>
                         </Button>
                       )}
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditClick(maint)}
+                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground gap-1 cursor-pointer"
+                        title="Editar Manutenção"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                        <span className="hidden sm:inline">Editar</span>
+                      </Button>
 
                       <Button
                         variant="ghost"
@@ -894,29 +938,58 @@ export const MaintenancePage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="flex gap-2">
-                  <Input
-                    value={newChecklistItemInput}
-                    onChange={(e) => setNewChecklistItemInput(e.target.value)}
-                    placeholder="Adicionar item ao checklist (ex: Atualização de BIOS)..."
-                    className="h-8 text-xs"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleAddFormChecklistItem();
-                      }
+                <div className="mb-4">
+                  <label className="text-xs font-semibold text-foreground mb-1 block">
+                    Usar um Template (Opcional)
+                  </label>
+                  <select
+                    value={createForm.checklist_template_id || 0}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setCreateForm({
+                        ...createForm,
+                        checklist_template_id: val > 0 ? val : undefined,
+                        checklist_items: val > 0 ? [] : createForm.checklist_items,
+                      });
                     }}
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleAddFormChecklistItem}
-                    className="h-8 px-3 text-xs cursor-pointer"
+                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
                   >
-                    Adicionar
-                  </Button>
+                    <option value={0}>Nenhum template selecionado</option>
+                    {checklistTemplates.map((tpl) => (
+                      <option key={tpl.id} value={tpl.id}>
+                        {tpl.name} ({tpl.items.length} itens)
+                      </option>
+                    ))}
+                  </select>
                 </div>
+
+                {!createForm.checklist_template_id && (
+                  <>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newChecklistItemInput}
+                        onChange={(e) => setNewChecklistItemInput(e.target.value)}
+                        placeholder="Adicionar item ao checklist (ex: Atualização de BIOS)..."
+                        className="h-8 text-xs"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleAddFormChecklistItem();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleAddFormChecklistItem}
+                        className="h-8 px-3 text-xs cursor-pointer"
+                      >
+                        Adicionar
+                      </Button>
+                    </div>
+                  </>
+                )}
 
                 <div className="space-y-1.5 pt-1">
                   {(createForm.checklist_items || []).map((item, idx) => (
@@ -1073,6 +1146,21 @@ export const MaintenancePage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ChecklistTemplatesDialog 
+        isOpen={isTemplatesModalOpen} 
+        onClose={() => {
+          setIsTemplatesModalOpen(false);
+          loadTemplates();
+        }} 
+      />
+      
+      <MaintenanceEditDialog
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        maintenance={editingMaintenance}
+        equipmentList={equipmentList}
+        onSuccess={loadData}
+      />
     </div>
   );
 };

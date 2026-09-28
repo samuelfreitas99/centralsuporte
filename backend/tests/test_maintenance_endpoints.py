@@ -217,3 +217,18 @@ def test_maintenance_phase9_features():
     # 11. Cancel M2 -> Eq returns to ativo
     client.patch(f"/maintenances/{m2_id}/status", json={"status": "cancelada"}, headers=headers)
     assert client.get(f"/infrastructure/equipment/{eq_id}", headers=headers).json()["status"] == "ativo"
+
+    # 12. Edit Maintenance 1
+    edit_payload = {
+        "title": f"M1-EDITED-{uid}",
+        "parts_used": "SSD 500GB",
+        "otrs_ticket": "202401010002"
+    }
+    m1_edit = client.put(f"/maintenances/{m1_id}", json=edit_payload, headers=headers)
+    assert m1_edit.status_code == 200
+    m1_edit_data = m1_edit.json()
+    assert m1_edit_data["title"] == edit_payload["title"]
+    assert m1_edit_data["parts_used"] == edit_payload["parts_used"]
+    assert m1_edit_data["otrs_ticket"] == edit_payload["otrs_ticket"]
+    assert m1_edit_data["department_id"] == dep_id # Snapshot is preserved
+

@@ -25,6 +25,7 @@ import type {
   EquipmentCreatePayload,
   LicenseItem,
   StockItem,
+  TechnicalLocationItem,
 } from '@/types/infrastructure';
 
 import { EquipmentTab } from './infrastructure/tabs/EquipmentTab';
@@ -47,6 +48,7 @@ export const InfrastructurePage: React.FC = () => {
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
   const [licenses, setLicenses] = useState<LicenseItem[]>([]);
   const [stockItems, setStockItems] = useState<StockItem[]>([]);
+  const [technicalLocations, setTechnicalLocations] = useState<TechnicalLocationItem[]>([]);
 
   // Search & Filter (Global to the container)
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -70,6 +72,7 @@ export const InfrastructurePage: React.FC = () => {
     operating_system: '',
     store_id: null,
     department_id: null,
+    technical_location_id: null,
     assigned_user: '',
     status: 'ativo',
     notes: '',
@@ -83,15 +86,17 @@ export const InfrastructurePage: React.FC = () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [fetchedStores, fetchedDepts, fetchedEq, fetchedLic, fetchedStock] = await Promise.all([
+      const [fetchedStores, fetchedDepts, fetchedLocs, fetchedEq, fetchedLic, fetchedStock] = await Promise.all([
         infrastructureService.getStores(),
         infrastructureService.getDepartments(),
+        infrastructureService.getLocations(),
         infrastructureService.getEquipment(),
         infrastructureService.getLicenses(),
         infrastructureService.getStockItems(),
       ]);
       setStores(fetchedStores);
       setDepartments(fetchedDepts);
+      setTechnicalLocations(fetchedLocs);
       setEquipmentList(fetchedEq);
       setLicenses(fetchedLic);
       setStockItems(fetchedStock);
@@ -393,6 +398,8 @@ export const InfrastructurePage: React.FC = () => {
               setEditingEquipment={setEditingEquipment}
               eqForm={eqForm}
               setEqForm={setEqForm}
+              departments={departments}
+              technicalLocations={technicalLocations}
             />
           )}
 
@@ -402,6 +409,8 @@ export const InfrastructurePage: React.FC = () => {
               setStores={setStores}
               departments={departments}
               setDepartments={setDepartments}
+              technicalLocations={technicalLocations}
+              setTechnicalLocations={setTechnicalLocations}
               equipmentList={equipmentList}
               searchQuery={searchQuery}
               isStoreModalOpen={isStoreModalOpen}

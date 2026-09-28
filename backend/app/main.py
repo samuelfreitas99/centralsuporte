@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import SessionLocal
 from app.initial_data import init_db_data
-from app.routers import auth, users, tasks, checklists, reminders, calendar, knowledge, commands, responses, attendances, infrastructure, maintenances, attachments, search, reports, audit, automation
+from app.routers import auth, users, tasks, checklists, reminders, calendar, knowledge, commands, responses, attendances, infrastructure, maintenances, attachments, search, reports, audit, automation, checklist_templates
 from app.services.automation import start_automation_scheduler, stop_automation_scheduler
 
 @asynccontextmanager
@@ -48,6 +48,7 @@ app.include_router(responses.router)
 app.include_router(attendances.router)
 app.include_router(infrastructure.router)
 app.include_router(maintenances.router)
+app.include_router(checklist_templates.router)
 app.include_router(attachments.router)
 app.include_router(search.router)
 app.include_router(reports.router)

@@ -1,35 +1,29 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 8.4C concluída (Associação de Licenças e Preparação Vault).
-**Fase atual**: Fase 8.4C.
+**Estado atual**: Fase 9.3.1 concluída (Fechamento Funcional de Templates e Manutenções).
+**Fase atual**: Fase 9.4.
 **Última implementação**:
-- **Fase 8.4C — Associação de Licenças e Preparação para Password Vault**:
-  - Tabela `licenses` atualizada via Alembic migration (`account_email` string 255).
-  - Schemas `LicenseBase` e `LicenseUpdate` expandidos para incluir o e-mail/conta administrativa.
-  - Tela de `LicensesTab` aprimorada para suportar edição completa de licenças com preservação implícita da `license_key` (se não preenchida).
-  - Listagem de licenças exibe a `account_email` sob o fornecedor, fornecendo fácil identificação do login de ativação.
-  - A integração com `Password Vault` foi documentada formalmente nas decisões como passo futuro (Fase 12) sem inserir falsas chaves estrangeiras.
-- **Fase 8.4B — Edição do Cadastro de Estoque Operacional**:
-  - Removido `current_quantity` do schema `StockItemUpdate` para evitar edições diretas do saldo.
-  - Implementado o botão "Editar Cadastro" na aba `StockTab`.
-  - Formulário reaproveita o design do Drawer para cadastro, desativando o input de saldo e informando que ele é controlado via movimentações.
-- **Fase 8.4A — Locais Técnicos (Technical Locations)**:
-  - Entidade `TechnicalLocation` criada e migrada.
-  - CRUD na API REST com rotas `/infrastructure/locations`.
-  - Frontend da Aba de Lojas e Equipamentos atualizados para gerir locais técnicos e alocar equipamentos em locais.
-- **Fase 8.3 — Progressive Disclosure e Redesign Visual**:
-  - Abas de Equipamentos, Estoque, Licenças e Lojas refatoradas seguindo os padrões "Modern Operations Center" e "Progressive Disclosure".
-  - Tabelas modernas introduzidas com layout master-detail via `Drawer` para detalhes complexos, removendo o excesso de cards e modais gigantes.
-  - Exposição de chaves de licença protegidas de forma inteligente com timeout (`/reveal` endpoint integrado no serviço).
-  - Remoção de animações complexas (`motion/react`) que causavam inconsistência nos testes, mantendo interfaces limpas e responsivas.
-  - Correção de bug no `CommandsPage` (`isSecureContext` e recursão infinita na cópia).
-- **Testes Automatizados**:
-  - Frontend Vitest (InfrastructurePage, CommandsPage) ajustado, mocks de ambiente configurados e 100% aprovados.
-  - Frontend Build validado.
-**Último commit**: feat(infrastructure): implement license account email and editing
-**Próxima tarefa**: Avançar para Fase 9 (Manutenções e Checklists Operacionais) ou conforme roadmap.
+- **Fase 9.3.1 — Fechamento Funcional**:
+  - Adicionado suporte de `is_active` nos templates de checklist no backend via migração Alembic e Schema.
+  - Implementada funcionalidade para ativar/inativar e editar um template existente com reflexo em tempo real.
+  - Criado o componente `MaintenanceEditDialog.tsx` com as integrações para editar manutenções já cadastradas através do Frontend de forma segura.
+  - Atualizados e adicionados testes de integração (editar manutenções e atualizar estado is_active dos templates).
+- **Fase 9.3 — Checklist Templates**:
+  - Criados os modelos `ChecklistTemplate` e `ChecklistTemplateItem`.
+  - Migração Alembic criada e aplicada para as novas tabelas.
+  - Adicionado schema Pydantic, rotas de CRUD em `checklist_templates.py` integradas com o sistema de `record_audit_log`.
+  - Implementado Teste de integração do backend de Lifecycle.
+  - Implementado interface simplificada (Frontend) com Dialog no botão de gerenciar templates na `MaintenancePage.tsx`.
+- **Fase 9.2 — Fundação Backend de Manutenções**:
+  - Modelo `MaintenanceRecord` atualizado via Alembic para incluir `department_id`, `technical_location_id`, `attendance_id`, `otrs_ticket` e `parts_used`.
+  - Rotas de manutenções refatoradas para preservar o contexto geográfico (snapshot físico implícito via persistência de chaves estrangeiras *soft deleted*).
+  - Lógica de sincronização de status de equipamentos aprimorada para lidar com concorrência (somente retornar a `ativo` se não houver outras manutenções em andamento).
+  - Testes integrados abrangentes da Fase 9.2 para validar regras de negócio, herança de localidade e ciclo de vida de status.
+- **Fase 8 Finalizada**: Soft delete de infraestrutura, Technical Locations, refatorações visuais da aba de Lojas/Equipamentos e integração segura de licenças.
+**Último commit**: feat: checklist templates maintenance phase 9.3
+**Próxima tarefa**: Fase 9.4 — Interface do Painel de Manutenções.
 **Bloqueios**: Nenhum.
-**Pendências**: Nenhuma nesta unidade.
+**Pendências**: Nenhuma.
 **Testes**: Todos testes (Backend/Frontend) aprovados.
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
