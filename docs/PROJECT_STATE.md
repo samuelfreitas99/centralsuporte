@@ -1,8 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 10.2 (Integração) concluída com sucesso.
-**Fase atual**: Fase 10.2 finalizada.
+**Estado atual**: Fase 10.2 concluída e auditada (APPROVED WITH CONDITIONS).
+**Fase atual**: Fase 10.2.1 (Auditoria) finalizada.
 **Última implementação**:
+- **Fase 10.2.1 — Auditoria da Integração de Projetos**:
+  - Auditoria completa confirmando a robustez de todas as modificações da 10.2.
+  - Comportamento de NULL/UNSET de `project_id` ratificado.
+  - O único gap encontrado (campos de seleção no Frontend não criados) foi classificado como aceitável para ser desenvolvido na Fase 10.3 (Workspace UI).
 - **Fase 10.2 — Integração de Projetos com os módulos existentes**:
   - Implementado suporte funcional a `project_id` em Tasks, Checklists, Maintenances, Attendances, CalendarEvents e StockMovements.
   - Testes de integração E2E criados (`test_integration_phase10_2.py`) cobrindo ciclo completo de vínculos e desvínculos.
