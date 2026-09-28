@@ -36,3 +36,8 @@ A Central usará a seguinte regra para interfaces de texto longo:
 * **Textarea Comum:** Para descrições rápidas, notas curtas, resumos, sintomas (ex: Formulários de Atendimento e Tarefas comuns).
 * **Rich Text (HTML seguro via TipTap/Draft):** Exclusivo para Base de Conhecimento e possivelmente nos laudos ricos de Atendimentos. Permite upload e visualização inline de imagens.
 * **Markdown Simples/Bloco de Código:** Para exibição restrita a Comandos (`CommandService`) e scripts automatizados.
+
+## 7. Projetos Operacionais (Fase 10)
+* **Agregadores Opcionais:** Projetos são "contextualizadores" para trabalhos maiores (ex: Abertura de Loja, Implantação). Eles agrupam itens operacionais (Tasks, Maintenances, Checklists, etc.).
+* **Preservação de Dados (No Cascade Delete):** O Projeto **não é dono** dos registros operacionais e simélides. Excluir um Projeto *nunca* deve excluir as tarefas, checklists, movimentações de estoque, manutenções, e atendimentos associados (garantido por `ON DELETE SET NULL`).
+* **Desvinculação Flexível:** Deve ser possível vincular ou desvincular um registro de um Projeto a qualquer momento sem impactar seu ciclo de vida principal.

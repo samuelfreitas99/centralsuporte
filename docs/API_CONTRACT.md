@@ -35,3 +35,8 @@ Como os arquivos se transformarão em Documentos independentes:
 * A criação e edição de licenças via `POST /infrastructure/licenses` e `PUT /infrastructure/licenses/{id}` permitem o envio de `account_email` como metadado administrativo opcional.
 * Senhas ou credenciais de ativação **nunca** devem trafegar em requisições de Licenças; futuras implementações do Cofre (Vault) deverão usar `vault_credential_id` como referência.
 * O `license_key` pode ser omitido do payload de `PUT` para preservar a chave existente sem reescrevê-la.
+
+## 7. Projetos Operacionais (Fase 10)
+* O `project_id` é opcional e foi adicionado em schemas de criação (`POST`) e atualização (`PUT`) de recursos como Tasks, Checklists, Maintenances, Attendances, CalendarEvents e StockMovements.
+* **Unset de Campos:** Os endpoints `PUT` usam `exclude_unset=True` nos schemas Pydantic. Para desvincular um projeto, o payload JSON deve enviar explicitamente `"project_id": null`. Se o campo não for enviado (omisso), o relacionamento atual é mantido (nem atualiza, nem limpa).
+* Todos os endpoints de listagem de módulos (GET /tasks, GET /maintenances, etc) suportam filtro opcional via query param `?project_id=X`.

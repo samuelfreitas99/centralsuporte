@@ -41,6 +41,7 @@ from app.schemas import (
     StockItemUpdate,
     StockItemResponse,
     StockMovementCreate,
+    StockMovementUpdate,
     StockMovementResponse,
 )
 from app.auth import get_current_active_user
@@ -875,9 +876,44 @@ def register_stock_movement(
         quantity=movement_in.quantity,
         store_id=movement_in.store_id,
         attendance_id=movement_in.attendance_id,
+        project_id=movement_in.project_id,
         reason=movement_in.reason,
     )
     db.add(movement)
+    db.commit()
+    db.refresh(movement)
+    return movement
+
+@router.get("/stock/movements", response_model=List[StockMovementResponse])
+def list_stock_movements(
+    project_id: Optional[int] = None,
+    item_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    query = db.query(StockMovement)
+    if project_id is not None:
+        query = query.filter(StockMovement.project_id == project_id)
+    if item_id is not None:
+        query = query.filter(StockMovement.stock_item_id == item_id)
+        
+    return query.order_by(StockMovement.created_at.desc()).all()
+
+@router.put("/stock/movements/{movement_id}", response_model=StockMovementResponse)
+def update_stock_movement(
+    movement_id: int,
+    payload: StockMovementUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    movement = db.query(StockMovement).filter(StockMovement.id == movement_id).first()
+    if not movement:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Movimentação não encontrada.")
+        
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(movement, key, value)
+        
     db.commit()
     db.refresh(movement)
     return movement

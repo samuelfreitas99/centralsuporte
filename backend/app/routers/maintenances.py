@@ -62,6 +62,7 @@ def list_maintenances(
     equipment_id: Optional[int] = None,
     store_id: Optional[int] = None,
     technician_id: Optional[int] = None,
+    project_id: Optional[int] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -85,6 +86,9 @@ def list_maintenances(
 
     if technician_id:
         query = query.filter(MaintenanceRecord.technician_id == technician_id)
+
+    if project_id is not None:
+        query = query.filter(MaintenanceRecord.project_id == project_id)
 
     if search:
         search_filter = or_(

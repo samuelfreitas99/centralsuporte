@@ -12,18 +12,18 @@ Este documento descreve o **modelo conceitual** das entidades para orientar a ev
 * **Task:** `id`, `title`, `priority`, `status`, `project_id` (opcional), `due_date`.
 * **ChecklistTemplate:** `id`, `title`, `description`, `category`. (Matriz global reutilizável).
 * **ChecklistTemplateItem:** Itens da matriz.
-* **ChecklistInstance:** A execução real do checklist. Relaciona-se ao Template (cópia gerada) e à entidade alvo (`Task`, `Project`, ou `Maintenance`).
+* **ChecklistInstance:** A execução real do checklist. Relaciona-se ao Template (cópia gerada) e à entidade alvo (`Task`, `Project`, ou `Maintenance`). Possui `project_id` opcional.
 
 ## 3. Atendimentos e Conhecimento
-* **Attendance:** `id`, `technician_id`, `otrs_reference`, `problem`, `solution`, `equipment_id` (opcional).
+* **Attendance:** `id`, `technician_id`, `otrs_reference`, `problem`, `solution`, `equipment_id` (opcional), `project_id` (opcional).
 * **KnowledgeArticle:** Versões, Tags, Categorias (inalterado em relação ao MVP).
 
 ## 4. Infraestrutura e Ativos
 * **Store / Department:** Estrutura geográfica.
 * **Equipment:** Hardware catalogado.
 * **EquipmentHistory:** Trilha de vida do hardware.
-* **MaintenanceRecord:** Intervenção física.
-* **StockItem / StockMovement:** Quantitativos materiais.
+* **MaintenanceRecord:** Intervenção física. Possui `project_id` (opcional).
+* **StockItem / StockMovement:** Quantitativos materiais. Movimentações possuem `project_id` (opcional).
 
 ## 5. Novos Ativos Lógicos (Cofre e Licenças)
 * **VaultSecret (Cofre):** 

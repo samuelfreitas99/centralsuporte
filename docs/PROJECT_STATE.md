@@ -1,8 +1,12 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 10.1 concluída e auditada com sucesso (APPROVED).
-**Fase atual**: Fase 10.1 finalizada.
+**Estado atual**: Fase 10.2 (Integração) concluída com sucesso.
+**Fase atual**: Fase 10.2 finalizada.
 **Última implementação**:
+- **Fase 10.2 — Integração de Projetos com os módulos existentes**:
+  - Implementado suporte funcional a `project_id` em Tasks, Checklists, Maintenances, Attendances, CalendarEvents e StockMovements.
+  - Testes de integração E2E criados (`test_integration_phase10_2.py`) cobrindo ciclo completo de vínculos e desvínculos.
+  - Adicionado suporte a `unset` (nullifier) via `exclude_unset=True` nos payloads.
 - **Fase 10.1.1 — Auditoria da Fundação Backend de Projetos**:
   - Auditoria concluída. Regra crítica de Preserve Data (ON DELETE SET NULL) testada e validada em integração.
   - Endpoints adicionados para gerenciamento de Equipment em Projetos.
@@ -25,11 +29,11 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: fix: add project equipment management endpoints (Audit Phase 10.1.1)
-**Próxima tarefa**: Frontend de Projetos Operacionais.
+**Último commit**: feat: integrate project_id into operational modules (Phase 10.2)
+**Próxima tarefa**: Fase 10.3 — Dashboards e Workspaces de Projetos (Frontend).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
-**Testes**: Todos testes backend de Projects passaram com sucesso (8/8).
+**Testes**: Todos testes backend passaram com sucesso (58/58).
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
 - Utilização de `project_id` na modelagem com FK nula em cascata para evitar perdas acidentais de tarefas, registros de manutenção, ou notas se um projeto for deletado.

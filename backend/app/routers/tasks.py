@@ -25,6 +25,7 @@ def list_tasks(
     priority_filter: Optional[str] = Query(None, alias="priority"),
     visibility_filter: Optional[str] = Query(None, alias="visibility"),
     category_filter: Optional[str] = Query(None, alias="category"),
+    project_id: Optional[int] = Query(None),
     search: Optional[str] = None,
     assigned_to_me: Optional[bool] = False,
     db: Session = Depends(get_db),
@@ -63,6 +64,8 @@ def list_tasks(
                 Task.otrs_reference.ilike(f"%{search}%")
             )
         )
+    if project_id is not None:
+        query = query.filter(Task.project_id == project_id)
     if assigned_to_me:
         query = query.filter(Task.assigned_users.any(User.id == current_user.id))
 
@@ -134,35 +137,20 @@ def update_task(
     if not is_admin(current_user) and task.creator_id != current_user.id and not is_assigned:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permissão insuficiente para alterar esta tarefa")
 
-    if payload.title is not None:
-        task.title = payload.title
-    if payload.description is not None:
-        task.description = payload.description
-    if payload.priority is not None:
-        task.priority = payload.priority
-    if payload.visibility is not None:
-        task.visibility = payload.visibility
-    if payload.category is not None:
-        task.category = payload.category
-    if payload.otrs_reference is not None:
-        task.otrs_reference = payload.otrs_reference
-    if payload.due_date is not None:
-        task.due_date = payload.due_date
-    if payload.project_id is not None:
-        task.project_id = payload.project_id
-    if payload.project_stage is not None:
-        task.project_stage = payload.project_stage
-
-    if payload.status is not None:
-        if payload.status == "concluida" and task.status != "concluida":
-            task.completed_at = datetime.now(timezone.utc)
-        elif payload.status != "concluida":
-            task.completed_at = None
-        task.status = payload.status
-
-    if payload.assigned_user_ids is not None:
-        users = db.query(User).filter(User.id.in_(payload.assigned_user_ids)).all()
-        task.assigned_users = users
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        if key == 'status':
+            if value == "concluida" and task.status != "concluida":
+                task.completed_at = datetime.now(timezone.utc)
+            elif value != "concluida":
+                task.completed_at = None
+            task.status = value
+        elif key == 'assigned_user_ids':
+            if value is not None:
+                users = db.query(User).filter(User.id.in_(value)).all()
+                task.assigned_users = users
+        else:
+            setattr(task, key, value)
 
     db.commit()
     db.refresh(task)

@@ -25,6 +25,7 @@ def list_attendances(
     status: Optional[str] = None,
     technician_id: Optional[int] = None,
     has_otrs: Optional[bool] = None,
+    project_id: Optional[int] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
@@ -41,6 +42,9 @@ def list_attendances(
         query = query.filter(Attendance.otrs_ticket.isnot(None), Attendance.otrs_ticket != "")
     elif has_otrs is False:
         query = query.filter(or_(Attendance.otrs_ticket.is_(None), Attendance.otrs_ticket == ""))
+
+    if project_id is not None:
+        query = query.filter(Attendance.project_id == project_id)
 
     if search:
         search_filter = or_(
@@ -82,6 +86,7 @@ def create_attendance(
         solution=payload.solution,
         commands_used=payload.commands_used,
         internal_notes=payload.internal_notes,
+        project_id=payload.project_id,
     )
     db.add(attendance_obj)
     db.commit()
@@ -113,36 +118,9 @@ def update_attendance(
     if not is_admin(current_user) and attendance_obj.technician_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Apenas o técnico responsável ou administrador pode alterar este atendimento")
 
-    if payload.title is not None:
-        attendance_obj.title = payload.title
-    if payload.otrs_ticket is not None:
-        attendance_obj.otrs_ticket = payload.otrs_ticket
-    if payload.otrs_url is not None:
-        attendance_obj.otrs_url = payload.otrs_url
-    if payload.requester_name is not None:
-        attendance_obj.requester_name = payload.requester_name
-    if payload.technician_id is not None:
-        attendance_obj.technician_id = payload.technician_id
-    if payload.status is not None:
-        attendance_obj.status = payload.status
-    if payload.equipment_name is not None:
-        attendance_obj.equipment_name = payload.equipment_name
-    if payload.store_department is not None:
-        attendance_obj.store_department = payload.store_department
-    if payload.problem_description is not None:
-        attendance_obj.problem_description = payload.problem_description
-    if payload.symptoms is not None:
-        attendance_obj.symptoms = payload.symptoms
-    if payload.diagnosis is not None:
-        attendance_obj.diagnosis = payload.diagnosis
-    if payload.cause is not None:
-        attendance_obj.cause = payload.cause
-    if payload.solution is not None:
-        attendance_obj.solution = payload.solution
-    if payload.commands_used is not None:
-        attendance_obj.commands_used = payload.commands_used
-    if payload.internal_notes is not None:
-        attendance_obj.internal_notes = payload.internal_notes
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(attendance_obj, key, value)
 
     db.commit()
     db.refresh(attendance_obj)

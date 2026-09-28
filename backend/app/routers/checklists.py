@@ -23,12 +23,15 @@ def is_admin(user: User) -> bool:
 @router.get("", response_model=List[ChecklistResponse])
 def list_checklists(
     task_id: Optional[int] = None,
+    project_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("tasks:read")),
 ):
     query = db.query(Checklist)
     if task_id is not None:
         query = query.filter(Checklist.task_id == task_id)
+    if project_id is not None:
+        query = query.filter(Checklist.project_id == project_id)
     return query.order_by(Checklist.created_at.desc()).all()
 
 @router.post("", response_model=ChecklistResponse, status_code=status.HTTP_201_CREATED)
@@ -41,6 +44,7 @@ def create_checklist(
         title=payload.title,
         description=payload.description,
         task_id=payload.task_id,
+        project_id=payload.project_id,
         creator_id=current_user.id
     )
     if payload.items:
@@ -78,10 +82,9 @@ def update_checklist(
     if not checklist:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Checklist não encontrado")
 
-    if payload.title is not None:
-        checklist.title = payload.title
-    if payload.description is not None:
-        checklist.description = payload.description
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(checklist, key, value)
 
     db.commit()
     db.refresh(checklist)

@@ -102,6 +102,7 @@ class ChecklistCreate(ChecklistBase):
 class ChecklistUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    project_id: Optional[int] = None
 
 class ChecklistResponse(ChecklistBase):
     id: int
@@ -168,6 +169,7 @@ class CalendarEventUpdate(BaseModel):
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     event_type: Optional[str] = None
+    project_id: Optional[int] = None
 
 class CalendarEventResponse(CalendarEventBase):
     id: int
@@ -708,6 +710,9 @@ class StockMovementCreate(BaseModel):
     attendance_id: Optional[int] = None
     project_id: Optional[int] = None
     reason: Optional[str] = None
+
+class StockMovementUpdate(BaseModel):
+    project_id: Optional[int] = None
 
 class StockMovementResponse(BaseModel):
     id: int

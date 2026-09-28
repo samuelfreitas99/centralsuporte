@@ -22,6 +22,7 @@ def list_events(
     start_time: Optional[datetime] = None,
     end_time: Optional[datetime] = None,
     event_type: Optional[str] = None,
+    project_id: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("tasks:read")),
 ):
@@ -33,6 +34,8 @@ def list_events(
         query = query.filter(CalendarEvent.start_time <= end_time)
     if event_type:
         query = query.filter(CalendarEvent.event_type == event_type)
+    if project_id is not None:
+        query = query.filter(CalendarEvent.project_id == project_id)
 
     return query.order_by(CalendarEvent.start_time.asc()).all()
 
@@ -54,6 +57,7 @@ def create_event(
         start_time=payload.start_time,
         end_time=payload.end_time,
         event_type=payload.event_type or "atividade",
+        project_id=payload.project_id,
         user_id=current_user.id
     )
     db.add(event)
@@ -86,16 +90,9 @@ def update_event(
     if not is_admin(current_user) and event.user_id != current_user.id:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permissão insuficiente para alterar este evento")
 
-    if payload.title is not None:
-        event.title = payload.title
-    if payload.description is not None:
-        event.description = payload.description
-    if payload.start_time is not None:
-        event.start_time = payload.start_time
-    if payload.end_time is not None:
-        event.end_time = payload.end_time
-    if payload.event_type is not None:
-        event.event_type = payload.event_type
+    update_data = payload.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(event, key, value)
 
     if event.end_time < event.start_time:
         raise HTTPException(
