@@ -216,6 +216,76 @@ def delete_project_note(
     db.commit()
     return None
 
+# --- Project Equipment ---
+
+@router.post("/{project_id}/equipment/{equipment_id}", status_code=status.HTTP_201_CREATED)
+def add_equipment_to_project(
+    project_id: int,
+    equipment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_permission("project:update"))
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    equipment = db.query(models.Equipment).filter(models.Equipment.id == equipment_id).first()
+    if not equipment:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+        
+    # Check for duplicate
+    assoc = db.query(models.project_equipment).filter_by(project_id=project_id, equipment_id=equipment_id).first()
+    if assoc:
+        raise HTTPException(status_code=400, detail="Equipment already linked to this project")
+        
+    project.equipment_list.append(equipment)
+    
+    audit_log = models.AuditLog(
+        user_id=current_user.id,
+        username=current_user.username,
+        action="UPDATE",
+        entity_type="project",
+        entity_id=project_id,
+        details=f"Equipment '{equipment.hostname or equipment.patrimony}' linked to project."
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    return {"message": "Equipment linked successfully"}
+
+@router.delete("/{project_id}/equipment/{equipment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_equipment_from_project(
+    project_id: int,
+    equipment_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(require_permission("project:update"))
+):
+    project = db.query(models.Project).filter(models.Project.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+        
+    equipment = db.query(models.Equipment).filter(models.Equipment.id == equipment_id).first()
+    if not equipment:
+        raise HTTPException(status_code=404, detail="Equipment not found")
+        
+    if equipment not in project.equipment_list:
+        raise HTTPException(status_code=404, detail="Equipment not linked to this project")
+        
+    project.equipment_list.remove(equipment)
+    
+    audit_log = models.AuditLog(
+        user_id=current_user.id,
+        username=current_user.username,
+        action="UPDATE",
+        entity_type="project",
+        entity_id=project_id,
+        details=f"Equipment '{equipment.hostname or equipment.patrimony}' unlinked from project."
+    )
+    db.add(audit_log)
+    db.commit()
+    
+    return None
+
 # --- Summary and Timeline ---
 
 @router.get("/{project_id}/summary", response_model=schemas.ProjectSummaryResponse)

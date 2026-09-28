@@ -1,8 +1,11 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 10.1 parcialmente concluída (Fundação Backend de Projetos Operacionais implementada).
-**Fase atual**: Fase 10.1
+**Estado atual**: Fase 10.1 concluída e auditada com sucesso (APPROVED).
+**Fase atual**: Fase 10.1 finalizada.
 **Última implementação**:
+- **Fase 10.1.1 — Auditoria da Fundação Backend de Projetos**:
+  - Auditoria concluída. Regra crítica de Preserve Data (ON DELETE SET NULL) testada e validada em integração.
+  - Endpoints adicionados para gerenciamento de Equipment em Projetos.
 - **Fase 10.1 — Fundação Backend de Projetos Operacionais**:
   - Geração de migração para tabelas de `projects`, `project_notes` e `project_equipment`.
   - Inclusão do campo `project_id` em Tarefas, Manutenções, Atendimentos, Eventos, Checklists e Movimentações de Estoque (`ON DELETE SET NULL`).
@@ -22,7 +25,7 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat: implement projects backend foundation (Phase 10.1)
+**Último commit**: fix: add project equipment management endpoints (Audit Phase 10.1.1)
 **Próxima tarefa**: Frontend de Projetos Operacionais.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
