@@ -14,6 +14,7 @@ from app.models import (
     Project,
     MaintenanceRecord,
     KnowledgeArticle,
+    Permission,
 )
 from app.schemas import (
     UserCreate,
@@ -23,11 +24,25 @@ from app.schemas import (
     UserResponse,
     UserStatsResponse,
     RoleResponse,
+    RoleCreate,
+    RoleUpdate,
+    PermissionResponse,
 )
 from app.auth import get_password_hash, require_permission, get_current_active_user
 from app.services.audit import record_audit_log
 
 router = APIRouter(tags=["Gestão de Usuários"])
+
+def check_last_admin(db: Session, user: User):
+    is_admin = any(r.name == 'Administrador' for r in user.roles)
+    if not is_admin:
+        return
+    admin_count = db.query(User).join(User.roles).filter(Role.name == 'Administrador', User.is_active == True).count()
+    if admin_count <= 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não é possível alterar as permissões, desativar ou remover o último administrador ativo do sistema."
+        )
 
 
 @router.get("/users", response_model=List[UserResponse])
@@ -417,6 +432,13 @@ def update_user(
                     detail=f"Perfil com ID {r_id} não encontrado",
                 )
             roles_to_assign.append(role)
+        
+        # Check last admin if removing Admin role
+        was_admin = any(r.name == 'Administrador' for r in user.roles)
+        will_be_admin = any(r.name == 'Administrador' for r in roles_to_assign)
+        if was_admin and not will_be_admin:
+            check_last_admin(db, user)
+
         user.roles = roles_to_assign
         updated_fields["roles"] = [r.name for r in roles_to_assign]
 
@@ -427,6 +449,10 @@ def update_user(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Não é permitido desativar o próprio usuário logado",
             )
+        # Check last admin if deactivating
+        if not user_in.is_active and user.is_active:
+            check_last_admin(db, user)
+
         user.is_active = user_in.is_active
         updated_fields["is_active"] = user_in.is_active
 
@@ -461,6 +487,8 @@ def delete_user(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Não é permitido excluir o próprio usuário logado",
         )
+    
+    check_last_admin(db, user)
 
     deleted_username = user.username
     db.delete(user)
@@ -485,3 +513,115 @@ def list_roles(
 ):
     roles = db.query(Role).all()
     return roles
+
+
+@router.post("/roles", response_model=RoleResponse)
+def create_role(
+    role_in: RoleCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("roles:write")),
+):
+    # Check if role with same name exists
+    existing_role = db.query(Role).filter(Role.name == role_in.name).first()
+    if existing_role:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Já existe um perfil com esse nome.",
+        )
+    
+    new_role = Role(name=role_in.name, description=role_in.description)
+    
+    if role_in.permission_ids:
+        perms = db.query(Permission).filter(Permission.id.in_(role_in.permission_ids)).all()
+        new_role.permissions = perms
+    
+    db.add(new_role)
+    db.commit()
+    db.refresh(new_role)
+
+    record_audit_log(
+        db=db,
+        action="CREATE",
+        entity_type="role",
+        entity_id=new_role.id,
+        user=current_user,
+        details={"name": new_role.name, "description": new_role.description},
+    )
+
+    return new_role
+
+
+@router.put("/roles/{role_id}", response_model=RoleResponse)
+def update_role(
+    role_id: int,
+    role_in: RoleUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("roles:write")),
+):
+    role = db.query(Role).filter(Role.id == role_id).first()
+    if not role:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Perfil não encontrado",
+        )
+    
+    if role.name == 'Administrador' and role_in.name and role_in.name != 'Administrador':
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Não é permitido alterar o nome do perfil 'Administrador'."
+        )
+
+    updated_fields = {}
+    if role_in.name is not None:
+        # Check conflict
+        existing_role = db.query(Role).filter(Role.name == role_in.name, Role.id != role_id).first()
+        if existing_role:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Já existe um perfil com esse nome.",
+            )
+        role.name = role_in.name
+        updated_fields["name"] = role_in.name
+    
+    if role_in.description is not None:
+        role.description = role_in.description
+        updated_fields["description"] = role_in.description
+    
+    if role_in.permission_ids is not None:
+        perms = db.query(Permission).filter(Permission.id.in_(role_in.permission_ids)).all()
+        
+        # Protect Admin from losing permissions
+        if role.name == 'Administrador':
+            # ensure users:write, roles:write, etc., are never dropped from Admin?
+            # For safety, let's just make sure Admin gets all permissions always, or we don't let people strip it.
+            # We can allow editing, but they can't remove roles:write from Admin
+            has_roles_write = any(p.name == 'roles:write' for p in perms)
+            if not has_roles_write:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Não é permitido remover a permissão 'roles:write' do Administrador."
+                )
+        role.permissions = perms
+        updated_fields["permissions"] = [p.name for p in perms]
+
+    record_audit_log(
+        db=db,
+        action="UPDATE",
+        entity_type="role",
+        entity_id=role.id,
+        user=current_user,
+        details={"role_name": role.name, "updated_fields": updated_fields},
+    )
+
+    db.commit()
+    db.refresh(role)
+    return role
+
+
+@router.get("/permissions", response_model=List[PermissionResponse])
+def list_permissions(
+    db: Session = Depends(get_db),
+    _: User = Depends(require_permission("roles:read")),
+):
+    perms = db.query(Permission).all()
+    return perms

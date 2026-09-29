@@ -42,6 +42,9 @@ const UsersPage = lazy(() =>
 const ProfilePage = lazy(() =>
   import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
 );
+const RolesPage = lazy(() =>
+  import('@/pages/RolesPage').then((m) => ({ default: m.RolesPage }))
+);
 
 export const AuthenticatedView: React.FC = () => {
   const getHashInfo = () => {
@@ -121,6 +124,8 @@ export const AuthenticatedView: React.FC = () => {
             onBack={() => handleSelectTab('users')}
             onSelectTab={handleSelectTab}
           />
+        ) : currentTab === 'roles' ? (
+          <RolesPage />
         ) : (
         <div className="space-y-6">
           <div className="flex items-center gap-3">

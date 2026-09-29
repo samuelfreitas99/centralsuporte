@@ -10,6 +10,7 @@ INITIAL_PERMISSIONS = [
     {"name": "users:read", "description": "Visualizar usuários e perfis"},
     {"name": "users:write", "description": "Criar, editar e desativar usuários"},
     {"name": "roles:read", "description": "Visualizar perfis e permissões"},
+    {"name": "roles:write", "description": "Criar e editar perfis e regras de permissões"},
     {"name": "knowledge:read", "description": "Consultar base de conhecimento"},
     {"name": "knowledge:write", "description": "Criar e editar artigos de conhecimento"},
     {"name": "attendance:read", "description": "Visualizar atendimentos internos"},

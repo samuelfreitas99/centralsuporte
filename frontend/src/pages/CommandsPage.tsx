@@ -68,7 +68,7 @@ const copyToClipboard = async (text: string) => {
 };
 
 export const CommandsPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { success, error: toastError } = useToast();
 
   const [activeTab, setActiveTab] = useState<ActiveTab>('commands');
@@ -374,12 +374,12 @@ export const CommandsPage: React.FC = () => {
   // Permission helpers
   const canModifyCommand = (cmd: CommandItem) => {
     if (!user) return false;
-    return user.role?.name === 'Administrador' || cmd.author_id === user.id;
+    return hasRole('Administrador') || cmd.author_id === user.id;
   };
 
   const canModifyResponse = (resp: StandardResponseItem) => {
     if (!user) return false;
-    return user.role?.name === 'Administrador' || resp.author_id === user.id;
+    return hasRole('Administrador') || resp.author_id === user.id;
   };
 
   // Distinct systems list with defaults

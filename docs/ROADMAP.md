@@ -236,6 +236,11 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
   - Componente visual `Avatar.tsx` com iniciais semânticas determinísticas e status ativo/inativo.
   - Suporte a multi-roles no `AuthContext` e sincronização imediata (`refreshUser`).
   - Rotas hash `#users` e `#profile`.
+- [x] Fase 11.4 — RBAC Administration & Identity Integrity Audit:
+  - Limpeza e migração de `user.role` nas páginas legacy para suporte nativo `hasRole()`.
+  - Página administrativa Matriz de Permissões (`RolesPage.tsx`).
+  - Proteção server-side contra bloqueio/deleção do último administrador.
+  - Endpoints de CRUD de Roles e Permissions com trilha de auditoria para integridade de acesso corporativo.
 
 ---
 

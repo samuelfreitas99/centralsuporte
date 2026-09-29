@@ -12,6 +12,7 @@ import {
   Search,
   ShieldAlert,
   Briefcase,
+  Shield,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -33,6 +34,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'attendance', label: 'Atendimentos Internos', icon: Headset, section: 'operacional' },
   { id: 'equipment', label: 'Infraestrutura & Parque', icon: Server, section: 'sistema' },
   { id: 'files', label: 'Arquivos e Docs', icon: FolderArchive, section: 'sistema' },
-  { id: 'users', label: 'Usuários e Perfis', icon: Users, permission: 'users:read', section: 'sistema' },
+  { id: 'users', label: 'Usuários', icon: Users, permission: 'users:read', section: 'sistema' },
+  { id: 'roles', label: 'Perfis e Permissões', icon: Shield, permission: 'roles:read', section: 'sistema' },
   { id: 'audit', label: 'Auditoria & Logs', icon: ShieldAlert, permission: 'audit:read', section: 'sistema' },
 ];

@@ -11,6 +11,18 @@ export interface Role {
   permissions?: Permission[];
 }
 
+export interface RoleCreatePayload {
+  name: string;
+  description?: string;
+  permission_ids?: number[];
+}
+
+export interface RoleUpdatePayload {
+  name?: string;
+  description?: string;
+  permission_ids?: number[];
+}
+
 export interface DepartmentSimple {
   id: number;
   name: string;
