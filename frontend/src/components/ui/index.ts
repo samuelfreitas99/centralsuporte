@@ -16,3 +16,4 @@ export * from './PageSkeleton';
 export * from './Toast';
 export * from './EmptyState';
 export * from './ErrorState';
+export * from './Avatar';

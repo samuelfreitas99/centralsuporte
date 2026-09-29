@@ -12,6 +12,9 @@ import { Button } from '@/components/ui/button';
 const SearchAndReportsPage = lazy(() =>
   import('@/pages/SearchAndReportsPage').then((m) => ({ default: m.SearchAndReportsPage }))
 );
+const ProjectsPage = lazy(() =>
+  import('@/pages/ProjectsPage').then((m) => ({ default: m.ProjectsPage }))
+);
 const TasksPage = lazy(() =>
   import('@/pages/TasksPage').then((m) => ({ default: m.TasksPage }))
 );
@@ -33,18 +36,33 @@ const InfrastructurePage = lazy(() =>
 const AuditLogsPage = lazy(() =>
   import('@/pages/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage }))
 );
+const UsersPage = lazy(() =>
+  import('@/pages/UsersPage').then((m) => ({ default: m.UsersPage }))
+);
+const ProfilePage = lazy(() =>
+  import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage }))
+);
 
 export const AuthenticatedView: React.FC = () => {
-  const [currentTab, setCurrentTab] = useState(() => {
+  const getHashInfo = () => {
     const hash = window.location.hash.replace('#', '');
-    return hash.split('?')[0] || 'dashboard';
-  });
+    const [tab, query] = hash.split('?');
+    const params = new URLSearchParams(query || '');
+    const id = params.get('id');
+    return {
+      tab: tab || 'dashboard',
+      profileId: id ? Number(id) : null,
+    };
+  };
+
+  const [currentTab, setCurrentTab] = useState(() => getHashInfo().tab);
+  const [profileUserId, setProfileUserId] = useState<number | null>(() => getHashInfo().profileId);
 
   useEffect(() => {
     const handlePopState = () => {
-      const hash = window.location.hash.replace('#', '');
-      const tab = hash.split('?')[0] || 'dashboard';
+      const { tab, profileId } = getHashInfo();
       setCurrentTab(tab);
+      setProfileUserId(profileId);
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -57,9 +75,13 @@ export const AuthenticatedView: React.FC = () => {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const handleSelectTab = useCallback((tab: string) => {
-    setCurrentTab(tab.split('?')[0]);
-    window.history.pushState(null, '', `#${tab}`);
+  const handleSelectTab = useCallback((tabWithQuery: string) => {
+    const [tab, query] = tabWithQuery.split('?');
+    const params = new URLSearchParams(query || '');
+    const id = params.get('id');
+    setCurrentTab(tab);
+    setProfileUserId(id ? Number(id) : null);
+    window.history.pushState(null, '', `#${tabWithQuery}`);
     window.dispatchEvent(new Event('popstate'));
   }, []);
 
@@ -69,9 +91,11 @@ export const AuthenticatedView: React.FC = () => {
     <AppLayout currentTab={currentTab} onSelectTab={handleSelectTab}>
       <Suspense fallback={<PageSkeleton />}>
         {currentTab === 'dashboard' ? (
-          <DashboardPage onSelectTab={setCurrentTab} />
+          <DashboardPage onSelectTab={handleSelectTab} />
         ) : currentTab === 'search-reports' ? (
-          <SearchAndReportsPage onSelectTab={setCurrentTab} />
+          <SearchAndReportsPage onSelectTab={handleSelectTab} />
+        ) : currentTab === 'projects' ? (
+          <ProjectsPage onSelectTab={handleSelectTab} />
         ) : currentTab === 'tasks' ? (
           <TasksPage />
         ) : currentTab === 'maintenances' ? (
@@ -86,13 +110,24 @@ export const AuthenticatedView: React.FC = () => {
           <InfrastructurePage />
         ) : currentTab === 'audit' ? (
           <AuditLogsPage />
+        ) : currentTab === 'users' ? (
+          <UsersPage
+            onSelectTab={handleSelectTab}
+            onOpenProfile={(id) => handleSelectTab(`profile?id=${id}`)}
+          />
+        ) : currentTab === 'profile' ? (
+          <ProfilePage
+            userId={profileUserId}
+            onBack={() => handleSelectTab('users')}
+            onSelectTab={handleSelectTab}
+          />
         ) : (
         <div className="space-y-6">
           <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentTab('dashboard')}
+              onClick={() => handleSelectTab('dashboard')}
               className="flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowLeft className="h-4 w-4" />

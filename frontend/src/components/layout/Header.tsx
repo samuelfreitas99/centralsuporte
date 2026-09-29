@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Sun, Moon, LogOut, Menu, ShieldCheck, Terminal, Search } from 'lucide-react';
 import { NotificationsDropdown } from './NotificationsDropdown';
 
+import { Avatar } from '@/components/ui/Avatar';
+
 interface HeaderProps {
   onToggleSidebar?: () => void;
   onSelectTab?: (tabId: string) => void;
@@ -14,6 +16,11 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onSelectTab }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  const userRoleName =
+    user?.roles && user.roles.length > 0
+      ? user.roles[0].name
+      : user?.role?.name || 'Geral';
 
   return (
     <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-border/60 bg-card/75 px-4 backdrop-blur-md sm:px-6">
@@ -66,16 +73,27 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onSelectTab }) 
 
         {/* User Info Capsule */}
         {user && (
-          <div className="hidden sm:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 px-2.5 py-1 text-xs">
-            <div className="h-5 w-5 rounded bg-primary/10 border border-primary/20 text-primary font-bold flex items-center justify-center text-[10px] uppercase">
-              {user.username.slice(0, 2)}
-            </div>
-            <span className="text-foreground font-medium">{user.username}</span>
+          <button
+            type="button"
+            onClick={() => onSelectTab?.('profile')}
+            className="hidden sm:flex items-center gap-2 rounded-lg border border-border/60 bg-muted/20 hover:bg-muted/50 px-2.5 py-1 text-xs transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            title="Acessar Meu Perfil"
+            aria-label="Acessar Meu Perfil"
+          >
+            <Avatar
+              src={user.avatar_url}
+              name={user.display_name || user.full_name || user.username}
+              size="xs"
+              status={user.is_active ? 'active' : 'inactive'}
+            />
+            <span className="text-foreground font-medium truncate max-w-[120px]">
+              {user.display_name || user.username}
+            </span>
             <Badge variant="outline" className="flex items-center gap-1 font-mono text-[10px] border-border/60 text-muted-foreground py-0 px-1.5">
               <ShieldCheck className="h-3 w-3 text-muted-foreground" />
-              {user.role?.name || 'Geral'}
+              {userRoleName}
             </Badge>
-          </div>
+          </button>
         )}
 
         {/* Notifications & Reactive Rules Dropdown */}

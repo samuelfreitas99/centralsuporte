@@ -117,6 +117,7 @@ export const infrastructureService = {
     technical_location_id?: number;
     equipment_type?: string;
     status?: string;
+    project_id?: number;
   }): Promise<EquipmentItem[]> => {
     const searchParams = new URLSearchParams();
     if (params?.q) searchParams.append('q', params.q);
@@ -125,6 +126,7 @@ export const infrastructureService = {
     if (params?.technical_location_id) searchParams.append('technical_location_id', params.technical_location_id.toString());
     if (params?.equipment_type) searchParams.append('equipment_type', params.equipment_type);
     if (params?.status) searchParams.append('status', params.status);
+    if (params?.project_id !== undefined) searchParams.append('project_id', params.project_id.toString());
 
     const qs = searchParams.toString();
     return request<EquipmentItem[]>(`/infrastructure/equipment${qs ? `?${qs}` : ''}`);

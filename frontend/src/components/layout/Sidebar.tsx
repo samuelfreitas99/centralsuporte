@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { X, ExternalLink, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Avatar } from '@/components/ui/Avatar';
 import { NAV_ITEMS } from './nav-items';
 
 interface SidebarProps {
@@ -103,18 +104,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* User Info Capsule (Mobile only) */}
         {user && (
-          <div className="flex items-center gap-2.5 px-4 py-3 border-b border-border/60 lg:hidden bg-muted/20">
-            <div className="h-7 w-7 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase">
-              {user.username.slice(0, 2)}
-            </div>
+          <button
+            type="button"
+            onClick={() => {
+              onSelectTab('profile');
+              onClose();
+            }}
+            className="flex items-center gap-2.5 px-4 py-3 border-b border-border/60 lg:hidden bg-muted/20 hover:bg-muted/40 transition-colors text-left cursor-pointer w-full"
+            title="Ver meu perfil"
+          >
+            <Avatar
+              src={user.avatar_url}
+              name={user.display_name || user.full_name || user.username}
+              size="sm"
+              status={user.is_active ? 'active' : 'inactive'}
+            />
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-foreground truncate">{user.username}</p>
+              <p className="text-xs font-semibold text-foreground truncate">
+                {user.display_name || user.username}
+              </p>
               <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                 <ShieldCheck className="h-3 w-3 text-primary" />
-                <span>{user.role?.name || 'Geral'}</span>
+                <span>
+                  {user.roles && user.roles.length > 0
+                    ? user.roles[0].name
+                    : user.role?.name || 'Geral'}
+                </span>
               </div>
             </div>
-          </div>
+          </button>
         )}
 
         {/* Navigation Items */}

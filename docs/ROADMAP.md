@@ -67,6 +67,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 - [x] Endpoints de CRUD e gestão de status.
 - [x] Telas de listagem, criação e edição.
 - [x] Testes de fluxo e testes unitários.
+- [x] Projetos Operacionais (Fase 10.4): Dashboard e integração operacional finalizados.
 
 ---
 
@@ -212,15 +213,39 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
 
 ---
 
-## Backlog Arquitetural Pós-MVP
+## Evolução Arquitetural Pós-MVP
 
-*(Não são fases definitivas. Representam os grandes blocos de trabalho identificados pela auditoria, pendentes de priorização).*
+### Fase 10 (Pós-MVP) — Projetos Operacionais
+- [x] Fase 10.1 — Fundação Backend de Projetos (CRUD, notas, agregação e equipamentos).
+- [x] Fase 10.2 — Integração com Módulos Operacionais (`project_id` em Tasks, Maintenances, Attendances, Checklists, CalendarEvents).
+- [x] Fase 10.3 / 10.4 — Workspace Operacional de Projetos (`ProjectWorkspace`, abas integradas, links de contexto e formulários vinculados).
+
+### Fase 11 (Pós-MVP) — Usuários, Perfis e Identidade
+- [x] Fase 11.1 — Arquitetura de Identidade, Perfis e RBAC M:N (`docs/PHASE_11_1_USERS_PLAN.md`).
+- [x] Fase 11.2 — Fundação Backend:
+  - Adição dos campos operacionais de identidade em `users` (`full_name`, `display_name`, `avatar_url`, `phone`, `job_title`, `department_id`, `preferences`, `last_login_at`).
+  - Transição de `role_id` para M:N via `user_roles` com união idempotente de permissões.
+  - Endpoints `/users/me/profile`, `/users/{id}/profile`, `/users/{id}/stats` com regras estritas de privacidade e bloqueio de escalada de privilégios.
+  - Auditoria completa de alterações de identidade e RBAC em `audit_logs`.
+- [x] Fase 11.3 — Frontend de Identidade e Perfis:
+  - Gestão administrativa de usuários (`UsersPage.tsx`) com tabela densa, cartões mobile e filtros de status/departamento/role.
+  - Drawer administrativo (`UserFormDrawer.tsx`) com suporte multi-role e salvaguarda contra auto-desativação.
+  - Visualização unificada de perfil (`ProfilePage.tsx`) com suporte a "Meu Perfil" e mascaramento de privacidade para terceiros.
+  - Grid de estatísticas operacionais de perfil (5 métricas em tempo real).
+  - Diálogo de auto-atualização de perfil (`EditProfileDialog.tsx`).
+  - Componente visual `Avatar.tsx` com iniciais semânticas determinísticas e status ativo/inativo.
+  - Suporte a multi-roles no `AuthContext` e sincronização imediata (`refreshUser`).
+  - Rotas hash `#users` e `#profile`.
+
+---
+
+## Backlog Arquitetural Pós-MVP (Próximos Itens)
+
+*(Representam grandes blocos de trabalho identificados pela auditoria, pendentes de priorização).*
 
 * **Evolução Documental (Arquivos):** Centralização e polimorfismo de arquivos via tabela associativa N:N, permitindo reuso em múltiplas entidades.
-* **Projetos Operacionais:** Criação da entidade `Project` como guarda-chuva para agrupar tarefas, equipamentos e checklists.
 * **Cofre de Senhas:** Implementação do módulo hyper-seguro (Envelope Encryption) para credenciais de rede, com log inalterável de revelação de senha.
 * **Remodelagem de Licenças:** Mascaramento obrigatório na interface gráfica e vínculo direto entre Licenças e Usuários ou Credenciais do Cofre.
 * **Checklists Reutilizáveis (Templates):** Desacoplar os itens estáticos das instâncias, permitindo criar "Matrizes de Checklist".
 * **Dashboard V2 (Alarme & Situação):** Alimentação consolidada por serviço para alertas cruciais (licenças vencendo, estoque baixo) sem sobrecarregar a UX.
-* **Perfil do Técnico e Squads:** Enriquecimento do `User` atual para um Perfil Operacional (Cargos, turnos e métricas pessoais).
 * **Cotações:** Fluxo de orçamentação amarrado à reposição de estoque.
