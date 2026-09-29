@@ -16,6 +16,8 @@ import {
   Plus,
   Calendar,
   User as UserIcon,
+  Users,
+  Briefcase,
 } from 'lucide-react';
 import type { Task } from '@/types/tasks';
 import { organizationService } from '@/services/organizationService';
@@ -188,6 +190,26 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                 <p>{task.completed_at ? new Date(task.completed_at).toLocaleString('pt-BR') : '-'}</p>
               </div>
             </div>
+
+            {task.assigned_users && task.assigned_users.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-foreground/70" />
+                <div>
+                  <p className="font-semibold text-foreground">Responsáveis</p>
+                  <p>{task.assigned_users.map(u => u.username).join(', ')}</p>
+                </div>
+              </div>
+            )}
+
+            {task.project_stage && (
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4 text-foreground/70" />
+                <div>
+                  <p className="font-semibold text-foreground">Etapa do Projeto</p>
+                  <p>{task.project_stage}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Checklists Vinculados */}

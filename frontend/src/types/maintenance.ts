@@ -30,7 +30,8 @@ export type MaintenanceResult =
 export interface MaintenanceRecord {
   id: number;
   title: string;
-  equipment_id: number;
+  equipment_id?: number | null;
+  equipment_ids?: number[];
   store_id?: number | null;
   technician_id?: number | null;
   maintenance_type: MaintenanceType;
@@ -48,6 +49,7 @@ export interface MaintenanceRecord {
   cost?: number | null;
   internal_notes?: string | null;
   equipment?: EquipmentItem | null;
+  equipments?: EquipmentItem[];
   store?: StoreItem | null;
   technician?: UserSimple | null;
   checklists: Checklist[];
@@ -58,7 +60,8 @@ export interface MaintenanceRecord {
 
 export interface MaintenanceCreatePayload {
   title: string;
-  equipment_id: number;
+  equipment_id?: number;
+  equipment_ids?: number[];
   store_id?: number | null;
   technician_id?: number | null;
   maintenance_type: string;
@@ -84,6 +87,7 @@ export interface MaintenanceCreatePayload {
 export interface MaintenanceUpdatePayload {
   title?: string;
   equipment_id?: number;
+  equipment_ids?: number[];
   store_id?: number | null;
   technician_id?: number | null;
   maintenance_type?: string;
@@ -102,6 +106,7 @@ export interface MaintenanceUpdatePayload {
   internal_notes?: string;
   project_id?: number | null;
 }
+
 
 export interface MaintenanceStatusPayload {
   status: string;

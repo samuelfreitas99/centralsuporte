@@ -324,7 +324,11 @@ export const MaintenancePage: React.FC = () => {
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1.5 text-xs">
                               <HardDrive className="h-3.5 w-3.5 text-primary" />
-                              <span className="font-medium">{maint.equipment?.hostname || maint.equipment?.patrimony || 'N/A'}</span>
+                              <span className="font-medium">
+                                {maint.equipments && maint.equipments.length > 1
+                                  ? `${maint.equipments[0].hostname || maint.equipments[0].model || 'Equipamento'} (+${maint.equipments.length - 1})`
+                                  : (maint.equipments?.[0]?.hostname || maint.equipment?.hostname || maint.equipment?.patrimony || 'N/A')}
+                              </span>
                             </div>
                             <p className="text-xs text-muted-foreground mt-0.5 ml-5">{maint.store?.name || 'N/A'}</p>
                           </td>

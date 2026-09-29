@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # --- Auth & Users Schemas ---
 
@@ -15,6 +15,14 @@ class PermissionResponse(PermissionBase):
 class RoleBase(BaseModel):
     name: str
     description: Optional[str] = None
+
+class RoleCreate(RoleBase):
+    permission_ids: Optional[List[int]] = []
+
+class RoleUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    permission_ids: Optional[List[int]] = None
 
 class RoleResponse(RoleBase):
     id: int
@@ -834,7 +842,8 @@ class StockItemResponse(StockItemBase):
 
 class MaintenanceRecordBase(BaseModel):
     title: str
-    equipment_id: int
+    equipment_id: Optional[int] = None
+    equipment_ids: Optional[List[int]] = None
     store_id: Optional[int] = None
     department_id: Optional[int] = None
     technical_location_id: Optional[int] = None
@@ -902,9 +911,20 @@ class MaintenanceRecordCreate(MaintenanceRecordBase):
     checklist_items: Optional[List[str]] = None
     checklist_template_id: Optional[int] = None
 
+    @model_validator(mode='after')
+    def validate_equipments(self):
+        if not self.equipment_id and (not self.equipment_ids or len(self.equipment_ids) == 0):
+            raise ValueError("Pelo menos um equipamento deve ser informado (equipment_id ou equipment_ids).")
+        if self.equipment_ids and not self.equipment_id:
+            self.equipment_id = self.equipment_ids[0]
+        elif self.equipment_id and not self.equipment_ids:
+            self.equipment_ids = [self.equipment_id]
+        return self
+
 class MaintenanceRecordUpdate(BaseModel):
     title: Optional[str] = None
     equipment_id: Optional[int] = None
+    equipment_ids: Optional[List[int]] = None
     store_id: Optional[int] = None
     department_id: Optional[int] = None
     technical_location_id: Optional[int] = None
@@ -941,6 +961,7 @@ class MaintenanceRecordStatusUpdate(BaseModel):
 class MaintenanceRecordResponse(MaintenanceRecordBase):
     id: int
     equipment: Optional[EquipmentResponse] = None
+    equipments: List[EquipmentResponse] = []
     store: Optional[StoreResponse] = None
     department: Optional[DepartmentResponse] = None
     technical_location: Optional[TechnicalLocationResponse] = None

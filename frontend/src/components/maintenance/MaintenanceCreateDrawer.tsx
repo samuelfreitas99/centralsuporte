@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
+import { EquipmentMultiSelect } from '@/components/maintenance/EquipmentMultiSelect';
 import { X, Plus, Save, Trash2, CheckSquare } from 'lucide-react';
 import type { MaintenanceCreatePayload } from '@/types/maintenance';
 import type { EquipmentItem } from '@/types/infrastructure';
@@ -45,6 +46,7 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
   const initialForm: MaintenanceCreatePayload = {
     title: '',
     equipment_id: 0,
+    equipment_ids: [],
     store_id: null,
     maintenance_type: 'preventiva',
     priority: 'media',
@@ -68,12 +70,13 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
     onClose();
   };
 
-  const handleEquipmentChange = (eqId: number) => {
-    const eq = equipmentList.find(e => e.id === eqId);
+  const handleEquipmentsChange = (eqIds: number[]) => {
+    const primaryEq = equipmentList.find(e => eqIds.includes(e.id));
     setForm({
       ...form,
-      equipment_id: eqId,
-      store_id: eq?.store_id || null,
+      equipment_ids: eqIds,
+      equipment_id: eqIds[0] || 0,
+      store_id: primaryEq?.store_id || null,
     });
   };
 
@@ -94,8 +97,9 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
   };
 
   const handleSubmit = async () => {
-    if (!form.equipment_id || !form.title) {
-      toastError('Campos obrigatórios', 'Preencha o título e selecione um equipamento.');
+    const selectedCount = form.equipment_ids?.length || (form.equipment_id ? 1 : 0);
+    if (!form.title.trim() || selectedCount === 0) {
+      toastError('Campos obrigatórios', 'Preencha o título e selecione pelo menos um equipamento.');
       return;
     }
     setIsSubmitting(true);
@@ -154,18 +158,12 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold">Equipamento *</label>
-                    <select
-                      value={form.equipment_id || 0}
-                      onChange={e => handleEquipmentChange(Number(e.target.value))}
-                      className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs"
-                      required
-                    >
-                      <option value={0}>Selecione um equipamento...</option>
-                      {equipmentList.map(eq => (
-                        <option key={eq.id} value={eq.id}>{eq.hostname || eq.model} - {eq.patrimony}</option>
-                      ))}
-                    </select>
+                    <label className="text-xs font-semibold">Equipamentos *</label>
+                    <EquipmentMultiSelect
+                      selectedIds={form.equipment_ids || (form.equipment_id ? [form.equipment_id] : [])}
+                      onChange={handleEquipmentsChange}
+                      equipmentList={equipmentList}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">

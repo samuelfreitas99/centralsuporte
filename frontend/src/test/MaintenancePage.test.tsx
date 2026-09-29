@@ -294,8 +294,11 @@ describe('MaintenancePage (Phase 9)', () => {
     fireEvent.change(titleInput, { target: { value: 'Revisão Preventiva Switch 01' } });
 
     // Select equipment
-    const eqSelect = screen.getByDisplayValue(/selecione um equipamento.../i);
-    fireEvent.change(eqSelect, { target: { value: '1' } });
+    const eqTrigger = screen.getByText(/selecione um ou mais equipamentos.../i);
+    fireEvent.click(eqTrigger);
+
+    const eqOption = screen.getAllByText(/PDV-01/i).pop()!;
+    fireEvent.click(eqOption);
 
     const submitBtn = screen.getByRole('button', { name: /salvar/i });
     fireEvent.click(submitBtn);

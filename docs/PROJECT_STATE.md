@@ -1,8 +1,36 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 11.3 (Users / Profiles / Identity Frontend) Concluída e Auditada (APPROVED).
-**Fase atual**: Aguardando definições para a próxima fase (Fase 11.4 / Fase 12).
+**Estado atual**: Fase 11.4 Concluída e Auditada + Refinamentos Operacionais (Projetos/Manutenções/Atendimentos/Tarefas) Validados.
+**Fase atual**: Aguardando definições para a próxima fase (Fase 12 - Knowledge Base ou Files/Uploads).
 **Última implementação**:
+- **Refinamentos Operacionais — Módulo Projetos, Manutenções, Atendimentos e Tarefas (Pós-Fase 11)**:
+  - **Problema 1 (Manutenção para Múltiplos Equipamentos - N:N)**:
+    - Criada migration Alembic segura `db576bdfff35_add_maintenance_equipment_m_to_n.py` criando a tabela de junção `maintenance_equipment` com chaves estrangeiras com `CASCADE`, migrando retroativamente os vínculos existentes em `maintenance_records.equipment_id`, e tornando a coluna `equipment_id` anulável para compatibilidade regressiva.
+    - Modelos `MaintenanceRecord` e `Equipment` atualizados com relationship N:N bidirecional (`MaintenanceRecord.equipments` e `Equipment.maintenances`).
+    - Schemas Pydantic atualizados para suportar `equipment_id` legada, `equipment_ids: Optional[List[int]]` e lista de `equipments: List[EquipmentResponse]`.
+    - Backend router (`maintenances.py`) agora associa atomicamente múltiplos equipamentos na criação e atualização, emite eventos em `equipment_history` para cada ativo envolvido e sincroniza o status de todos os equipamentos (para `em_manutencao` e restauração para `ativo` na conclusão). Filtro por `equipment_id` agora verifica tanto o campo primário quanto a relação N:N.
+    - Criado componente `EquipmentMultiSelect.tsx` no frontend com busca textual rápida (hostname, modelo, patrimônio), checkboxes com contagem visual, badges removíveis individualmente e fallback de lista.
+    - Integrado na criação (`MaintenanceCreateDrawer`), visualização e edição (`MaintenanceDrawer`), e na listagem geral (`MaintenancePage`) com contagem compacta de múltiplos ativos.
+    - Suporte pleno tanto dentro de Projetos quanto em manutenções avulsas fora de projetos.
+  - **Problema 2 (Novo Atendimento a partir de Projeto com Contexto Bloqueado)**:
+    - Verificado e consolidado o deep linking `#attendance?new=true&project_id=X&project_name=Y` a partir do `ProjectWorkspace`.
+    - No `AttendancePage`, a leitura do hash captura o `project_id` e `project_name` (com fallback assíncrono para lookup na API caso o nome não venha na URL), fixa o estado `lockedProjectName` no `ProjectSelect` em modo somente leitura (exibindo selo "Vinculado"), limpa a URL para `#attendance` via `history.replaceState` preservando a aba, e preenche `attendanceForm.project_id`.
+    - Ao submeter o atendimento, o vínculo `project_id` é persistido com sucesso na tabela `attendances`.
+  - **Problema 3 (Clique na Tarefa no Projeto abre Visualização/Detalhes e Ação Explícita de Edição)**:
+    - Desacoplado o clique direto de edição no `ProjectWorkspace`: tanto na aba "Visão Geral" quanto na aba "Tarefas", o clique em qualquer tarefa agora abre o `TaskDetailDrawer` em modo leitura rica (título, instruções completas, status, prioridade, responsável, datas e checklists associados).
+    - O `TaskDetailDrawer` possui botão de ação explícito "Editar Detalhes" que aciona o formulário de edição (`TaskFormDialog`), mantendo o fluxo operacional fluido e evitando alterações acidentais.
+  - **Validação de Testes**:
+    - Backend: 74 testes aprovados no Pytest (incluindo suíte dedicada `tests/test_refinements_maintenance_attendance.py`).
+    - Frontend: 111 testes aprovados no Vitest (incluindo testes dedicados em `RefinementsMaintenanceTaskAttendance.test.tsx`, `AttendancePage.test.tsx` e `MaintenancePage.test.tsx`).
+    - Build: `tsc -b && vite build` finalizado com 0 erros.
+- **Fase 11.4 — RBAC Administration & Identity Integrity Audit**:
+  - Consolidação administrativa do RBAC M:N.
+  - Atualizadas referências legacy frontend `user.role` nas páginas de Attendance e Commands para utilizar o `hasRole('Administrador')` que suporta a estrutura M:N.
+  - Implementado o gerenciamento de Roles (CRUD de papéis e leitura da matriz de permissões disponíveis) no backend `users.py` com schema validado.
+  - Adicionada trava (server-side protection) para garantir que o "último administrador" do sistema não pode ser desativado, deletado ou ter a role de admin removida.
+  - Criação da página visual `RolesPage.tsx` na interface para gerenciamento de perfis e visualização efetiva da Matriz de Permissões (quem acessa o quê).
+  - Adicionados Logs de Auditoria para `CREATE` e `UPDATE` em perfis.
+  - 100% de passagem nos testes integrados frontend (107/107) e backend (69/69), além de sucesso no build (0 errors).
 - **Fase 11.3 — Users / Profiles / Identity Frontend**:
   - Construção da tela de gestão de usuários (`UsersPage.tsx`) com tabela operacional densa, cartões responsivos para mobile, barra de pesquisa, filtros rápidos por status (Todos/Ativos/Inativos), departamento e perfil/role.
   - Implementação do Drawer administrativo (`UserFormDrawer.tsx`) com suporte a criação e edição completa de usuários, seleção múltipla de papéis (M:N via checkboxes), campos de identidade e contato, e bloqueio de segurança contra auto-desativação do próprio administrador logado.
@@ -69,8 +97,8 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat: implement phase 11.3 users profiles and identity frontend
-**Próxima tarefa**: Fase 11.4 / Fase 12 (Aguardando instrução do usuário).
+**Último commit**: feat: implement phase 11.4 rbac administration
+**Próxima tarefa**: Iniciar Fase 12 (Knowledge Base ou Files/Uploads, aguardando user).
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
@@ -85,3 +113,4 @@
 - Endpoints e telas de visualização de perfil (`/users/{id}/profile`) com mascaramento obrigatório de dados sensíveis para terceiros quando sem permissão `users:write`.
 - Navegação hash nativa (`#users`, `#profile`, `#profile?id=X`) respeitando a arquitetura existente da aplicação.
 - Componente `Avatar` independente de APIs externas (Gravatar/Unsplash), priorizando estabilidade e segurança corporativa.
+- Adicionada tela de Roles (Matriz de Permissões) para facilitar administração, protegendo severamente o último administrador contra falhas humanas (auto-bloqueio, desativação acidental e perda de permission `roles:write`).

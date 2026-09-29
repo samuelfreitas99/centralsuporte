@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ArrowLeft, Briefcase, Calendar, Building2, CheckSquare, Wrench, Headset, Settings, Server, Package, Plus, History, PlayCircle, Activity } from 'lucide-react';
+import { ArrowLeft, Briefcase, Calendar, Building2, CheckSquare, Wrench, Headset, Settings, Server, Package, Plus, History, PlayCircle, Activity, HardDrive } from 'lucide-react';
 import { projectService } from '@/services/projectService';
 import { organizationService } from '@/services/organizationService';
 import { maintenanceService } from '@/services/maintenanceService';
@@ -16,6 +16,7 @@ import type { AttendanceItem } from '@/types/attendance';
 import type { EquipmentItem } from '@/types/infrastructure';
 import { ProjectFormDrawer } from './ProjectFormDrawer';
 import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
+import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import { MaintenanceDrawer } from '@/components/maintenance/MaintenanceDrawer';
 import { MaintenanceCreateDrawer } from '@/components/maintenance/MaintenanceCreateDrawer';
 
@@ -43,6 +44,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
   // Modal States
   const [taskFormOpen, setTaskFormOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskDetailOpen, setTaskDetailOpen] = useState(false);
   const [maintenanceCreateOpen, setMaintenanceCreateOpen] = useState(false);
   const [maintenanceDetailsOpen, setMaintenanceDetailsOpen] = useState(false);
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceRecord | null>(null);
@@ -297,7 +300,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                   <CardContent className="p-0">
                     <div className="divide-y divide-border/40">
                       {pendingTasks.length > 0 ? pendingTasks.map(task => (
-                        <div key={`task-${task.id}`} className="p-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors group cursor-pointer" onClick={() => { setTaskToEdit(task); setTaskFormOpen(true); }}>
+                        <div key={`task-${task.id}`} className="p-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors group cursor-pointer" onClick={() => { setSelectedTask(task); setTaskDetailOpen(true); }}>
                           <div className="flex items-start gap-3">
                             <CheckSquare className="h-4 w-4 text-blue-400 mt-0.5" />
                             <div>
@@ -393,15 +396,15 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                 ) : (
                   <div className="divide-y divide-border/40">
                     {tasks.map(task => (
-                      <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors">
+                      <div key={task.id} className="p-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors cursor-pointer group" onClick={() => { setSelectedTask(task); setTaskDetailOpen(true); }}>
                         <div>
-                          <h4 className="font-medium text-sm text-foreground/90">{task.title}</h4>
+                          <h4 className="font-medium text-sm text-foreground/90 group-hover:text-blue-400 transition-colors">{task.title}</h4>
                           <div className="flex gap-2 mt-1.5">
                             <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{task.status.replace('_', ' ')}</span>
                             <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{task.priority}</span>
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm" onClick={() => { setTaskToEdit(task); setTaskFormOpen(true); }}>Abrir</Button>
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedTask(task); setTaskDetailOpen(true); }}>Visualizar</Button>
                       </div>
                     ))}
                   </div>
@@ -437,9 +440,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                       <div key={maint.id} className="p-4 flex items-center justify-between hover:bg-slate-800/40 transition-colors">
                         <div>
                           <h4 className="font-medium text-sm text-foreground/90">{maint.title}</h4>
-                          <div className="flex gap-2 mt-1.5">
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
                             <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{maint.status.replace('_', ' ')}</span>
                             <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{maint.maintenance_type}</span>
+                            {maint.equipments && maint.equipments.length > 0 && (
+                              <span className="text-[10px] text-muted-foreground bg-slate-800/40 px-2 py-0.5 rounded border border-border/40 flex items-center gap-1">
+                                <HardDrive className="h-3 w-3 text-primary shrink-0" />
+                                {maint.equipments.length > 1
+                                  ? `${maint.equipments[0].hostname || maint.equipments[0].model || 'Eq.'} (+${maint.equipments.length - 1})`
+                                  : (maint.equipments[0].hostname || maint.equipments[0].model || '1 equipamento')}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <Button variant="ghost" size="sm" onClick={() => { setSelectedMaintenance(maint); setMaintenanceDetailsOpen(true); }}>Detalhes</Button>
@@ -608,6 +619,26 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
           await handleSaveTask();
         }}
       />
+
+      {selectedTask && (
+        <TaskDetailDrawer
+          task={selectedTask}
+          open={taskDetailOpen}
+          onOpenChange={setTaskDetailOpen}
+          onTaskUpdated={async () => {
+            const updatedTasks = await organizationService.getTasks({ project_id: projectId });
+            setTasks(updatedTasks);
+            const found = updatedTasks.find(t => t.id === selectedTask.id);
+            if (found) setSelectedTask(found);
+            loadData();
+          }}
+          onEditTask={(task) => {
+            setTaskDetailOpen(false);
+            setTaskToEdit(task);
+            setTaskFormOpen(true);
+          }}
+        />
+      )}
 
       <MaintenanceCreateDrawer
         isOpen={maintenanceCreateOpen}

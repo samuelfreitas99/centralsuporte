@@ -228,4 +228,23 @@ describe('AttendancePage (Phase 7)', () => {
       expect(screen.queryByText('Novo Atendimento Técnico')).not.toBeInTheDocument();
     });
   });
+
+  it('opens new attendance modal with locked project context from hash url', async () => {
+    // Set hash simulating click from ProjectWorkspace
+    window.location.hash = '#attendance?new=true&project_id=42&project_name=Projeto%20Loja%20Shopping';
+
+    renderAttendancePage();
+
+    await waitFor(() => {
+      expect(screen.getByText('Novo Atendimento Técnico')).toBeInTheDocument();
+    });
+
+    // Check project read-only display
+    expect(screen.getByText('Projeto Loja Shopping')).toBeInTheDocument();
+    expect(screen.getByText('Vinculado')).toBeInTheDocument();
+
+    // Verify hash was cleanly reset to #attendance
+    expect(window.location.hash).toBe('#attendance');
+  });
 });
+

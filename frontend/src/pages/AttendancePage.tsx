@@ -39,6 +39,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { attendanceService } from '@/services/attendanceService';
+import { projectService } from '@/services/projectService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import type {
@@ -47,7 +48,7 @@ import type {
 } from '@/types/attendance';
 
 export const AttendancePage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, hasRole } = useAuth();
   const { success, error: toastError } = useToast();
 
   // Search & Filter state
@@ -127,9 +128,14 @@ export const AttendancePage: React.FC = () => {
       if (isNew) {
         const projectIdStr = hashParams.get('project_id');
         const projectNameStr = hashParams.get('project_name');
+        const pId = projectIdStr ? parseInt(projectIdStr, 10) : undefined;
         
         if (projectNameStr) {
           setLockedProjectName(decodeURIComponent(projectNameStr));
+        } else if (pId) {
+          projectService.getProject(pId)
+            .then(p => { if (p?.title) setLockedProjectName(p.title); })
+            .catch(() => setLockedProjectName(`Projeto #${pId}`));
         } else {
           setLockedProjectName(undefined);
         }
@@ -150,11 +156,11 @@ export const AttendancePage: React.FC = () => {
           solution: '',
           commands_used: '',
           internal_notes: '',
-          project_id: projectIdStr ? parseInt(projectIdStr, 10) : undefined,
+          project_id: pId,
         });
         setIsFormOpen(true);
-        // Clear hash after capturing 'new' so it doesn't re-trigger infinitely if closed
-        window.history.replaceState(null, '', window.location.pathname + '#');
+        // Clear query parameters while keeping #attendance tab intact
+        window.history.replaceState(null, '', '#attendance');
       } else if (id && attendances.length > 0) {
         const att = attendances.find(a => a.id === Number(id));
         if (att && (!selectedAttendanceDetails || selectedAttendanceDetails.id !== att.id)) {
@@ -167,10 +173,14 @@ export const AttendancePage: React.FC = () => {
       }
     };
 
-    // Run initially and on popstate
+    // Run initially and on popstate/hashchange
     handleHashChange();
     window.addEventListener('popstate', handleHashChange);
-    return () => window.removeEventListener('popstate', handleHashChange);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('popstate', handleHashChange);
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, [attendances, selectedAttendanceDetails]);
 
   // One-click copy commands used
@@ -326,7 +336,7 @@ export const AttendancePage: React.FC = () => {
   // Permissions
   const canModifyAttendance = (att: AttendanceItem) => {
     if (!user) return false;
-    return user.role?.name === 'Administrador' || att.technician_id === user.id;
+    return hasRole('Administrador') || att.technician_id === user.id;
   };
 
   // Status badge config
@@ -797,7 +807,15 @@ export const AttendancePage: React.FC = () => {
       </Drawer>
 
       {/* DRAWER: CREATE / EDIT ATTENDANCE */}
-      <Drawer open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Drawer
+        open={isFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) {
+            setLockedProjectName(undefined);
+          }
+        }}
+      >
         <DrawerContent side="right" size="lg" className="p-0 flex flex-col h-full rounded-l-2xl sm:rounded-l-2xl rounded-tr-none sm:rounded-tr-none">
           <DrawerHeader className="px-6 py-5 bg-card border-b border-border/60">
             <DrawerTitle className="flex items-center gap-2 text-xl">

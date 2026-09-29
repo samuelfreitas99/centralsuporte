@@ -12,6 +12,15 @@ project_equipment = Table(
     Column('added_at', DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 )
 
+# Association table for MaintenanceRecord and Equipment (N:N)
+maintenance_equipment = Table(
+    'maintenance_equipment',
+    Base.metadata,
+    Column('maintenance_id', Integer, ForeignKey('maintenance_records.id', ondelete="CASCADE"), primary_key=True),
+    Column('equipment_id', Integer, ForeignKey('equipment.id', ondelete="CASCADE"), primary_key=True),
+    Column('added_at', DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+)
+
 # Association table for many-to-many relationship between Role and Permission
 # Association table for many-to-many relationship between Role and Permission
 role_permissions = Table(
@@ -530,7 +539,8 @@ class Equipment(Base):
     history = relationship("EquipmentHistory", back_populates="equipment", cascade="all, delete-orphan", order_by="EquipmentHistory.created_at.desc()")
     attendances = relationship("Attendance", back_populates="equipment")
     license_assignments = relationship("LicenseAssignment", back_populates="equipment")
-    maintenances = relationship("MaintenanceRecord", back_populates="equipment", cascade="all, delete-orphan", order_by="MaintenanceRecord.created_at.desc()")
+    legacy_maintenances = relationship("MaintenanceRecord", foreign_keys="MaintenanceRecord.equipment_id", back_populates="equipment")
+    maintenances = relationship("MaintenanceRecord", secondary=maintenance_equipment, back_populates="equipments", order_by="desc(MaintenanceRecord.created_at)")
     projects = relationship("Project", secondary=project_equipment, back_populates="equipment_list")
 
 
@@ -631,7 +641,7 @@ class MaintenanceRecord(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False, index=True)
-    equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="CASCADE"), nullable=False, index=True)
+    equipment_id = Column(Integer, ForeignKey('equipment.id', ondelete="SET NULL"), nullable=True, index=True)
     store_id = Column(Integer, ForeignKey('stores.id', ondelete="SET NULL"), nullable=True, index=True)
     department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
     technical_location_id = Column(Integer, ForeignKey('technical_locations.id', ondelete="SET NULL"), nullable=True, index=True)
@@ -655,7 +665,8 @@ class MaintenanceRecord(Base):
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
     # Relationships
-    equipment = relationship("Equipment", back_populates="maintenances")
+    equipment = relationship("Equipment", foreign_keys=[equipment_id], back_populates="legacy_maintenances")
+    equipments = relationship("Equipment", secondary=maintenance_equipment, back_populates="maintenances", order_by="Equipment.hostname")
     store = relationship("Store")
     department = relationship("Department")
     technical_location = relationship("TechnicalLocation")

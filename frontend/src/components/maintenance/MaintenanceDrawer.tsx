@@ -30,6 +30,7 @@ import type { MaintenanceRecord, MaintenanceUpdatePayload } from '@/types/mainte
 import type { EquipmentItem } from '@/types/infrastructure';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
+import { EquipmentMultiSelect } from '@/components/maintenance/EquipmentMultiSelect';
 
 interface Props {
   isOpen: boolean;
@@ -56,9 +57,14 @@ export const MaintenanceDrawer: React.FC<Props> = ({
   useEffect(() => {
     if (isOpen && maintenance) {
       setIsEditing(false); // reset to view mode
+      const initialEqIds = maintenance.equipments && maintenance.equipments.length > 0
+        ? maintenance.equipments.map(e => e.id)
+        : (maintenance.equipment?.id ? [maintenance.equipment.id] : []);
+
       setFormData({
         title: maintenance.title,
-        equipment_id: maintenance.equipment?.id,
+        equipment_id: initialEqIds[0] || undefined,
+        equipment_ids: initialEqIds,
         maintenance_type: maintenance.maintenance_type,
         priority: maintenance.priority,
         status: maintenance.status,
@@ -92,13 +98,13 @@ export const MaintenanceDrawer: React.FC<Props> = ({
     }
   };
 
-  const handleEquipmentChange = (eqId: number) => {
-    const eq = equipmentList.find(e => e.id === eqId);
-    if (!eq) return;
+  const handleEquipmentsChange = (eqIds: number[]) => {
+    const primaryEq = equipmentList.find(e => eqIds.includes(e.id));
     setFormData({
       ...formData,
-      equipment_id: eq.id,
-      store_id: eq.store_id || undefined,
+      equipment_ids: eqIds,
+      equipment_id: eqIds[0] || undefined,
+      store_id: primaryEq?.store_id || undefined,
     });
   };
 
@@ -203,17 +209,12 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold">Equipamento *</label>
-                    <select
-                      value={formData.equipment_id || 0}
-                      onChange={e => handleEquipmentChange(Number(e.target.value))}
-                      className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs"
-                    >
-                      <option value={0}>Selecione um equipamento...</option>
-                      {equipmentList.map(eq => (
-                        <option key={eq.id} value={eq.id}>{eq.hostname || eq.model} - {eq.patrimony}</option>
-                      ))}
-                    </select>
+                    <label className="text-xs font-semibold">Equipamentos *</label>
+                    <EquipmentMultiSelect
+                      selectedIds={formData.equipment_ids || (formData.equipment_id ? [formData.equipment_id] : [])}
+                      onChange={handleEquipmentsChange}
+                      equipmentList={equipmentList}
+                    />
                   </div>
 
                   <div className="space-y-2">
@@ -338,7 +339,10 @@ export const MaintenanceDrawer: React.FC<Props> = ({
 
                 <div className="flex justify-end gap-3 pt-4 border-t">
                   <Button variant="outline" onClick={() => setIsEditing(false)} disabled={isSaving}>Cancelar</Button>
-                  <Button onClick={handleSave} disabled={isSaving || !formData.title || !formData.equipment_id}>
+                  <Button
+                    onClick={handleSave}
+                    disabled={isSaving || !formData.title || (!formData.equipment_id && (!formData.equipment_ids || formData.equipment_ids.length === 0))}
+                  >
                     <Save className="h-4 w-4 mr-2" />
                     {isSaving ? 'Salvando...' : 'Salvar'}
                   </Button>
@@ -379,27 +383,45 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                 {/* 2. Equipamento e Local Histórico */}
                 <section>
                   <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center">
-                    <HardDrive className="mr-2 h-4 w-4" /> Equipamento & Localização
+                    <HardDrive className="mr-2 h-4 w-4" /> Equipamentos & Localização
                   </h3>
-                  <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Equipamento</p>
-                        <p className="text-sm font-medium">{maintenance.equipment?.hostname || maintenance.equipment?.model || 'Desconhecido'}</p>
+                  <div className="rounded-lg border bg-muted/20 p-4 space-y-4">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <p className="text-xs text-muted-foreground font-medium">Equipamentos Vinculados</p>
+                        <Badge variant="outline" className="text-xs font-normal">
+                          {(maintenance.equipments?.length || (maintenance.equipment ? 1 : 0))} {(maintenance.equipments?.length || (maintenance.equipment ? 1 : 0)) === 1 ? 'equipamento' : 'equipamentos'}
+                        </Badge>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Patrimônio</p>
-                        <p className="text-sm font-medium">{maintenance.equipment?.patrimony || '—'}</p>
+                      <div className="flex flex-wrap gap-2">
+                        {maintenance.equipments && maintenance.equipments.length > 0 ? (
+                          maintenance.equipments.map(eq => (
+                            <Badge key={eq.id} variant="secondary" className="text-xs flex items-center gap-1.5 py-1 px-2.5 bg-background border border-border/70">
+                              <HardDrive className="h-3 w-3 text-primary shrink-0" />
+                              <span className="font-semibold">{eq.hostname || eq.model || 'Equipamento'}</span>
+                              {eq.patrimony && <span className="text-[10px] text-muted-foreground">({eq.patrimony})</span>}
+                            </Badge>
+                          ))
+                        ) : maintenance.equipment ? (
+                          <Badge variant="secondary" className="text-xs flex items-center gap-1.5 py-1 px-2.5 bg-background border border-border/70">
+                            <HardDrive className="h-3 w-3 text-primary shrink-0" />
+                            <span className="font-semibold">{maintenance.equipment.hostname || maintenance.equipment.model || 'Equipamento'}</span>
+                            {maintenance.equipment.patrimony && <span className="text-[10px] text-muted-foreground">({maintenance.equipment.patrimony})</span>}
+                          </Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">Nenhum equipamento registrado</span>
+                        )}
                       </div>
-                      <div className="col-span-2">
-                        <p className="text-xs text-muted-foreground flex items-center">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          Localização Registrada (Snapshot)
-                        </p>
-                        <p className="text-sm font-medium mt-1">
-                          {maintenance.store?.name ? maintenance.store.name : 'Local não registrado'}
-                        </p>
-                      </div>
+                    </div>
+
+                    <div className="border-t border-border/40 pt-3">
+                      <p className="text-xs text-muted-foreground flex items-center">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        Localização Registrada (Snapshot)
+                      </p>
+                      <p className="text-sm font-medium mt-1">
+                        {maintenance.store?.name ? maintenance.store.name : 'Local não registrado'}
+                      </p>
                     </div>
                   </div>
                 </section>
