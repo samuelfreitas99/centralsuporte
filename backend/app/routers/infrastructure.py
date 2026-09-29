@@ -348,6 +348,7 @@ def list_equipment(
     technical_location_id: Optional[int] = Query(None, description="Filtrar por local técnico"),
     equipment_type: Optional[str] = Query(None, description="Filtrar por tipo de equipamento"),
     status: Optional[str] = Query(None, description="Filtrar por status: ativo, em_manutencao, reserva, descartado"),
+    project_id: Optional[int] = Query(None, description="Filtrar por projeto"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -380,6 +381,9 @@ def list_equipment(
         query = query.filter(Equipment.status == status)
     else:
         query = query.filter(Equipment.status != "descartado")
+
+    if project_id:
+        query = query.filter(Equipment.projects.any(id=project_id))
 
     return query.order_by(Equipment.hostname.asc(), Equipment.id.desc()).all()
 

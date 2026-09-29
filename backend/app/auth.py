@@ -63,12 +63,11 @@ def get_current_active_user(current_user: User = Depends(get_current_user)) -> U
 
 def require_permission(required_permission: str):
     def permission_checker(current_user: User = Depends(get_current_active_user)):
-        if current_user.role and current_user.role.name == "Administrador":
+        if current_user.has_role("Administrador"):
             return current_user
-        if current_user.role:
-            user_permissions = [p.name for p in current_user.role.permissions]
-            if required_permission in user_permissions:
-                return current_user
+        user_permissions = {p.name for r in current_user.roles for p in r.permissions}
+        if required_permission in user_permissions:
+            return current_user
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=f"Acesso negado: permissão '{required_permission}' necessária"
@@ -77,7 +76,7 @@ def require_permission(required_permission: str):
 
 def require_role(*role_names: str):
     def role_checker(current_user: User = Depends(get_current_active_user)):
-        if current_user.role and (current_user.role.name in role_names or current_user.role.name == "Administrador"):
+        if current_user.has_role("Administrador", *role_names):
             return current_user
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

@@ -21,19 +21,39 @@ class RoleResponse(RoleBase):
     permissions: List[PermissionResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
+class DepartmentSimpleResponse(BaseModel):
+    id: int
+    name: str
+    status: Optional[str] = "ativa"
+    model_config = ConfigDict(from_attributes=True)
+
 class UserSimpleResponse(BaseModel):
     id: int
     username: str
     email: str
     is_active: bool = True
+    full_name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    job_title: Optional[str] = None
+    department_id: Optional[int] = None
     role_id: Optional[int] = None
+    role: Optional[RoleResponse] = None
     model_config = ConfigDict(from_attributes=True)
 
 class UserBase(BaseModel):
     username: str
     email: str
     is_active: bool = True
+    full_name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    phone: Optional[str] = None
+    job_title: Optional[str] = None
+    department_id: Optional[int] = None
+    preferences: Optional[str] = None
     role_id: Optional[int] = None
+    role_ids: Optional[List[int]] = None
 
 class UserCreate(UserBase):
     password: str
@@ -41,17 +61,67 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     email: Optional[str] = None
     password: Optional[str] = None
-    role_id: Optional[int] = None
     is_active: Optional[bool] = None
+    full_name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    phone: Optional[str] = None
+    job_title: Optional[str] = None
+    department_id: Optional[int] = None
+    preferences: Optional[str] = None
+    role_id: Optional[int] = None
+    role_ids: Optional[List[int]] = None
+
+class UserProfileSelfUpdate(BaseModel):
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    phone: Optional[str] = None
+    preferences: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int
     username: str
     email: str
     is_active: bool
+    full_name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    phone: Optional[str] = None
+    job_title: Optional[str] = None
+    department_id: Optional[int] = None
+    department: Optional[DepartmentSimpleResponse] = None
+    last_login_at: Optional[datetime] = None
+    preferences: Optional[str] = None
     role_id: Optional[int] = None
     role: Optional[RoleResponse] = None
+    roles: List[RoleResponse] = []
     model_config = ConfigDict(from_attributes=True)
+
+class UserProfileResponse(BaseModel):
+    id: int
+    username: str
+    full_name: Optional[str] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    job_title: Optional[str] = None
+    department_id: Optional[int] = None
+    department: Optional[DepartmentSimpleResponse] = None
+    is_active: bool
+    last_login_at: Optional[datetime] = None
+    roles: List[RoleResponse] = []
+    # Private fields: only visible for self or users with users:read/admin
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    preferences: Optional[str] = None
+    model_config = ConfigDict(from_attributes=True)
+
+class UserStatsResponse(BaseModel):
+    user_id: int
+    open_tasks: int = 0
+    resolved_attendances: int = 0
+    active_projects: int = 0
+    completed_maintenances: int = 0
+    authored_articles: int = 0
 
 class LoginRequest(BaseModel):
     username: str

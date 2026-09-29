@@ -208,7 +208,7 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
         if recurrent_equipment:
             admin_users = (
                 db.query(User)
-                .join(Role)
+                .join(User.roles)
                 .filter(Role.name.in_(["Administrador", "Gestor"]))
                 .all()
             )

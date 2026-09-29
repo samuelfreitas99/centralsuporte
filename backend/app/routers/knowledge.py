@@ -27,7 +27,7 @@ from app.schemas import (
 router = APIRouter(prefix="/knowledge", tags=["Knowledge Base"])
 
 def is_admin(user: User) -> bool:
-    return bool(user.role and user.role.name == "Administrador")
+    return user.has_role("Administrador")
 
 # --- Categories Endpoints ---
 

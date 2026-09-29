@@ -15,7 +15,7 @@ from app.schemas import (
 router = APIRouter(prefix="/calendar/events", tags=["Calendar"])
 
 def is_admin(user: User) -> bool:
-    return bool(user.role and user.role.name == "Administrador")
+    return user.has_role("Administrador")
 
 @router.get("", response_model=List[CalendarEventResponse])
 def list_events(

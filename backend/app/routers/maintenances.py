@@ -29,7 +29,7 @@ router = APIRouter(prefix="/maintenances", tags=["Maintenances"])
 
 
 def is_admin_or_manager(user: User) -> bool:
-    return bool(user.role and user.role.name in ["Administrador", "Gestor"])
+    return user.has_role("Administrador", "Gestor")
 
 
 @router.get("/metrics/summary", response_model=MaintenanceSummaryMetrics)

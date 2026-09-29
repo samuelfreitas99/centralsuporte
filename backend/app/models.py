@@ -13,11 +13,20 @@ project_equipment = Table(
 )
 
 # Association table for many-to-many relationship between Role and Permission
+# Association table for many-to-many relationship between Role and Permission
 role_permissions = Table(
     'role_permissions',
     Base.metadata,
     Column('role_id', Integer, ForeignKey('roles.id', ondelete="CASCADE"), primary_key=True),
     Column('permission_id', Integer, ForeignKey('permissions.id', ondelete="CASCADE"), primary_key=True)
+)
+
+# Association table for many-to-many relationship between User and Role
+user_roles = Table(
+    'user_roles',
+    Base.metadata,
+    Column('user_id', Integer, ForeignKey('users.id', ondelete="CASCADE"), primary_key=True),
+    Column('role_id', Integer, ForeignKey('roles.id', ondelete="CASCADE"), primary_key=True)
 )
 
 # Association table for many-to-many relationship between Task and User (assigned users)
@@ -63,7 +72,7 @@ class Role(Base):
     description = Column(String(255))
     
     permissions = relationship("Permission", secondary=role_permissions, back_populates="roles")
-    users = relationship("User", back_populates="role")
+    users = relationship("User", secondary=user_roles, back_populates="roles")
 
 class User(Base):
     __tablename__ = "users"
@@ -73,32 +82,79 @@ class User(Base):
     email = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    
-    role_id = Column(Integer, ForeignKey('roles.id'))
-    role = relationship("Role", back_populates="users")
+
+    # Identity and Profile fields (Phase 11.2)
+    full_name = Column(String(150), nullable=True)
+    display_name = Column(String(100), nullable=True)
+    avatar_url = Column(String(512), nullable=True)
+    phone = Column(String(50), nullable=True)
+    job_title = Column(String(100), nullable=True)
+    department_id = Column(Integer, ForeignKey('departments.id', ondelete="SET NULL"), nullable=True, index=True)
+    last_login_at = Column(DateTime(timezone=True), nullable=True)
+    preferences = Column(Text, nullable=True)
+
+    # Relationships
+    department = relationship("Department", back_populates="users")
+    roles = relationship("Role", secondary=user_roles, back_populates="users")
+
+    def __init__(self, **kwargs):
+        role_id = kwargs.pop("role_id", None)
+        role = kwargs.pop("role", None)
+        super().__init__(**kwargs)
+        if role is not None:
+            self.roles = [role]
+        elif role_id is not None:
+            from app.database import SessionLocal
+            db = SessionLocal()
+            try:
+                r = db.query(Role).filter(Role.id == role_id).first()
+                if r:
+                    self.roles = [r]
+            finally:
+                db.close()
+
+    @property
+    def role(self):
+        return self.roles[0] if self.roles else None
+
+    @role.setter
+    def role(self, value):
+        self.roles = [value] if value else []
+
+    @property
+    def role_id(self):
+        return self.roles[0].id if self.roles else None
+
+    def has_role(self, *role_names: str) -> bool:
+        return any(r.name in role_names for r in self.roles)
+
+    def has_permission(self, permission_name: str) -> bool:
+        if self.has_role("Administrador"):
+            return True
+        return any(p.name == permission_name for r in self.roles for p in r.permissions)
 
     # Relationships for Phase 4 (Organization)
-    created_tasks = relationship("Task", foreign_keys="Task.creator_id", back_populates="creator")
+    created_tasks = relationship("Task", foreign_keys="Task.creator_id", back_populates="creator", passive_deletes=True)
     assigned_tasks = relationship("Task", secondary=task_assignments, back_populates="assigned_users")
-    created_checklists = relationship("Checklist", back_populates="creator")
+    created_checklists = relationship("Checklist", back_populates="creator", passive_deletes=True)
     reminders = relationship("Reminder", back_populates="user")
     calendar_events = relationship("CalendarEvent", back_populates="user")
 
     # Relationships for Phase 5 (Knowledge)
-    authored_articles = relationship("KnowledgeArticle", foreign_keys="KnowledgeArticle.author_id", back_populates="author")
+    authored_articles = relationship("KnowledgeArticle", foreign_keys="KnowledgeArticle.author_id", back_populates="author", passive_deletes=True)
     favorite_articles = relationship("KnowledgeArticle", secondary=article_favorites, back_populates="favorited_by")
 
     # Relationships for Phase 6 (Commands & Standard Responses)
-    authored_commands = relationship("Command", foreign_keys="Command.author_id", back_populates="author")
-    authored_responses = relationship("StandardResponse", foreign_keys="StandardResponse.author_id", back_populates="author")
+    authored_commands = relationship("Command", foreign_keys="Command.author_id", back_populates="author", passive_deletes=True)
+    authored_responses = relationship("StandardResponse", foreign_keys="StandardResponse.author_id", back_populates="author", passive_deletes=True)
 
     # Relationships for Phase 7 (Attendances)
-    attendances = relationship("Attendance", foreign_keys="Attendance.technician_id", back_populates="technician")
-    attendance_notes = relationship("AttendanceNote", foreign_keys="AttendanceNote.author_id", back_populates="author")
+    attendances = relationship("Attendance", foreign_keys="Attendance.technician_id", back_populates="technician", passive_deletes=True)
+    attendance_notes = relationship("AttendanceNote", foreign_keys="AttendanceNote.author_id", back_populates="author", passive_deletes=True)
 
     # Relationships for Phase 10 (Projects)
-    owned_projects = relationship("Project", foreign_keys="Project.owner_id", back_populates="owner")
-    project_notes = relationship("ProjectNote", foreign_keys="ProjectNote.author_id", back_populates="author")
+    owned_projects = relationship("Project", foreign_keys="Project.owner_id", back_populates="owner", passive_deletes=True)
+    project_notes = relationship("ProjectNote", foreign_keys="ProjectNote.author_id", back_populates="author", passive_deletes=True)
 
 class Task(Base):
     __tablename__ = "tasks"
@@ -422,6 +478,7 @@ class Department(Base):
     store = relationship("Store", back_populates="departments")
     equipment = relationship("Equipment", back_populates="department")
     technical_locations = relationship("TechnicalLocation", back_populates="department")
+    users = relationship("User", back_populates="department")
 
 
 class TechnicalLocation(Base):

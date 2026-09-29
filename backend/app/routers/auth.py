@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -53,6 +54,7 @@ def login(login_data: LoginRequest, request: Request, db: Session = Depends(get_
             detail="Usuário inativo. Contate o administrador."
         )
         
+    user.last_login_at = datetime.utcnow()
     access_token = create_access_token(data={"sub": user.username})
 
     record_audit_log(

@@ -87,9 +87,14 @@ def init_db_data(db: Session):
             email="admin@centralsuporte.local",
             hashed_password=get_password_hash(default_pwd),
             is_active=True,
-            role_id=admin_role.id if admin_role else None
+            full_name="Administrador do Sistema",
+            display_name="Admin"
         )
+        if admin_role:
+            admin_user.roles.append(admin_role)
         db.add(admin_user)
         logger.info("Default admin user created: admin")
+    elif admin_role and admin_role not in admin_user.roles:
+        admin_user.roles.append(admin_role)
 
     db.commit()

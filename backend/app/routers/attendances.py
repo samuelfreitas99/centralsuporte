@@ -18,7 +18,7 @@ from app.schemas import (
 router = APIRouter(prefix="/attendances", tags=["Attendances"])
 
 def is_admin(user: User) -> bool:
-    return bool(user.role and user.role.name == "Administrador")
+    return user.has_role("Administrador")
 
 @router.get("", response_model=List[AttendanceResponse])
 def list_attendances(
