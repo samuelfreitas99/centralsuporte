@@ -12,12 +12,14 @@ export const attendanceService = {
     technician_id?: number;
     has_otrs?: boolean;
     search?: string;
+    project_id?: number;
   }): Promise<AttendanceItem[]> => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.append('status', params.status);
     if (params?.technician_id) searchParams.append('technician_id', String(params.technician_id));
     if (params?.has_otrs !== undefined) searchParams.append('has_otrs', String(params.has_otrs));
     if (params?.search) searchParams.append('search', params.search);
+    if (params?.project_id !== undefined) searchParams.append('project_id', String(params.project_id));
 
     const queryString = searchParams.toString();
     const endpoint = `/attendances${queryString ? `?${queryString}` : ''}`;

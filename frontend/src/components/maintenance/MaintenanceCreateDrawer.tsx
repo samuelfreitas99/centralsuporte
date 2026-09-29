@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import { X, Plus, Save, Trash2, CheckSquare } from 'lucide-react';
 import type { MaintenanceCreatePayload } from '@/types/maintenance';
 import type { EquipmentItem } from '@/types/infrastructure';
@@ -24,6 +25,8 @@ interface Props {
   equipmentList: EquipmentItem[];
   checklistTemplates: ChecklistTemplate[];
   onSuccess: (newMaintenance: any) => void;
+  initialProjectId?: number | null;
+  initialProjectName?: string;
 }
 
 export const MaintenanceCreateDrawer: React.FC<Props> = ({
@@ -31,7 +34,9 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
   onClose,
   equipmentList,
   checklistTemplates,
-  onSuccess
+  onSuccess,
+  initialProjectId,
+  initialProjectName
 }) => {
   const { success, error: toastError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,6 +55,7 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
     checklist_items: [],
     checklist_template_id: undefined,
     attendance_id: null,
+    project_id: initialProjectId || null,
   };
 
   const [form, setForm] = useState<MaintenanceCreatePayload>(initialForm);
@@ -236,6 +242,16 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
                         placeholder="Ex: 1234"
                       />
                     </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold">Projeto Operacional (Opcional)</label>
+                    <ProjectSelect
+                      value={form.project_id || null}
+                      onChange={projectId => setForm({ ...form, project_id: projectId || null })}
+                      disabled={isSubmitting}
+                      lockedContextName={initialProjectName}
+                    />
                   </div>
 
                   {/* Template Selection */}

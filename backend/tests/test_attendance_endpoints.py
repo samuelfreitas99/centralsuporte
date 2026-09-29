@@ -122,3 +122,39 @@ def test_attendance_delete_lifecycle():
 
     check_res = client.get(f"/attendances/{att_id}", headers=headers)
     assert check_res.status_code == 404
+
+def test_attendance_project_association():
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Create a project first
+    proj_res = client.post(
+        "/projects/",
+        json={
+            "title": "Projeto Integração Atendimento",
+            "description": "Test for attendance linking",
+            "status": "planejamento"
+        },
+        headers=headers
+    )
+    assert proj_res.status_code == 201
+    project_id = proj_res.json()["id"]
+
+    # Create attendance linked to project
+    att_res = client.post(
+        "/attendances",
+        json={
+            "title": "Atendimento vinculado ao projeto",
+            "project_id": project_id
+        },
+        headers=headers
+    )
+    assert att_res.status_code == 201
+    att_data = att_res.json()
+    assert att_data["project_id"] == project_id
+    att_id = att_data["id"]
+
+    # Fetch attendance and verify link is maintained
+    get_res = client.get(f"/attendances/{att_id}", headers=headers)
+    assert get_res.status_code == 200
+    assert get_res.json()["project_id"] == project_id

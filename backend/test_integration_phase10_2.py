@@ -54,6 +54,9 @@ def setup_db():
         stock_item = StockItem(name="Teclado Teste 10.2", current_quantity=10, min_quantity=2)
         db.add(stock_item)
         db.commit()
+    else:
+        stock_item.current_quantity = 10
+        db.commit()
 
     yield {
         "db": db, 

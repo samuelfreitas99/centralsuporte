@@ -45,6 +45,8 @@ export interface Task {
   updated_at: string;
   assigned_users: UserSimple[];
   checklists: Checklist[];
+  project_id?: number | null;
+  project_stage?: string | null;
 }
 
 export interface TaskCreatePayload {
@@ -57,6 +59,8 @@ export interface TaskCreatePayload {
   category?: string;
   otrs_reference?: string;
   assigned_user_ids?: number[];
+  project_id?: number | null;
+  project_stage?: string;
 }
 
 export interface TaskUpdatePayload {
@@ -69,6 +73,8 @@ export interface TaskUpdatePayload {
   category?: string;
   otrs_reference?: string;
   assigned_user_ids?: number[];
+  project_id?: number | null;
+  project_stage?: string | null;
 }
 
 export interface Reminder {

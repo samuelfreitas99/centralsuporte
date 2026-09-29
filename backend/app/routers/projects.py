@@ -184,7 +184,7 @@ def update_project_note(
         
     if note.author_id != current_user.id:
         # Só o autor ou admin pode editar? O prompt não especificou, vamos deixar só o autor ou admin.
-        has_admin = any(p.name == "users:write" for p in current_user.role.permissions) if current_user.role else False
+        has_admin = current_user.has_permission("users:write")
         if not has_admin:
             raise HTTPException(status_code=403, detail="Not authorized to edit this note")
 
@@ -208,7 +208,7 @@ def delete_project_note(
         raise HTTPException(status_code=404, detail="Project Note not found")
         
     if note.author_id != current_user.id:
-        has_admin = any(p.name == "users:write" for p in current_user.role.permissions) if current_user.role else False
+        has_admin = current_user.has_permission("users:write")
         if not has_admin:
             raise HTTPException(status_code=403, detail="Not authorized to delete this note")
 

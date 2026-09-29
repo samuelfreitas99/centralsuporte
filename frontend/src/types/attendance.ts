@@ -41,6 +41,7 @@ export interface AttendanceItem {
   internal_notes?: string | null;
   knowledge_article_id?: number | null;
   notes: AttendanceNoteItem[];
+  project_id?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -61,6 +62,7 @@ export interface AttendanceCreateInput {
   solution?: string;
   commands_used?: string;
   internal_notes?: string;
+  project_id?: number | null;
 }
 
 export interface AttendanceUpdateInput {
@@ -79,4 +81,5 @@ export interface AttendanceUpdateInput {
   solution?: string;
   commands_used?: string;
   internal_notes?: string;
+  project_id?: number | null;
 }

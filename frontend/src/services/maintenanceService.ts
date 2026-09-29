@@ -17,6 +17,7 @@ export const maintenanceService = {
     store_id?: number;
     technician_id?: number;
     search?: string;
+    project_id?: number;
   }): Promise<MaintenanceRecord[]> => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.append('status', params.status);
@@ -26,6 +27,7 @@ export const maintenanceService = {
     if (params?.store_id) searchParams.append('store_id', String(params.store_id));
     if (params?.technician_id) searchParams.append('technician_id', String(params.technician_id));
     if (params?.search) searchParams.append('search', params.search);
+    if (params?.project_id !== undefined) searchParams.append('project_id', String(params.project_id));
 
     const queryString = searchParams.toString();
     const endpoint = `/maintenances${queryString ? `?${queryString}` : ''}`;

@@ -29,6 +29,7 @@ import { maintenanceService } from '@/services/maintenanceService';
 import type { MaintenanceRecord, MaintenanceUpdatePayload } from '@/types/maintenance';
 import type { EquipmentItem } from '@/types/infrastructure';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
+import { ProjectSelect } from '@/components/projects/ProjectSelect';
 
 interface Props {
   isOpen: boolean;
@@ -71,6 +72,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
         internal_notes: maintenance.internal_notes || '',
         result: maintenance.result || undefined,
         cost: maintenance.cost || undefined,
+        project_id: maintenance.project_id || null,
       });
     }
   }, [isOpen, maintenance]);
@@ -269,6 +271,14 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                       value={formData.attendance_id || ''}
                       onChange={e => setFormData({ ...formData, attendance_id: e.target.value ? Number(e.target.value) : null })}
                       placeholder="Ex: 1234"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold">Projeto Operacional</label>
+                    <ProjectSelect
+                      value={formData.project_id || null}
+                      onChange={projectId => setFormData({ ...formData, project_id: projectId || null })}
                     />
                   </div>
                 </div>

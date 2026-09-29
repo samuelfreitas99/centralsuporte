@@ -40,6 +40,7 @@ import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { attendanceService } from '@/services/attendanceService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
+import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import type {
   AttendanceItem,
   AttendanceCreateInput,
@@ -78,7 +79,11 @@ export const AttendancePage: React.FC = () => {
     solution: '',
     commands_used: '',
     internal_notes: '',
+    project_id: undefined,
   });
+
+  const [lockedProjectName, setLockedProjectName] = useState<string | undefined>();
+
 
   // Drawer state: Details
   const [selectedAttendanceDetails, setSelectedAttendanceDetails] = useState<AttendanceItem | null>(null);
@@ -115,15 +120,48 @@ export const AttendancePage: React.FC = () => {
   // Deep linking: Open drawer if ID is in hash
   useEffect(() => {
     const handleHashChange = () => {
-      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+      const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
       const id = hashParams.get('id');
-      if (id && attendances.length > 0) {
+      const isNew = hashParams.get('new') === 'true';
+      
+      if (isNew) {
+        const projectIdStr = hashParams.get('project_id');
+        const projectNameStr = hashParams.get('project_name');
+        
+        if (projectNameStr) {
+          setLockedProjectName(decodeURIComponent(projectNameStr));
+        } else {
+          setLockedProjectName(undefined);
+        }
+
+        setEditingAttendance(null);
+        setAttendanceForm({
+          title: '',
+          otrs_ticket: '',
+          otrs_url: '',
+          requester_name: '',
+          status: 'em_andamento',
+          equipment_name: '',
+          store_department: '',
+          problem_description: '',
+          symptoms: '',
+          diagnosis: '',
+          cause: '',
+          solution: '',
+          commands_used: '',
+          internal_notes: '',
+          project_id: projectIdStr ? parseInt(projectIdStr, 10) : undefined,
+        });
+        setIsFormOpen(true);
+        // Clear hash after capturing 'new' so it doesn't re-trigger infinitely if closed
+        window.history.replaceState(null, '', window.location.pathname + '#');
+      } else if (id && attendances.length > 0) {
         const att = attendances.find(a => a.id === Number(id));
         if (att && (!selectedAttendanceDetails || selectedAttendanceDetails.id !== att.id)) {
           setSelectedAttendanceDetails(att);
           setDetailsTab('info');
         }
-      } else {
+      } else if (!isNew) {
         // If there's no ID in the hash, close the drawer
         setSelectedAttendanceDetails(null);
       }
@@ -192,10 +230,12 @@ export const AttendancePage: React.FC = () => {
         solution: att.solution || '',
         commands_used: att.commands_used || '',
         internal_notes: att.internal_notes || '',
+        project_id: att.project_id || undefined,
       });
       setSelectedAttendanceDetails(null); // Close details if open
     } else {
       setEditingAttendance(null);
+      setLockedProjectName(undefined);
       setAttendanceForm({
         title: '',
         otrs_ticket: '',
@@ -211,6 +251,7 @@ export const AttendancePage: React.FC = () => {
         solution: '',
         commands_used: '',
         internal_notes: '',
+        project_id: undefined,
       });
     }
     setIsFormOpen(true);
@@ -840,6 +881,14 @@ export const AttendancePage: React.FC = () => {
                       onChange={(e) => setAttendanceForm({ ...attendanceForm, equipment_name: e.target.value })}
                       placeholder="Nome ou patrimônio (Ex: PDV01)"
                       className="bg-card border-border/60 h-10"
+                    />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <label className="text-xs font-bold text-foreground mb-1.5 block">Projeto Operacional</label>
+                    <ProjectSelect
+                      value={attendanceForm.project_id || null}
+                      onChange={(projectId) => setAttendanceForm({ ...attendanceForm, project_id: projectId || null })}
+                      lockedContextName={lockedProjectName}
                     />
                   </div>
                 </div>

@@ -51,6 +51,7 @@ export interface MaintenanceRecord {
   store?: StoreItem | null;
   technician?: UserSimple | null;
   checklists: Checklist[];
+  project_id?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +78,7 @@ export interface MaintenanceCreatePayload {
   checklist_title?: string;
   checklist_items?: string[];
   checklist_template_id?: number;
+  project_id?: number | null;
 }
 
 export interface MaintenanceUpdatePayload {
@@ -98,6 +100,7 @@ export interface MaintenanceUpdatePayload {
   attendance_id?: number | null;
   cost?: number | null;
   internal_notes?: string;
+  project_id?: number | null;
 }
 
 export interface MaintenanceStatusPayload {

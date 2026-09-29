@@ -8,12 +8,15 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import type { Task, TaskCreatePayload, TaskUpdatePayload } from '@/types/tasks';
 
 interface TaskFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   taskToEdit?: Task | null;
+  initialProjectId?: number | null;
+  initialProjectName?: string;
   onSave: (payload: TaskCreatePayload | TaskUpdatePayload) => Promise<void>;
 }
 
@@ -21,6 +24,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
   open,
   onOpenChange,
   taskToEdit,
+  initialProjectId,
+  initialProjectName,
   onSave,
 }) => {
   const [title, setTitle] = useState('');
@@ -31,6 +36,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
   const [category, setCategory] = useState('');
   const [otrsReference, setOtrsReference] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [projectId, setProjectId] = useState<number | null>(null);
+  const [projectStage, setProjectStage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,6 +51,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
       setCategory(taskToEdit.category || '');
       setOtrsReference(taskToEdit.otrs_reference || '');
       setDueDate(taskToEdit.due_date ? taskToEdit.due_date.substring(0, 16) : '');
+      setProjectId(taskToEdit.project_id || null);
+      setProjectStage(taskToEdit.project_stage || '');
     } else {
       setTitle('');
       setDescription('');
@@ -53,6 +62,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
       setCategory('Infraestrutura');
       setOtrsReference('');
       setDueDate('');
+      setProjectId(initialProjectId || null);
+      setProjectStage('');
     }
     setError(null);
   }, [taskToEdit, open]);
@@ -77,6 +88,8 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
         category: category.trim() || undefined,
         otrs_reference: otrsReference.trim() || undefined,
         due_date: dueDate ? new Date(dueDate).toISOString() : null,
+        project_id: projectId,
+        project_stage: projectId ? (projectStage.trim() || undefined) : undefined,
       };
 
       await onSave(payload);
@@ -181,6 +194,33 @@ export const TaskFormDialog: React.FC<TaskFormDialogProps> = ({
                 disabled={loading}
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">Projeto Operacional</label>
+              <ProjectSelect
+                value={projectId}
+                onChange={(id) => {
+                  setProjectId(id);
+                  if (!id) setProjectStage('');
+                }}
+                disabled={loading}
+                lockedContextName={initialProjectName}
+              />
+            </div>
+
+            {projectId && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Etapa do Projeto</label>
+                <Input
+                  value={projectStage}
+                  onChange={(e) => setProjectStage(e.target.value)}
+                  placeholder="Ex: Infraestrutura, Rede"
+                  disabled={loading}
+                />
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

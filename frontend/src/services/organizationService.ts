@@ -20,6 +20,7 @@ export const organizationService = {
     category?: string;
     search?: string;
     assigned_to_me?: boolean;
+    project_id?: number;
   }): Promise<Task[]> => {
     const query = new URLSearchParams();
     if (params?.status) query.append('status', params.status);
@@ -28,6 +29,7 @@ export const organizationService = {
     if (params?.category) query.append('category', params.category);
     if (params?.search) query.append('search', params.search);
     if (params?.assigned_to_me) query.append('assigned_to_me', 'true');
+    if (params?.project_id !== undefined) query.append('project_id', params.project_id.toString());
 
     const qs = query.toString();
     return request<Task[]>(`/tasks${qs ? `?${qs}` : ''}`);
