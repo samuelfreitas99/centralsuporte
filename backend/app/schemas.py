@@ -999,6 +999,7 @@ class AttachmentResponse(AttachmentBase):
     uploader_id: Optional[int] = None
     uploader: Optional[UserSimpleResponse] = None
     created_at: datetime
+    deleted_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
 
 

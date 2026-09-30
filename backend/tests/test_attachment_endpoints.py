@@ -90,7 +90,10 @@ def test_attachment_lifecycle_and_security(tmp_path):
     assert created_att["entity_type"] == "attendance"
     assert created_att["entity_id"] == 99
     assert created_att["file_size"] == len(fake_content)
-    assert created_att["file_hash"] is not None
+    assert "file_path" not in created_att
+    assert "stored_filename" in created_att
+    assert created_att["stored_filename"].endswith(".log")
+    stored_filename = created_att["stored_filename"]
     attachment_id = created_att["id"]
 
     # 2. List attachments filtered by entity
@@ -108,6 +111,7 @@ def test_attachment_lifecycle_and_security(tmp_path):
     res_meta = client.get(f"/attachments/{attachment_id}", headers=headers)
     assert res_meta.status_code == 200
     assert res_meta.json()["id"] == attachment_id
+    assert "file_path" not in res_meta.json()
 
     # 4. Preview attachment (inline)
     res_preview = client.get(f"/attachments/{attachment_id}/preview", headers=headers)
@@ -121,10 +125,30 @@ def test_attachment_lifecycle_and_security(tmp_path):
     assert res_download.content == fake_content
     assert "attachment" in res_download.headers.get("content-disposition", "")
 
-    # 6. Delete attachment
+    # 6. Delete attachment (Soft delete)
     res_delete = client.delete(f"/attachments/{attachment_id}", headers=headers)
     assert res_delete.status_code == 200
 
-    # 7. Verify deletion
+    # 7. Verify soft deletion: not visible via API
     res_meta_after = client.get(f"/attachments/{attachment_id}", headers=headers)
     assert res_meta_after.status_code == 404
+
+    # 8. Verify soft deletion in DB: record exists with deleted_at set
+    from app.services.storage import get_storage
+    from app.models import Attachment
+    db = SessionLocal()
+    try:
+        db_att = db.query(Attachment).filter(Attachment.id == attachment_id).first()
+        assert db_att is not None
+        assert db_att.deleted_at is not None
+
+        # 9. Verify physical file is NOT deleted from storage during soft delete
+        storage = get_storage()
+        assert storage.exists(stored_filename) is True
+
+        # Clean up test artifact from storage and DB
+        storage.delete(stored_filename)
+        db.delete(db_att)
+        db.commit()
+    finally:
+        db.close()

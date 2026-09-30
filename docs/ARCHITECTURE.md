@@ -23,8 +23,9 @@ O sistema evita o modelo de "uma grande teia de aranha" mantendo limites context
 ### Cofre de Senhas
 * Pertencerá a um domínio de infraestrutura altamente isolado. Terá sua própria suíte de injeção de dependências para gerenciar a Chave de Criptografia Mestra (que ficará estritamente em `.env` do SO, nunca hardcoded).
 
-### Evolução da Biblioteca Documental (Arquivos)
-* O serviço de `attachments` atual transitará para o domínio `documents`. A arquitetura de armazenamento no disco `/app/uploads` e os hash SHA-256 continuam, mas o banco trocará a coluna estrita `entity_id` por tabelas de junção N:N para garantir reuso do mesmo PDF/Nota Fiscal.
+### Camada de Storage e Arquivos (Fase 12)
+* O armazenamento físico é estritamente isolado da API através da interface `StorageAdapter`. A implementação padrão é `LocalFileSystemStorage` (diretório persistente configurável, como `/app/uploads`). O banco de dados armazena apenas metadados lógicos e o identificador físico `stored_filename` (`UUID + extensão sanitizada`), sem persistir caminhos absolutos.
+* Deleções realizam soft delete (`deleted_at`), preservando a consistência transacional e mantendo os arquivos físicos para futura rotina assíncrona de Garbage Collection. A autorização contextual é centralizada no `FileAccessService`.
 
 ## 4. Evolução do Dashboard
 * O Dashboard abandonará as "queries isoladas aleatórias" e passará a consumir um `DashboardService` que unificará KPIs de "Início de Turno" (Agenda do Dia, Tarefas Atrasadas, Licenças Vencendo nos próximos 7 dias).

@@ -36,10 +36,22 @@ Este documento descreve o **modelo conceitual** das entidades para orientar a ev
   - *Integração Futura*: `vault_secret_id` (opcional, caso a ativação exija login no portal do fornecedor - **A ser implementado somente quando o módulo Vault existir**).
 * **LicenseAssignment:** Atribuição do "assento" da licença a um `user_id`, `equipment_id`, ou email genérico.
 
-## 6. Documentos
-* **Document (Nova visão para Arquivos):**
-  - `id`, `title`, `mime_type`, `file_hash`, `stored_path`, `upload_by`
-  - *Diferença:* Substitui o acoplamento fixo (`entity_type` e `entity_id`). Utilizará tabelas associativas N:N (`document_equipment`, `document_attendance`, `document_project`), permitindo que a cópia da Nota Fiscal seja atrelada simultaneamente à Loja, ao Equipamento e ao Projeto.
+## 6. Arquivos e Anexos (Fase 12)
+* **Attachment (Anexos e Documentos):**
+  - `id`: Chave primária inteira.
+  - `original_filename`: Nome original do arquivo informado no upload (apenas metadado).
+  - `stored_filename`: Identificador único no storage (`UUID + extensão sanitizada`). Único e indexado.
+  - `file_size`: Tamanho em bytes.
+  - `mime_type`: Content-Type (ex: `application/pdf`, `image/jpeg`).
+  - `file_hash`: Digest SHA-256 do arquivo físico.
+  - `entity_type`: Tipo da entidade vinculada (`attendance`, `knowledge`, `maintenance`, `equipment`, `task`, `project`).
+  - `entity_id`: ID da entidade vinculada.
+  - `description`: Descrição opcional.
+  - `uploader_id`: FK para `User` (on delete SET NULL).
+  - `created_at`: Data e hora do upload.
+  - `deleted_at`: Data e hora de soft delete (exclui de consultas ativas; arquivo físico mantido para Garbage Collection).
+  - *Desacoplamento físico:* A coluna legada `file_path` (caminho absoluto) foi removida. A resolução de caminhos físicos e I/O é responsabilidade exclusiva do `StorageAdapter`.
+
 
 ## 7. Controle Operacional (Compras)
 * **Quotation (Cotação):**

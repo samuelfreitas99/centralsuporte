@@ -1,8 +1,20 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 11.4 Concluída e Auditada + Refinamentos Operacionais (Projetos/Manutenções/Atendimentos/Tarefas) Validados.
-**Fase atual**: Aguardando definições para a próxima fase (Fase 12 - Knowledge Base ou Files/Uploads).
+**Estado atual**: Fase 12.2 (Tarefa 1 — StorageAdapter + Banco de Dados) concluída com sucesso.
+**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 2 (FileAccessService + Registry Pattern + validators contextuais).
 **Última implementação**:
+- **Fase 12.2 — Tarefa 1: StorageAdapter + Banco de Dados**:
+  - Implementada a abstração `StorageAdapter` e a classe concreta `LocalFileSystemStorage` em `backend/app/services/storage.py`, desacoplando operações de filesystem da API FastAPI e de sessões SQLAlchemy.
+  - Implementado isolamento seguro de arquivos físicos: geração de nomes físicos via UUID + extensão sanitizada (o nome original jamais é usado no sistema de arquivos).
+  - Prevenção rigorosa de path traversal via validação e contenção realpath.
+  - Atualizado o modelo `Attachment` em `backend/app/models.py`: remoção da coluna `file_path` (caminhos absolutos eliminados do banco e da API) e adição de `deleted_at` com índice para suporte a soft delete.
+  - Criada migration Alembic dedicada `253c127af363_remove_file_path_and_add_deleted_at_to_.py`, garantindo migração de dados segura antes do drop da coluna `file_path`, com upgrade e downgrade 100% testados e validados.
+  - Atualizado `backend/app/routers/attachments.py` para utilizar `StorageAdapter` via injeção de dependência e soft delete (marcação de `deleted_at` sem remoção física imediata do arquivo, preservando dados para futura rotina de Garbage Collection).
+  - Criada suíte de testes dedicada `backend/tests/test_storage_adapter.py` cobrindo o ciclo de storage, segurança e integridade do modelo. 100% de aprovação (82/82 testes pytest no backend, 111/111 testes vitest no frontend, build limpo com 0 erros).
+- **Fase 12.1 — Planejamento de Files / Attachments**:
+  - Auditoria do modelo existente de `Attachment` e roteador associado.
+  - Planejamento arquitetural estruturado no documento `docs/PHASE_12_1_FILES_PLAN.md`.
+  - Definida estratégia baseada em `StorageAdapter` (para desacoplamento de storage físico) e `FileAccessService` (para autorização contextual e estrita).
 - **Refinamentos Operacionais — Módulo Projetos, Manutenções, Atendimentos e Tarefas (Pós-Fase 11)**:
   - **Problema 1 (Manutenção para Múltiplos Equipamentos - N:N)**:
     - Criada migration Alembic segura `db576bdfff35_add_maintenance_equipment_m_to_n.py` criando a tabela de junção `maintenance_equipment` com chaves estrangeiras com `CASCADE`, migrando retroativamente os vínculos existentes em `maintenance_records.equipment_id`, e tornando a coluna `equipment_id` anulável para compatibilidade regressiva.
@@ -97,17 +109,21 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat: implement phase 11.4 rbac administration
-**Próxima tarefa**: Iniciar Fase 12 (Knowledge Base ou Files/Uploads, aguardando user).
+**Último commit**: refactor(attachments): introduce storage adapter foundation
+**Próxima tarefa**: Fase 12.2 — Tarefa 2: FileAccessService + Registry Pattern + validators contextuais.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
-- Backend Pytest: 69/69 passed (100%)
-- Frontend Vitest: 107/107 passed (100% em 18 arquivos de teste)
+- Backend Pytest: 82/82 passed (100%)
+- Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Desacoplamento físico completo via `StorageAdapter` e implementação `LocalFileSystemStorage`, operando sobre volume persistente Docker `/app/uploads`.
+- Remoção da coluna de caminho absoluto `file_path` do banco de dados e do modelo `Attachment`, armazenando apenas o identificador físico `stored_filename` (`UUID + extensão sanitizada`).
+- Soft delete de anexos via marcação de `deleted_at`, mantendo o arquivo físico em disco para futura rotina controlada de Garbage Collection.
+- Migração Alembic `253c127af363` segura garantindo integridade de dados e total reversibilidade em upgrade e downgrade.
 - Preservação da tabela `User` para identidade operacional, sem criação de tabela `Profile` separada.
 - RBAC M:N implementado via tabela associativa `user_roles` com retrocompatibilidade e união de permissões de múltiplos papéis.
 - Endpoints e telas de visualização de perfil (`/users/{id}/profile`) com mascaramento obrigatório de dados sensíveis para terceiros quando sem permissão `users:write`.
