@@ -89,35 +89,77 @@ def list_attachments(
     entity_type: Optional[str] = Query(None),
     entity_id: Optional[int] = Query(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission("attachment:read")),
+    file_access_service: FileAccessService = Depends(get_file_access_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     List active attachments filtered by entity_type and entity_id (soft-deleted are excluded).
+    Enforces contextual authorization: only attachments from entities the user can access are returned.
     """
+    if not current_user.has_permission("attachment:read"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Acesso negado: permissão global 'attachment:read' necessária.",
+        )
+
+    # 1. When both entity_type and entity_id are provided, validate access explicitly
+    if entity_type and entity_id is not None:
+        file_access_service.ensure_read_access(db, current_user, entity_type, entity_id)
+
+    # 2. When only entity_type is provided, validate that entity_type is registered
+    if entity_type and not file_access_service.registry.get(entity_type):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Tipo de entidade '{entity_type}' não suportado para anexos.",
+        )
+
+    # 3. Query active attachments matching filters
     query = db.query(Attachment).filter(Attachment.deleted_at.is_(None))
     if entity_type:
         query = query.filter(Attachment.entity_type == entity_type)
     if entity_id is not None:
         query = query.filter(Attachment.entity_id == entity_id)
 
-    return query.order_by(Attachment.created_at.desc()).all()
+    candidates = query.order_by(Attachment.created_at.desc()).all()
+
+    # If already validated for a specific entity, return directly
+    if entity_type and entity_id is not None:
+        return candidates
+
+    # 4. Contextually filter candidates for entities the user can access
+    allowed = []
+    decision_cache = {}
+    for att in candidates:
+        key = (att.entity_type, att.entity_id)
+        if key not in decision_cache:
+            decision_cache[key] = file_access_service.can_read(db, current_user, att.entity_type, att.entity_id)
+        if decision_cache[key]:
+            allowed.append(att)
+
+    return allowed
 
 
 @router.get("/{attachment_id}", response_model=AttachmentResponse)
 def get_attachment_metadata(
     attachment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_permission("attachment:read")),
+    file_access_service: FileAccessService = Depends(get_file_access_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Retrieve metadata for a specific active attachment.
+    Enforces contextual authorization before returning metadata.
     """
-    attachment = db.query(Attachment).filter(
-        Attachment.id == attachment_id,
-        Attachment.deleted_at.is_(None),
-    ).first()
-    if not attachment:
+    attachment = db.query(Attachment).filter(Attachment.id == attachment_id).first()
+    if not attachment or attachment.deleted_at is not None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Anexo não encontrado.")
+
+    file_access_service.ensure_attachment_read_access(
+        db=db,
+        user=current_user,
+        attachment=attachment,
+    )
+
     return attachment
 
 
@@ -126,18 +168,26 @@ def download_attachment(
     attachment_id: int,
     db: Session = Depends(get_db),
     storage: StorageAdapter = Depends(get_storage),
-    current_user: User = Depends(require_permission("attachment:read")),
+    file_access_service: FileAccessService = Depends(get_file_access_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
     Download attachment file as attachment.
+    Enforces contextual authorization BEFORE accessing the storage.
     """
-    attachment = db.query(Attachment).filter(
-        Attachment.id == attachment_id,
-        Attachment.deleted_at.is_(None),
-    ).first()
-    if not attachment:
+    # 1. Locate attachment & reject nonexistent or soft-deleted
+    attachment = db.query(Attachment).filter(Attachment.id == attachment_id).first()
+    if not attachment or attachment.deleted_at is not None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Anexo não encontrado.")
 
+    # 2. Contextual authorization check BEFORE touching storage
+    file_access_service.ensure_attachment_read_access(
+        db=db,
+        user=current_user,
+        attachment=attachment,
+    )
+
+    # 3. Verify physical file exists in storage
     if not storage.exists(attachment.stored_filename):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Arquivo físico não encontrado no servidor.")
 
@@ -156,18 +206,26 @@ def preview_attachment(
     attachment_id: int,
     db: Session = Depends(get_db),
     storage: StorageAdapter = Depends(get_storage),
-    current_user: User = Depends(require_permission("attachment:read")),
+    file_access_service: FileAccessService = Depends(get_file_access_service),
+    current_user: User = Depends(get_current_active_user),
 ):
     """
-    Preview attachment inline (suitable for images and PDFs).
+    Preview attachment inline (suitable for images, text and PDFs).
+    Enforces contextual authorization BEFORE accessing the storage.
     """
-    attachment = db.query(Attachment).filter(
-        Attachment.id == attachment_id,
-        Attachment.deleted_at.is_(None),
-    ).first()
-    if not attachment:
+    # 1. Locate attachment & reject nonexistent or soft-deleted
+    attachment = db.query(Attachment).filter(Attachment.id == attachment_id).first()
+    if not attachment or attachment.deleted_at is not None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Anexo não encontrado.")
 
+    # 2. Contextual authorization check BEFORE touching storage
+    file_access_service.ensure_attachment_read_access(
+        db=db,
+        user=current_user,
+        attachment=attachment,
+    )
+
+    # 3. Verify physical file exists in storage
     if not storage.exists(attachment.stored_filename):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Arquivo físico não encontrado no servidor.")
 

@@ -266,6 +266,38 @@ class FileAccessService:
             raise HTTPException(status_code=decision.status_code, detail=decision.reason)
         return decision.entity
 
+    def ensure_attachment_read_access(
+        self,
+        db: Session,
+        user: Optional[User],
+        attachment: Attachment,
+    ) -> Any:
+        """Enforces read access for a specific Attachment model instance."""
+        return self.ensure_read_access(
+            db=db,
+            user=user,
+            entity_type=attachment.entity_type,
+            entity_id=attachment.entity_id,
+        )
+
+    # Alias for convenient adherence to architecture specification
+    ensure_attachment_read = ensure_attachment_read_access
+
+    def ensure_attachment_delete_access(
+        self,
+        db: Session,
+        user: Optional[User],
+        attachment: Attachment,
+    ) -> Any:
+        """Enforces delete access for a specific Attachment model instance."""
+        return self.ensure_delete_access(
+            db=db,
+            user=user,
+            entity_type=attachment.entity_type,
+            entity_id=attachment.entity_id,
+            attachment=attachment,
+        )
+
     def _validate_user(self, user: Optional[User]) -> AccessDecision:
         if not user:
             return AccessDecision(

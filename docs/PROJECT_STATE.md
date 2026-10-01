@@ -1,8 +1,16 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.2 (Tarefa 3 — Integração do FileAccessService — Upload + Delete) concluída com sucesso.
-**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 4: Integração do FileAccessService nos endpoints de leitura/listagem/download/preview.
+**Estado atual**: Fase 12.2 (Tarefa 4 — Integração do FileAccessService em Leitura, Listagem, Download e Preview) concluída com sucesso.
+**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 5: Auditoria de Eventos (AuditLog) e Refinamentos Finais.
 **Última implementação**:
+- **Fase 12.2 — Tarefa 4: Integração do FileAccessService em Leitura, Listagem, Download e Preview**:
+  - `GET /attachments`: Enforçada autorização contextual e permissão global `attachment:read`. Quando `entity_type` e `entity_id` são fornecidos, validação antecipada é executada via `ensure_read_access` (retornando 403 se não autorizado, 404 se inexistente, 400 se não suportado). Na listagem geral, cada anexo é avaliado contextualmente com cache em memória, omitindo registros de entidades às quais o usuário não possui acesso (ex: tarefas privadas). Anexos soft-deleted são sempre excluídos.
+  - `GET /attachments/{id}`: Consulta metadados com verificação de não-deleção (`deleted_at is None`) e autorização contextual via `FileAccessService.ensure_attachment_read_access`. Retorna somente metadados permitidos sem expor caminhos físicos.
+  - `GET /attachments/{id}/download`: Autorização contextual executada estritamente **antes** de qualquer consulta ao `StorageAdapter`. Verificação de existência do arquivo físico no storage após autorização (retornando 404 coerente caso o arquivo físico esteja ausente). Streaming de download via `FileResponse` com `Content-Disposition: attachment`.
+  - `GET /attachments/{id}/preview`: Aplica idêntico fluxo de segurança prévio ao download, retornando `FileResponse` com `Content-Disposition: inline` para imagens, textos e PDFs.
+  - `FileAccessService`: Adicionados métodos auxiliares `ensure_attachment_read_access` (e alias `ensure_attachment_read`) e `ensure_attachment_delete_access`.
+  - Suíte de testes `backend/tests/test_attachment_endpoints.py` expandida com 8 cenários completos cobrindo ciclo de vida, upload/delete, metadados, download seguro com spy no storage, tarefas privadas, preview inline e listagem contextual.
+  - 106/106 testes backend aprovados no Pytest, 111/111 testes frontend no Vitest, build com 0 erros.
 - **Fase 12.2 — Tarefa 3: Integração do FileAccessService nos Endpoints de Upload e Delete**:
   - Endpoint `POST /attachments/upload` atualizado para injetar `FileAccessService` e invocar `ensure_upload_access(db, current_user, entity_type, entity_id)` **antes** de gravar o arquivo físico no storage, garantindo validação em dois níveis (permissão global `attachment:upload` + autorização contextual na entidade pai) e rejeição imediata em caso de entidade cancelada, privada ou usuário inativo.
   - Implementada estratégia de resiliência e cleanup transacional: se `storage.save()` tiver sucesso mas a inserção/commit no PostgreSQL falhar, o arquivo físico recém-salvo é removido do storage (`storage.delete`) evitando arquivos órfãos em disco.
@@ -120,17 +128,20 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat(attachments): enforce contextual upload and delete access
-**Próxima tarefa**: Fase 12.2 — Tarefa 4: Integração do FileAccessService nos endpoints de leitura/listagem/download/preview.
+**Último commit**: feat(attachments): enforce contextual read and download access
+**Próxima tarefa**: Fase 12.2 — Tarefa 5: Auditoria de Eventos (AuditLog) e Refinamentos Finais.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
-- Backend Pytest: 102/102 passed (100%)
+- Backend Pytest: 106/106 passed (100%)
 - Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Integração de `FileAccessService` nos endpoints de leitura, listagem, download e preview (`GET /attachments`, `GET /attachments/{id}`, `GET /attachments/{id}/download`, `GET /attachments/{id}/preview`).
+- Validação contextual de permissões realizada estritamente antes do acesso físico ao `StorageAdapter` em download e preview, impedindo qualquer vazamento ou consumo de I/O em requisições não autorizadas.
+- Listagem geral de anexos com filtragem contextual segura por registro, omitindo silenciosamente anexos de entidades às quais o usuário não possui permissão de leitura (ex: tarefas privadas).
 - Integração de `FileAccessService` nos endpoints `POST /attachments/upload` e `DELETE /attachments/{id}`.
 - Validação contextual de permissões realizada estritamente antes da escrita no storage em `POST /attachments/upload`, prevenindo consumo de disco não autorizado.
 - Estratégia de cleanup transacional em upload: remoção do arquivo recém-salvo no storage (`storage.delete`) caso ocorra falha ao comitar no PostgreSQL.
