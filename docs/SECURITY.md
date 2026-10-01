@@ -12,3 +12,9 @@ Este documento estabelece as diretrizes de segurança aplicadas ao desenvolvimen
 
 ## 3. Logs de Sistema
 * Os logs do backend e stdout nunca devem conter representações em texto plano de campos sensíveis, como senhas e `license_key`.
+
+## 4. Segurança e Autorização de Arquivos e Anexos (Fase 12)
+* **Autorização em Dois Níveis**: Permissões globais RBAC (`attachment:read`, `attachment:upload`, `attachment:delete`) nunca concedem acesso irrestrito por si sós. Cada requisição é obrigatoriamente submetida ao validador contextual da entidade no `FileAccessService`.
+* **Default-Deny e Bloqueio de Tipos Não Suportados**: Se um `entity_type` não estiver registrado no `AttachmentAccessRegistry`, o acesso é sumariamente rejeitado (400 Bad Request). Entidades inexistentes retornam 404. Usuários inativos recebem 403.
+* **Isolamento de Armazenamento**: O caminho físico do arquivo no storage jamais é exposto na API ou no modelo de banco de dados. Os nomes físicos utilizam UUIDs criptograficamente seguros combinados com extensões sanitizadas. Path traversal é prevenido por resolução canônica (`realpath`) e contenção obrigatória no diretório base.
+

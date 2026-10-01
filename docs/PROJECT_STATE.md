@@ -1,8 +1,13 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.2 (Tarefa 1 — StorageAdapter + Banco de Dados) concluída com sucesso.
-**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 2 (FileAccessService + Registry Pattern + validators contextuais).
+**Estado atual**: Fase 12.2 (Tarefa 2 — FileAccessService + Registry Pattern + validators contextuais) concluída com sucesso.
+**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 3: Integração do FileAccessService nos endpoints de Upload e Delete.
 **Última implementação**:
+- **Fase 12.2 — Tarefa 2: FileAccessService + Registry Pattern + Validadores Contextuais**:
+  - Implementada a arquitetura Registry para autorização de anexos via `AttachmentAccessRegistry` e interface `AttachmentAccessValidator` em `backend/app/services/file_access/registry.py`.
+  - Criados os 6 validadores contextuais de domínio em `backend/app/services/file_access/validators.py`: `ProjectAttachmentValidator`, `TaskAttachmentValidator`, `MaintenanceAttachmentValidator`, `AttendanceAttachmentValidator`, `EquipmentAttachmentValidator`, `KnowledgeAttachmentValidator`.
+  - Implementado o serviço central `FileAccessService` em `backend/app/services/file_access/service.py`, aplicando modelo estrito de dois níveis (Permissão Global RBAC + Autorização Contextual da Entidade), default-deny para tipos desconhecidos e tratamento seguro de status HTTP (401, 403, 404).
+  - Suíte abrangente de 17 testes automatizados em `backend/tests/test_file_access_service.py` validando o Registry, regras de segurança, controle de visibilidade privada em tarefas, status cancelado/descartado, draft em knowledge e restrições de permissões. 99/99 testes backend aprovados.
 - **Fase 12.2 — Tarefa 1: StorageAdapter + Banco de Dados**:
   - Implementada a abstração `StorageAdapter` e a classe concreta `LocalFileSystemStorage` em `backend/app/services/storage.py`, desacoplando operações de filesystem da API FastAPI e de sessões SQLAlchemy.
   - Implementado isolamento seguro de arquivos físicos: geração de nomes físicos via UUID + extensão sanitizada (o nome original jamais é usado no sistema de arquivos).
@@ -109,17 +114,19 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: refactor(attachments): introduce storage adapter foundation
-**Próxima tarefa**: Fase 12.2 — Tarefa 2: FileAccessService + Registry Pattern + validators contextuais.
+**Último commit**: feat(attachments): add contextual access registry
+**Próxima tarefa**: Fase 12.2 — Tarefa 3: Integração do FileAccessService nos endpoints de Upload e Delete.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
-- Backend Pytest: 82/82 passed (100%)
+- Backend Pytest: 99/99 passed (100%)
 - Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Implementação de `FileAccessService` e `AttachmentAccessRegistry` com padrão Registry, isolando validações contextuais de entidades (Project, Task, Maintenance, Attendance, Equipment, Knowledge) e garantindo default-deny para tipos desconhecidos.
+- Modelo de dois níveis de autorização: Permissão Global (RBAC) + Autorização Contextual da Entidade, garantindo que `attachment:read/upload/delete` não conceda acesso irrestrito a anexos de entidades protegidas ou confidenciais.
 - Desacoplamento físico completo via `StorageAdapter` e implementação `LocalFileSystemStorage`, operando sobre volume persistente Docker `/app/uploads`.
 - Remoção da coluna de caminho absoluto `file_path` do banco de dados e do modelo `Attachment`, armazenando apenas o identificador físico `stored_filename` (`UUID + extensão sanitizada`).
 - Soft delete de anexos via marcação de `deleted_at`, mantendo o arquivo físico em disco para futura rotina controlada de Garbage Collection.

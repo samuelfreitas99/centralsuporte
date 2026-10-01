@@ -25,7 +25,9 @@ O sistema evita o modelo de "uma grande teia de aranha" mantendo limites context
 
 ### Camada de Storage e Arquivos (Fase 12)
 * O armazenamento físico é estritamente isolado da API através da interface `StorageAdapter`. A implementação padrão é `LocalFileSystemStorage` (diretório persistente configurável, como `/app/uploads`). O banco de dados armazena apenas metadados lógicos e o identificador físico `stored_filename` (`UUID + extensão sanitizada`), sem persistir caminhos absolutos.
-* Deleções realizam soft delete (`deleted_at`), preservando a consistência transacional e mantendo os arquivos físicos para futura rotina assíncrona de Garbage Collection. A autorização contextual é centralizada no `FileAccessService`.
+* Deleções realizam soft delete (`deleted_at`), preservando a consistência transacional e mantendo os arquivos físicos para futura rotina assíncrona de Garbage Collection.
+* A autorização é centralizada no `FileAccessService`, baseado no padrão **Registry** (`AttachmentAccessRegistry`). Cada entidade possui um validador contextual dedicado (`ProjectAttachmentValidator`, `TaskAttachmentValidator`, `MaintenanceAttachmentValidator`, `AttendanceAttachmentValidator`, `EquipmentAttachmentValidator`, `KnowledgeAttachmentValidator`) que implementa o contrato `AttachmentAccessValidator`. O acesso exige permissão global RBAC (`attachment:read/upload/delete`) combinada obrigatoriamente com autorização contextual na entidade pai, com política default-deny para tipos desconhecidos.
+
 
 ## 4. Evolução do Dashboard
 * O Dashboard abandonará as "queries isoladas aleatórias" e passará a consumir um `DashboardService` que unificará KPIs de "Início de Turno" (Agenda do Dia, Tarefas Atrasadas, Licenças Vencendo nos próximos 7 dias).

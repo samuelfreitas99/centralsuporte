@@ -248,7 +248,7 @@ Este roadmap define as fases de desenvolvimento da Central Operacional do Suport
   - Planejamento documentado em `docs/PHASE_12_1_FILES_PLAN.md`.
 - [/] Fase 12.2 — Core Backend (StorageAdapter, Modelos e FileAccessService):
   - [x] Tarefa 1: StorageAdapter + Banco de Dados (LocalFileSystemStorage, remoção de `file_path`, `deleted_at`, migration Alembic).
-  - [ ] Tarefa 2: FileAccessService + Registry Pattern + validators contextuais.
+  - [x] Tarefa 2: FileAccessService + Registry Pattern + validators contextuais.
   - [ ] Tarefa 3: Refatoração de Endpoints (Upload & Delete contextuais).
   - [ ] Tarefa 4: Refatoração de Endpoints (Leitura e Download contextuais).
   - [ ] Tarefa 5: Auditoria e Validações de Segurança.
