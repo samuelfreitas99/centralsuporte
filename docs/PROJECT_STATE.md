@@ -137,17 +137,22 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat(attachments): enforce file type allowlist
-**Próxima tarefa**: Fase 12.2 — Tarefa 5.2: Auditoria de Eventos de Anexos (AuditLog) e Refinamentos.
+**Último commit**: feat(attachments): audit attachment lifecycle events
+**Próxima tarefa**: Fase 12.2 concluída — Avaliar próximo passo do roadmap.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
-- Backend Pytest: 138/138 passed (100%)
+- Backend Pytest: 149/149 passed (100%)
 - Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Integração de `AuditLog` nativo para rastreabilidade de eventos de ciclo de vida de anexos: `attachment.uploaded` e `attachment.deleted`, utilizando a função centralizada `record_audit_log` (`backend/app/services/audit.py`).
+- Atomicidade transacional: `Attachment` e `AuditLog` participam da mesma transação do PostgreSQL através de `db.flush()` antes do `db.commit()`. Se a persistência falhar, ambos são revertidos e a limpeza física no storage é executada sem deixar lixo no disco ou no banco.
+- Higienização e privacidade da trilha de auditoria: omissão rigorosa de dados sensíveis ou de infraestrutura (`stored_filename`, caminho físico no storage, conteúdo do arquivo, hashes desnecessários ou tokens), registrando unicamente metadados sanitizados (`original_filename`, `mime_type`, `file_size`, `parent_entity_type`, `parent_entity_id`, IP e User-Agent quando disponíveis).
+- Não-auditoria de tentativas negadas ou inválidas: operações bloqueadas por falta de permissão (403), formato perigoso ou MIME inválido (400), arquivo inexistente ou já deletado (404) ou tamanho excedido (413) são abortadas antes de tocar na trilha de auditoria, registrando exclusivamente operações efetivamente concluídas.
+- Preservação da integridade de Soft Delete: a auditoria do evento `attachment.deleted` marca o encerramento lógico do anexo sem acionar remoção física prematura no storage, mantendo o arquivo preservado para futura Garbage Collection assíncrona.
 - Implementação de módulo centralizado de segurança de arquivos (`backend/app/services/attachment_security.py`) com MIME AllowList, validação estrita de extensões e detecção de magic bytes em streaming.
 - Validação em duas etapas: metadados antes de qualquer escrita no disco ou storage (extensão permitida, blocklist perigosa e coerência MIME x extensão) e validação de conteúdo/assinatura logo após buffer inicial.
 - Rejeição de formatos perigosos (executáveis, scripts shell/PowerShell/batch, instaladores, binários) e arquivos sem extensão com HTTP 400.

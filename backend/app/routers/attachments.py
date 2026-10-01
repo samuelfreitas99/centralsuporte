@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from app.schemas import AttachmentResponse
 from app.auth import get_current_active_user, require_permission
 from app.services.storage import StorageAdapter, get_storage
 from app.services.file_access import FileAccessService, get_file_access_service
+from app.services.audit import record_audit_log
 from app.services.attachment_security import (
     MAX_FILE_SIZE,
     validate_upload_metadata,
@@ -21,6 +22,7 @@ router = APIRouter(prefix="/attachments", tags=["attachments"])
 
 @router.post("/upload", response_model=AttachmentResponse, status_code=status.HTTP_201_CREATED)
 async def upload_attachment(
+    request: Request,
     file: UploadFile = File(...),
     entity_type: str = Form(...),
     entity_id: int = Form(...),
@@ -97,9 +99,32 @@ async def upload_attachment(
         uploader_id=current_user.id,
     )
 
-    # 4. Commit to database with cleanup of newly saved physical file on failure
+    # 6. Commit to database and record AuditLog atomically with cleanup of newly saved physical file on failure
     try:
         db.add(attachment)
+        db.flush()
+
+        client_ip = request.client.host if (request and request.client) else None
+        user_agent = request.headers.get("user-agent") if request else None
+
+        record_audit_log(
+            db=db,
+            action="attachment.uploaded",
+            entity_type="attachment",
+            entity_id=attachment.id,
+            user=current_user,
+            ip_address=client_ip,
+            user_agent=user_agent,
+            details={
+                "event": "attachment.uploaded",
+                "original_filename": attachment.original_filename,
+                "mime_type": attachment.mime_type,
+                "file_size": attachment.file_size,
+                "parent_entity_type": attachment.entity_type,
+                "parent_entity_id": attachment.entity_id,
+            },
+        )
+
         db.commit()
         db.refresh(attachment)
     except Exception as exc:
@@ -272,6 +297,7 @@ def preview_attachment(
 @router.delete("/{attachment_id}")
 def delete_attachment(
     attachment_id: int,
+    request: Request,
     db: Session = Depends(get_db),
     file_access_service: FileAccessService = Depends(get_file_access_service),
     current_user: User = Depends(get_current_active_user),
@@ -297,6 +323,26 @@ def delete_attachment(
 
     # 3. Soft delete (mark deleted_at, do NOT delete physical file)
     attachment.deleted_at = datetime.now(timezone.utc)
+
+    client_ip = request.client.host if (request and request.client) else None
+    user_agent = request.headers.get("user-agent") if request else None
+
+    record_audit_log(
+        db=db,
+        action="attachment.deleted",
+        entity_type="attachment",
+        entity_id=attachment.id,
+        user=current_user,
+        ip_address=client_ip,
+        user_agent=user_agent,
+        details={
+            "event": "attachment.deleted",
+            "original_filename": attachment.original_filename,
+            "parent_entity_type": attachment.entity_type,
+            "parent_entity_id": attachment.entity_id,
+        },
+    )
+
     db.commit()
 
     return {"detail": "Anexo excluído com sucesso."}

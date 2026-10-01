@@ -31,4 +31,11 @@ Este documento estabelece as diretrizes de segurança aplicadas ao desenvolvimen
 * **Sanitização de Nome de Arquivo**: Caracteres de path traversal (`../`, `..\`) em `original_filename` são removidos via extração estrita de nome base antes da persistência, e o arquivo físico em disco é nomeado com UUID único sanitizado.
 * **Default-Deny e Bloqueio de Tipos Não Suportados**: Se um `entity_type` não estiver registrado no `AttachmentAccessRegistry`, o acesso é sumariamente rejeitado (400 Bad Request). Entidades inexistentes retornam 404. Usuários inativos recebem 403.
 * **Isolamento de Armazenamento**: O caminho físico do arquivo no storage jamais é exposto na API ou no modelo de banco de dados. Os nomes físicos utilizam UUIDs criptograficamente seguros combinados com extensões sanitizadas. Path traversal é prevenido por resolução canônica (`realpath`) e contenção obrigatória no diretório base.
+* **Auditoria de Ciclo de Vida de Anexos (Tarefa 5.2)**:
+  - Eventos registrados: `attachment.uploaded` (após persistência concluída com sucesso) e `attachment.deleted` (após marcação de soft delete).
+  - Dados estritamente auditados: ator responsável (`user_id`, `username`), anexo afetado (`entity_id`, `entity_type: "attachment"`), entidade pai associada (`parent_entity_type`, `parent_entity_id`), timestamp de criação e metadados sanitizados (`original_filename`, `mime_type`, `file_size`).
+  - Omissão intencional de dados sensíveis: nenhum log de auditoria armazena conteúdo textual ou binário do arquivo, caminho físico no storage, `stored_filename`, tokens ou credenciais.
+  - Consistência transacional atômica: `Attachment` e `AuditLog` participam da mesma sessão/transação relacional. Se o commit falhar, ambos são revertidos e o arquivo físico temporário é limpo do storage, impedindo registros órfãos ou inconsistências.
+  - Não-auditoria de tentativas negadas: requisições rejeitadas por 403 (falta de permissão), 400 (extensão ou MIME inválido), 404 (anexo inexistente ou já deletado) ou 413 (tamanho excedido) são abortadas antes de tocar na trilha de auditoria de anexos, preservando a higienização dos logs.
+  - Preservação de arquivo físico em soft delete: o evento `attachment.deleted` audita a exclusão lógica, garantindo que o arquivo físico permaneça intocado no storage para futura retenção ou Garbage Collection assíncrona.
 
