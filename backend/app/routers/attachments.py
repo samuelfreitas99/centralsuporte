@@ -10,10 +10,13 @@ from app.schemas import AttachmentResponse
 from app.auth import get_current_active_user, require_permission
 from app.services.storage import StorageAdapter, get_storage
 from app.services.file_access import FileAccessService, get_file_access_service
+from app.services.attachment_security import (
+    MAX_FILE_SIZE,
+    validate_upload_metadata,
+    validate_file_content,
+)
 
 router = APIRouter(prefix="/attachments", tags=["attachments"])
-
-MAX_FILE_SIZE = 25 * 1024 * 1024  # 25 MB
 
 
 @router.post("/upload", response_model=AttachmentResponse, status_code=status.HTTP_201_CREATED)
@@ -29,24 +32,51 @@ async def upload_attachment(
 ):
     """
     Upload a file and attach it to an entity.
-    Enforces contextual authorization before persisting to storage.
+    Enforces contextual authorization, MIME allowlist, and file content hardening before persisting.
     """
     # 1. Contextual and global authorization BEFORE touching storage
     file_access_service.ensure_upload_access(db, current_user, entity_type, entity_id)
 
-    # 2. Save physical file to storage
-    original_name = file.filename or "file"
+    # 2. Validate filename, extension, and declared MIME against allowlist BEFORE touching storage
+    raw_name = file.filename or ""
     try:
-        stored_file = storage.save(
-            file_obj=file.file,
-            original_filename=original_name,
-            mime_type=file.content_type,
-            max_file_size=MAX_FILE_SIZE,
+        clean_name, ext, resolved_mime = validate_upload_metadata(
+            original_filename=raw_name,
+            declared_mime=file.content_type,
         )
     except ValueError as ve:
         raise HTTPException(
-            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(ve),
+        )
+
+    # 3. Inspect content / magic bytes
+    try:
+        validate_file_content(file.file, ext)
+    except ValueError as ve:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(ve),
+        )
+
+    # 4. Save physical file to storage (streams and enforces max_file_size)
+    try:
+        stored_file = storage.save(
+            file_obj=file.file,
+            original_filename=clean_name,
+            mime_type=resolved_mime,
+            max_file_size=MAX_FILE_SIZE,
+        )
+    except ValueError as ve:
+        err_msg = str(ve)
+        if "exceeds maximum allowed limit" in err_msg.lower() or "limite" in err_msg.lower():
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=err_msg,
+            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=err_msg,
         )
     except Exception as e:
         raise HTTPException(
@@ -54,9 +84,9 @@ async def upload_attachment(
             detail=f"Erro ao salvar arquivo físico no storage: {str(e)}",
         )
 
-    # 3. Create Attachment record
+    # 5. Create Attachment record
     attachment = Attachment(
-        original_filename=original_name,
+        original_filename=clean_name,
         stored_filename=stored_file.stored_filename,
         file_size=stored_file.file_size,
         mime_type=stored_file.mime_type or "application/octet-stream",

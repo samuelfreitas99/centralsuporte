@@ -543,7 +543,7 @@ def test_download_scenarios_and_storage_protection():
     storage = get_storage()
 
     # 1. Anexo no atendimento 99
-    fake_data = b"DADOS IMPORTANTES DO ATENDIMENTO 99"
+    fake_data = b"%PDF-1.4 DADOS IMPORTANTES DO ATENDIMENTO 99"
     res_upload_att = client.post(
         "/attachments/upload",
         files={"file": ("relatorio.pdf", io.BytesIO(fake_data), "application/pdf")},

@@ -1,8 +1,17 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.2 (Tarefa 4 — Integração do FileAccessService em Leitura, Listagem, Download e Preview) concluída com sucesso.
-**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 5: Auditoria de Eventos (AuditLog) e Refinamentos Finais.
+**Estado atual**: Fase 12.2 (Tarefa 5.1 — MIME AllowList e Hardening do Upload) concluída com sucesso.
+**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 5.2: Auditoria de Eventos de Anexos (AuditLog) e Refinamentos Finais.
 **Última implementação**:
+- **Fase 12.2 — Tarefa 5.1: MIME AllowList e Hardening do Upload**:
+  - Implementada política de segurança centralizada em `backend/app/services/attachment_security.py` definindo `ALLOWED_EXTENSIONS_MAP` categorizada para Documentos (`.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx`, `.txt`, `.csv`), Imagens (`.png`, `.jpg`, `.jpeg`, `.webp`) e Arquivos Técnicos/Texto (`.json`, `.xml`, `.log`, `.yaml`, `.yml`, `.zip`).
+  - Blocklist estrita (`DANGEROUS_EXTENSIONS`) e rejeição com HTTP 400 para executáveis, scripts (`.exe`, `.dll`, `.msi`, `.bat`, `.cmd`, `.com`, `.scr`, `.ps1`, `.psm1`, `.vbs`, `.vbe`, `.js`, `.jse`, `.jar`, `.sh`, `.bash`, `.apk`, `.deb`, `.rpm`, `.bin`), extensões não suportadas e arquivos sem extensão.
+  - Validação cruzada com `Content-Type` do cliente: rejeição de MIME perigoso ou inconsistente com a extensão (HTTP 400). Aceitação de formatos permitidos enviados com MIME genérico (`application/octet-stream`), com normalização para o MIME canônico.
+  - Inspeção de assinaturas binárias (magic bytes): bloqueio universal contra executáveis disfarçados (`MZ`, `\x7fELF`, etc.) e verificação de cabeçalhos legítimos (`%PDF`, `\x89PNG`, `\xff\xd8\xff`, `RIFF`).
+  - Limite de tamanho centralizado e configurável via variável de ambiente (`MAX_ATTACHMENT_SIZE_MB`, padrão: 25 MB) com rejeição e limpeza automática via HTTP 413 Payload Too Large.
+  - Sanitização de `original_filename` prevenindo injeções de path traversal (`../../`).
+  - Criada suíte de testes dedicada `backend/tests/test_attachment_security.py` com 32 testes ponta a ponta.
+  - 138/138 testes backend aprovados no Pytest, 111/111 testes frontend no Vitest, build com 0 erros.
 - **Fase 12.2 — Tarefa 4: Integração do FileAccessService em Leitura, Listagem, Download e Preview**:
   - `GET /attachments`: Enforçada autorização contextual e permissão global `attachment:read`. Quando `entity_type` e `entity_id` são fornecidos, validação antecipada é executada via `ensure_read_access` (retornando 403 se não autorizado, 404 se inexistente, 400 se não suportado). Na listagem geral, cada anexo é avaliado contextualmente com cache em memória, omitindo registros de entidades às quais o usuário não possui acesso (ex: tarefas privadas). Anexos soft-deleted são sempre excluídos.
   - `GET /attachments/{id}`: Consulta metadados com verificação de não-deleção (`deleted_at is None`) e autorização contextual via `FileAccessService.ensure_attachment_read_access`. Retorna somente metadados permitidos sem expor caminhos físicos.
@@ -128,17 +137,23 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat(attachments): enforce contextual read and download access
-**Próxima tarefa**: Fase 12.2 — Tarefa 5: Auditoria de Eventos (AuditLog) e Refinamentos Finais.
+**Último commit**: feat(attachments): enforce file type allowlist
+**Próxima tarefa**: Fase 12.2 — Tarefa 5.2: Auditoria de Eventos de Anexos (AuditLog) e Refinamentos.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
-- Backend Pytest: 106/106 passed (100%)
+- Backend Pytest: 138/138 passed (100%)
 - Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Implementação de módulo centralizado de segurança de arquivos (`backend/app/services/attachment_security.py`) com MIME AllowList, validação estrita de extensões e detecção de magic bytes em streaming.
+- Validação em duas etapas: metadados antes de qualquer escrita no disco ou storage (extensão permitida, blocklist perigosa e coerência MIME x extensão) e validação de conteúdo/assinatura logo após buffer inicial.
+- Rejeição de formatos perigosos (executáveis, scripts shell/PowerShell/batch, instaladores, binários) e arquivos sem extensão com HTTP 400.
+- Tolerância controlada para clientes que enviam `application/octet-stream` em formatos legítimos (.docx, .xlsx, .pdf, etc.), sem abrir brechas para executáveis disfarçados.
+- Centralização do limite de tamanho em `MAX_ATTACHMENT_SIZE_MB` (padrão 25MB) aplicado no streaming com limpeza imediata em caso de excedente (HTTP 413).
+- Sanitização estrita de `original_filename` prevenindo path traversal, mantendo armazenamento físico baseado exclusivamente em UUID.
 - Integração de `FileAccessService` nos endpoints de leitura, listagem, download e preview (`GET /attachments`, `GET /attachments/{id}`, `GET /attachments/{id}/download`, `GET /attachments/{id}/preview`).
 - Validação contextual de permissões realizada estritamente antes do acesso físico ao `StorageAdapter` em download e preview, impedindo qualquer vazamento ou consumo de I/O em requisições não autorizadas.
 - Listagem geral de anexos com filtragem contextual segura por registro, omitindo silenciosamente anexos de entidades às quais o usuário não possui permissão de leitura (ex: tarefas privadas).
