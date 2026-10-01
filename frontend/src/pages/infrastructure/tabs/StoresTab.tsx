@@ -28,6 +28,7 @@ import {
 import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
+import { useAuth } from '@/hooks/useAuth';
 import type { StoreItem, DepartmentItem, EquipmentItem, TechnicalLocationItem } from '@/types/infrastructure';
 
 export interface StoresTabProps {
@@ -55,6 +56,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
   isStoreModalOpen,
   setIsStoreModalOpen,
 }) => {
+  const { hasPermission } = useAuth();
   const { showToast } = useToast();
   const addToast = (opts: { title: string; description?: string; type?: ToastType }) => {
     showToast(opts.title, { message: opts.description, type: opts.type });
@@ -559,6 +561,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
                     entityType="department"
                     entityId={selectedDeptDrawer.id}
                     title="Anexos do Local"
+                    readOnly={!hasPermission('infrastructure:edit')}
                     compact
                   />
                 </div>

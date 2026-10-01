@@ -72,8 +72,8 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
       const data = await attachmentService.getAttachments(entityType, entityId);
       setAttachments(data);
       onAttachmentCountChange?.(data.length);
-    } catch {
-      setErrorMessage('Não foi possível carregar os anexos.');
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Não foi possível carregar os anexos.');
     } finally {
       setIsLoading(false);
     }
@@ -268,6 +268,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
               onChange={handleFileChange}
               className="hidden"
               id={`attachment-input-${entityType}-${entityId}`}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.png,.jpg,.jpeg,.webp,.json,.xml,.log,.yaml,.yml,.zip"
             />
 
             {!selectedFile ? (
@@ -285,7 +286,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
                   <span className="text-muted-foreground">ou arraste arquivos até aqui</span>
                 </div>
                 <p className="text-[11px] text-muted-foreground">
-                  PNG, JPG, PDF, TXT, LOG ou ZIP (máx. 25MB)
+                  Documentos, Imagens, Textos ou Arquivos Compactados (máx. 25MB)
                 </p>
               </label>
             ) : (

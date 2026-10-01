@@ -21,6 +21,8 @@ import {
 } from 'lucide-react';
 import type { Task } from '@/types/tasks';
 import { organizationService } from '@/services/organizationService';
+import { useAuth } from '@/hooks/useAuth';
+import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -42,6 +44,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
   const [showAddChecklist, setShowAddChecklist] = useState(false);
   const [loadingAction, setLoadingAction] = useState(false);
+  const { hasPermission } = useAuth();
 
   if (!task) return null;
 
@@ -340,6 +343,16 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                 Nenhum checklist associado a esta tarefa. Adicione um para guiar o procedimento passo a passo.
               </div>
             )}
+          </div>
+
+          {/* Anexos */}
+          <div className="pt-2">
+            <AttachmentManager
+              entityType="task"
+              entityId={task.id}
+              readOnly={!hasPermission('task:edit')}
+              compact
+            />
           </div>
 
           {/* Ações de Status da Tarefa */}

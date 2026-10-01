@@ -4,6 +4,7 @@ export type AttachmentEntityType =
   | 'maintenance'
   | 'equipment'
   | 'task'
+  | 'project'
   | 'other';
 
 export interface AttachmentUploader {

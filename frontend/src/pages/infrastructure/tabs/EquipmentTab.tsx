@@ -31,6 +31,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
+import { useAuth } from '@/hooks/useAuth';
 import type { EquipmentItem, EquipmentType, EquipmentStatus, EquipmentCreatePayload, StoreItem, DepartmentItem, TechnicalLocationItem } from '@/types/infrastructure';
 
 export interface EquipmentTabProps {
@@ -68,6 +69,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   eqForm,
   setEqForm,
 }) => {
+  const { hasPermission } = useAuth();
   const { showToast } = useToast();
   const addToast = (opts: { title: string; description?: string; type?: ToastType }) => {
     showToast(opts.title, { message: opts.description, type: opts.type });
@@ -602,6 +604,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                       entityType="equipment"
                       entityId={editingEquipment.id}
                       title="Anexos do Equipamento"
+                      readOnly={!hasPermission('infrastructure:edit')}
                     />
                   </TabsContent>
                 </>

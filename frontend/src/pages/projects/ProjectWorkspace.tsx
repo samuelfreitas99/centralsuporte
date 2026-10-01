@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { ArrowLeft, Briefcase, Calendar, Building2, CheckSquare, Wrench, Headset, Settings, Server, Package, Plus, History, PlayCircle, Activity, HardDrive } from 'lucide-react';
+import { ArrowLeft, Briefcase, Calendar, Building2, CheckSquare, Wrench, Headset, Settings, Server, Package, Plus, History, PlayCircle, Activity, HardDrive, FileText } from 'lucide-react';
 import { projectService } from '@/services/projectService';
 import { organizationService } from '@/services/organizationService';
 import { maintenanceService } from '@/services/maintenanceService';
@@ -19,6 +19,8 @@ import { TaskFormDialog } from '@/components/tasks/TaskFormDialog';
 import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import { MaintenanceDrawer } from '@/components/maintenance/MaintenanceDrawer';
 import { MaintenanceCreateDrawer } from '@/components/maintenance/MaintenanceCreateDrawer';
+import { AttachmentManager } from '@/components/attachments/AttachmentManager';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ProjectWorkspaceProps {
   projectId: number;
@@ -26,6 +28,7 @@ interface ProjectWorkspaceProps {
 }
 
 export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, onBack }) => {
+  const { hasPermission } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [summary, setSummary] = useState<ProjectSummary | null>(null);
   const [timeline, setTimeline] = useState<ProjectTimelineEvent[]>([]);
@@ -329,6 +332,22 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                         </div>
                       )}
                     </div>
+                  </CardContent>
+                </Card>
+
+                {/* ATTACHMENTS */}
+                <Card className="border-border/40 bg-card/20 shadow-sm">
+                  <CardHeader className="pb-3 border-b border-border/40">
+                    <CardTitle className="text-base flex items-center gap-2">
+                       <FileText className="h-4 w-4 text-blue-400" /> Documentos e Anexos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                     <AttachmentManager
+                       entityType="project"
+                       entityId={projectId}
+                       readOnly={!hasPermission('project:edit')}
+                     />
                   </CardContent>
                 </Card>
               </div>

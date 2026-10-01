@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import type { KnowledgeArticle } from '@/types/knowledge';
 import { knowledgeService } from '@/services/knowledgeService';
+import { AttachmentManager } from '@/components/attachments/AttachmentManager';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ArticleViewDialogProps {
   article: KnowledgeArticle | null;
@@ -46,6 +48,7 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
   onFavoriteToggled,
   onRestored,
 }) => {
+  const { hasPermission } = useAuth();
   const [activeTab, setActiveTab] = useState<'content' | 'versions'>('content');
   const [copied, setCopied] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
@@ -267,6 +270,16 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
                 ))}
               </div>
             )}
+
+            {/* Anexos */}
+            <div className="pt-2">
+              <AttachmentManager
+                entityType="knowledge"
+                entityId={article.id}
+                readOnly={!hasPermission('knowledge:edit')}
+                compact
+              />
+            </div>
           </div>
         ) : (
           /* Histórico de Versões */

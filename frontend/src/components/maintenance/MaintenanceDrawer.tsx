@@ -31,6 +31,7 @@ import type { EquipmentItem } from '@/types/infrastructure';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import { EquipmentMultiSelect } from '@/components/maintenance/EquipmentMultiSelect';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   isOpen: boolean;
@@ -49,6 +50,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
   onSuccess,
   onChecklistItemToggle,
 }) => {
+  const { hasPermission } = useAuth();
   const { success, error: toastError } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -502,7 +504,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                     <AttachmentManager
                       entityType="maintenance"
                       entityId={maintenance.id}
-                      readOnly={false}
+                      readOnly={!hasPermission('maintenance:edit')}
                     />
                   </div>
                 </section>

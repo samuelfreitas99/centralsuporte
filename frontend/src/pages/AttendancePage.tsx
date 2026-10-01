@@ -750,6 +750,7 @@ export const AttendancePage: React.FC = () => {
                         entityType="attendance"
                         entityId={selectedAttendanceDetails.id}
                         title="Evidências & Anexos"
+                        readOnly={!canModifyAttendance(selectedAttendanceDetails)}
                         compact
                       />
                     </div>
