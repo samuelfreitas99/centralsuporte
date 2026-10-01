@@ -25,7 +25,8 @@ O sistema evita o modelo de "uma grande teia de aranha" mantendo limites context
 
 ### Camada de Storage e Arquivos (Fase 12)
 * O armazenamento físico é estritamente isolado da API através da interface `StorageAdapter`. A implementação padrão é `LocalFileSystemStorage` (diretório persistente configurável, como `/app/uploads`). O banco de dados armazena apenas metadados lógicos e o identificador físico `stored_filename` (`UUID + extensão sanitizada`), sem persistir caminhos absolutos.
-* Deleções realizam soft delete (`deleted_at`), preservando a consistência transacional e mantendo os arquivos físicos para futura rotina assíncrona de Garbage Collection.
+* **Upload com Autorização Antecipada**: A autorização contextual do usuário na entidade alvo via `FileAccessService` ocorre antes de qualquer escrita no disco, impedindo consumo indevido de IO e armazenamento. Caso ocorra erro ou falha no commit do registro no PostgreSQL, é executado rollback e limpeza física imediata (`cleanup`) exclusivamente do arquivo recém-gravado.
+* **Ciclo de Vida e Soft Delete**: Deleções realizam soft delete (`deleted_at != NULL`), removendo o anexo das listagens e consultas normais da API sem remover o arquivo físico da mídia no momento da requisição. A exclusão física definitiva será delegada a rotinas assíncronas dedicadas de Garbage Collection.
 * A autorização é centralizada no `FileAccessService`, baseado no padrão **Registry** (`AttachmentAccessRegistry`). Cada entidade possui um validador contextual dedicado (`ProjectAttachmentValidator`, `TaskAttachmentValidator`, `MaintenanceAttachmentValidator`, `AttendanceAttachmentValidator`, `EquipmentAttachmentValidator`, `KnowledgeAttachmentValidator`) que implementa o contrato `AttachmentAccessValidator`. O acesso exige permissão global RBAC (`attachment:read/upload/delete`) combinada obrigatoriamente com autorização contextual na entidade pai, com política default-deny para tipos desconhecidos.
 
 

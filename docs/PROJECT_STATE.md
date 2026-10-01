@@ -1,8 +1,14 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.2 (Tarefa 2 — FileAccessService + Registry Pattern + validators contextuais) concluída com sucesso.
-**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 3: Integração do FileAccessService nos endpoints de Upload e Delete.
+**Estado atual**: Fase 12.2 (Tarefa 3 — Integração do FileAccessService — Upload + Delete) concluída com sucesso.
+**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 4: Integração do FileAccessService nos endpoints de leitura/listagem/download/preview.
 **Última implementação**:
+- **Fase 12.2 — Tarefa 3: Integração do FileAccessService nos Endpoints de Upload e Delete**:
+  - Endpoint `POST /attachments/upload` atualizado para injetar `FileAccessService` e invocar `ensure_upload_access(db, current_user, entity_type, entity_id)` **antes** de gravar o arquivo físico no storage, garantindo validação em dois níveis (permissão global `attachment:upload` + autorização contextual na entidade pai) e rejeição imediata em caso de entidade cancelada, privada ou usuário inativo.
+  - Implementada estratégia de resiliência e cleanup transacional: se `storage.save()` tiver sucesso mas a inserção/commit no PostgreSQL falhar, o arquivo físico recém-salvo é removido do storage (`storage.delete`) evitando arquivos órfãos em disco.
+  - Endpoint `DELETE /attachments/{id}` atualizado para verificar existência do anexo e status de deleção (`deleted_at is None`, retornando 404 se inexistente ou já deletado), executar validação contextual via `ensure_delete_access()` e aplicar soft delete preenchendo `deleted_at = datetime.now(timezone.utc)` sem apagar o arquivo físico no storage (delegado para Garbage Collection).
+  - Suíte de testes em `backend/tests/test_attachment_endpoints.py` expandida com 4 cenários ponta-a-ponta cobrindo upload autorizado, todas as negações de upload (permissão global, outsider, tipo desconhecido, entidade inexistente, projeto cancelado, inativo), cleanup após falha simulada de commit no banco, e delete autorizado/negado/já deletado.
+  - 102/102 testes backend aprovados no Pytest, 111/111 testes frontend no Vitest, build com 0 erros.
 - **Fase 12.2 — Tarefa 2: FileAccessService + Registry Pattern + Validadores Contextuais**:
   - Implementada a arquitetura Registry para autorização de anexos via `AttachmentAccessRegistry` e interface `AttachmentAccessValidator` em `backend/app/services/file_access/registry.py`.
   - Criados os 6 validadores contextuais de domínio em `backend/app/services/file_access/validators.py`: `ProjectAttachmentValidator`, `TaskAttachmentValidator`, `MaintenanceAttachmentValidator`, `AttendanceAttachmentValidator`, `EquipmentAttachmentValidator`, `KnowledgeAttachmentValidator`.
@@ -114,22 +120,25 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat(attachments): add contextual access registry
-**Próxima tarefa**: Fase 12.2 — Tarefa 3: Integração do FileAccessService nos endpoints de Upload e Delete.
+**Último commit**: feat(attachments): enforce contextual upload and delete access
+**Próxima tarefa**: Fase 12.2 — Tarefa 4: Integração do FileAccessService nos endpoints de leitura/listagem/download/preview.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
-- Backend Pytest: 99/99 passed (100%)
+- Backend Pytest: 102/102 passed (100%)
 - Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Integração de `FileAccessService` nos endpoints `POST /attachments/upload` e `DELETE /attachments/{id}`.
+- Validação contextual de permissões realizada estritamente antes da escrita no storage em `POST /attachments/upload`, prevenindo consumo de disco não autorizado.
+- Estratégia de cleanup transacional em upload: remoção do arquivo recém-salvo no storage (`storage.delete`) caso ocorra falha ao comitar no PostgreSQL.
+- Exclusão estritamente lógica (`soft delete`) em `DELETE /attachments/{id}` preenchendo `deleted_at`, sem apagar o arquivo físico no storage (preservação para Garbage Collection assíncrona). Retorno 404 caso o anexo não exista ou já esteja deletado.
 - Implementação de `FileAccessService` e `AttachmentAccessRegistry` com padrão Registry, isolando validações contextuais de entidades (Project, Task, Maintenance, Attendance, Equipment, Knowledge) e garantindo default-deny para tipos desconhecidos.
 - Modelo de dois níveis de autorização: Permissão Global (RBAC) + Autorização Contextual da Entidade, garantindo que `attachment:read/upload/delete` não conceda acesso irrestrito a anexos de entidades protegidas ou confidenciais.
 - Desacoplamento físico completo via `StorageAdapter` e implementação `LocalFileSystemStorage`, operando sobre volume persistente Docker `/app/uploads`.
 - Remoção da coluna de caminho absoluto `file_path` do banco de dados e do modelo `Attachment`, armazenando apenas o identificador físico `stored_filename` (`UUID + extensão sanitizada`).
-- Soft delete de anexos via marcação de `deleted_at`, mantendo o arquivo físico em disco para futura rotina controlada de Garbage Collection.
 - Migração Alembic `253c127af363` segura garantindo integridade de dados e total reversibilidade em upgrade e downgrade.
 - Preservação da tabela `User` para identidade operacional, sem criação de tabela `Profile` separada.
 - RBAC M:N implementado via tabela associativa `user_roles` com retrocompatibilidade e união de permissões de múltiplos papéis.

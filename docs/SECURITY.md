@@ -15,6 +15,9 @@ Este documento estabelece as diretrizes de segurança aplicadas ao desenvolvimen
 
 ## 4. Segurança e Autorização de Arquivos e Anexos (Fase 12)
 * **Autorização em Dois Níveis**: Permissões globais RBAC (`attachment:read`, `attachment:upload`, `attachment:delete`) nunca concedem acesso irrestrito por si sós. Cada requisição é obrigatoriamente submetida ao validador contextual da entidade no `FileAccessService`.
+* **Validação Pré-Upload (Early Rejection)**: A verificação de permissão e regras de domínio contextuais (ex: projetos cancelados, tarefas privadas) ocorre antes de salvar o arquivo no storage, prevenindo ataques de esgotamento de disco (denial of storage) ou uploads órfãos.
+* **Resiliência a Falhas de Persistência (Cleanup)**: Em caso de falha transacional entre a gravação no storage e o commit no PostgreSQL, o sistema executa rollback no banco e invoca cleanup do arquivo físico recém-gravado para evitar lixo não rastreado no filesystem.
+* **Isolamento de Soft Delete**: A deleção não remove arquivos físicos no fluxo HTTP da API, prevenindo inconsistências de transação distribuída (banco vs filesystem) e garantindo auditabilidade.
 * **Default-Deny e Bloqueio de Tipos Não Suportados**: Se um `entity_type` não estiver registrado no `AttachmentAccessRegistry`, o acesso é sumariamente rejeitado (400 Bad Request). Entidades inexistentes retornam 404. Usuários inativos recebem 403.
 * **Isolamento de Armazenamento**: O caminho físico do arquivo no storage jamais é exposto na API ou no modelo de banco de dados. Os nomes físicos utilizam UUIDs criptograficamente seguros combinados com extensões sanitizadas. Path traversal é prevenido por resolução canônica (`realpath`) e contenção obrigatória no diretório base.
 
