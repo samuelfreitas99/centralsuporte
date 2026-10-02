@@ -346,7 +346,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                      <AttachmentManager
                        entityType="project"
                        entityId={projectId}
-                       readOnly={!hasPermission('project:edit')}
+                       readOnly={!hasPermission('project:update')}
                      />
                   </CardContent>
                 </Card>

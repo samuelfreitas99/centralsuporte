@@ -276,7 +276,7 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
               <AttachmentManager
                 entityType="knowledge"
                 entityId={article.id}
-                readOnly={!hasPermission('knowledge:edit')}
+                readOnly={!hasPermission('knowledge:write')}
                 compact
               />
             </div>

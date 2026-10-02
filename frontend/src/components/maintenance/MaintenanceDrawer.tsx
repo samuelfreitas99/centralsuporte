@@ -504,7 +504,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                     <AttachmentManager
                       entityType="maintenance"
                       entityId={maintenance.id}
-                      readOnly={!hasPermission('maintenance:edit')}
+                      readOnly={!hasPermission('maintenance:write')}
                     />
                   </div>
                 </section>

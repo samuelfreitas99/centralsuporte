@@ -350,7 +350,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
             <AttachmentManager
               entityType="task"
               entityId={task.id}
-              readOnly={!hasPermission('task:edit')}
+              readOnly={!hasPermission('tasks:write')}
               compact
             />
           </div>

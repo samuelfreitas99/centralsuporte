@@ -4,6 +4,11 @@ import { KnowledgePage } from '@/pages/KnowledgePage';
 import { knowledgeService } from '@/services/knowledgeService';
 import type { KnowledgeArticle, KnowledgeCategory } from '@/types/knowledge';
 
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    hasPermission: vi.fn().mockReturnValue(true),
+  }),
+}));
 vi.mock('@/services/knowledgeService', () => ({
   knowledgeService: {
     getCategories: vi.fn(),

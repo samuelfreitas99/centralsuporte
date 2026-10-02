@@ -5,8 +5,21 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { attachmentService } from '@/services/attachmentService';
 import type { AttachmentItem } from '@/types/attachment';
 
+import { AuthContext } from '@/context/AuthContextDef';
+import type { AuthContextType } from '@/types/auth';
+
 vi.mock('@/services/attachmentService');
 
+const mockUserAuth: AuthContextType = {
+  user: { id: 1, username: 'admin', email: 'admin@local', is_active: true, role: { id: 1, name: 'Admin', permissions: [] } },
+  token: 'mock-token',
+  isAuthenticated: true,
+  isLoading: false,
+  login: vi.fn(),
+  logout: vi.fn(),
+  hasPermission: vi.fn().mockReturnValue(true),
+  hasRole: vi.fn().mockReturnValue(true),
+};
 const mockAttachments: AttachmentItem[] = [
   {
     id: 1,
@@ -38,15 +51,18 @@ const mockAttachments: AttachmentItem[] = [
   },
 ];
 
-function renderManager(props = {}) {
+function renderManager(props = {}, authOverrides: Partial<AuthContextType> = {}) {
+  const auth = { ...mockUserAuth, ...authOverrides };
   return render(
-    <ToastProvider>
-      <AttachmentManager
-        entityType="attendance"
-        entityId={10}
-        {...props}
-      />
-    </ToastProvider>
+    <AuthContext.Provider value={auth as AuthContextType}>
+      <ToastProvider>
+        <AttachmentManager
+          entityType="attendance"
+          entityId={10}
+          {...props}
+        />
+      </ToastProvider>
+    </AuthContext.Provider>
   );
 }
 
@@ -171,5 +187,17 @@ describe('AttachmentManager (Phase 10)', () => {
     await waitFor(() => {
       expect(attachmentService.deleteAttachment).toHaveBeenCalledWith(1);
     });
+  });
+
+  it('hides upload zone and delete buttons when user lacks permissions', async () => {
+    renderManager({}, { hasPermission: vi.fn().mockReturnValue(false) });
+
+    await waitFor(() => {
+      expect(screen.getByText('switch_port_error.png')).toBeInTheDocument();
+    });
+
+    // Should not render file input or delete buttons
+    expect(screen.queryByLabelText(/clique para selecionar/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /excluir/i })).not.toBeInTheDocument();
   });
 });

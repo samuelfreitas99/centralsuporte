@@ -4,6 +4,11 @@ import { TasksPage } from '@/pages/TasksPage';
 import { organizationService } from '@/services/organizationService';
 import type { Task } from '@/types/tasks';
 
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    hasPermission: vi.fn().mockReturnValue(true),
+  }),
+}));
 vi.mock('@/services/organizationService', () => ({
   organizationService: {
     getTasks: vi.fn(),

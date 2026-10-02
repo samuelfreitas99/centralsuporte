@@ -561,7 +561,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
                     entityType="department"
                     entityId={selectedDeptDrawer.id}
                     title="Anexos do Local"
-                    readOnly={!hasPermission('infrastructure:edit')}
+                    readOnly={!hasPermission('equipment:write')}
                     compact
                   />
                 </div>

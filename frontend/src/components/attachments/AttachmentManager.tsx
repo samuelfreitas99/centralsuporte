@@ -25,6 +25,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/Toast';
+import { useAuth } from '@/hooks/useAuth';
 import { attachmentService } from '@/services/attachmentService';
 import type { AttachmentItem, AttachmentEntityType } from '@/types/attachment';
 
@@ -46,7 +47,11 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
   onAttachmentCountChange,
 }) => {
   const { success, error: toastError } = useToast();
+  const { hasPermission } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const canUpload = !readOnly && hasPermission('attachment:upload');
+  const canDelete = !readOnly && hasPermission('attachment:delete');
 
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,7 +98,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
   // Drag & drop handlers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    if (!readOnly) setIsDragOver(true);
+    if (canUpload) setIsDragOver(true);
   };
 
   const handleDragLeave = (e: React.DragEvent) => {
@@ -104,7 +109,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    if (readOnly) return;
+    if (!canUpload) return;
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       setSelectedFile(e.dataTransfer.files[0]);
     }
@@ -247,8 +252,8 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
         </Button>
       </div>
 
-      {/* Upload Zone (if not readOnly) */}
-      {!readOnly && (
+      {/* Upload Zone (if canUpload) */}
+      {canUpload && (
         <form onSubmit={handleUpload} className="space-y-2.5">
           <div
             onDragOver={handleDragOver}
@@ -437,7 +442,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
                   <span className="sr-only">Baixar</span>
                 </Button>
 
-                {!readOnly && (
+                {canDelete && (
                   <Button
                     type="button"
                     variant="ghost"

@@ -5,6 +5,11 @@ import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import type { EquipmentItem } from '@/types/infrastructure';
 import type { Task } from '@/types/tasks';
 
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({
+    hasPermission: vi.fn().mockReturnValue(true),
+  }),
+}));
 const mockEquipments: EquipmentItem[] = [
   { id: 1, hostname: 'PDV-01', model: 'Dell OptiPlex 3080', patrimony: 'PAT-1001', serial_number: 'SN123', status: 'ativo', equipment_type: 'computador', created_at: '', updated_at: '' },
   { id: 2, hostname: 'PDV-02', model: 'Dell OptiPlex 3080', patrimony: 'PAT-1002', serial_number: 'SN124', status: 'ativo', equipment_type: 'computador', created_at: '', updated_at: '' },

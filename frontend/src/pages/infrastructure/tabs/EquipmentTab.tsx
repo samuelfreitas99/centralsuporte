@@ -604,7 +604,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                       entityType="equipment"
                       entityId={editingEquipment.id}
                       title="Anexos do Equipamento"
-                      readOnly={!hasPermission('infrastructure:edit')}
+                      readOnly={!hasPermission('equipment:write')}
                     />
                   </TabsContent>
                 </>

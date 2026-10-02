@@ -1,8 +1,13 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.2 (Tarefa 5.1 — MIME AllowList e Hardening do Upload) concluída com sucesso.
-**Fase atual**: Pronta para iniciar a Fase 12.2 — Tarefa 5.2: Auditoria de Eventos de Anexos (AuditLog) e Refinamentos Finais.
+**Estado atual**: Fase 12.3 (Segurança e Integração Frontend para Anexos) concluída com sucesso.
+**Fase atual**: Pronta para a Fase 12.4 (testes e ajustes finais) ou próxima feature.
 **Última implementação**:
+- **Fase 12.3 — Tarefa 6: Integração de Segurança de Anexos no Frontend**:
+  - `AttachmentManager` atualizado para receber e respeitar a flag `readOnly`, desativando o dropzone de upload, botão de deletar e ofuscando a lixeira em modo restrito.
+  - Injeção de `useAuth` e permissões de contexto em todos os usos do `AttachmentManager`: `TaskDetailDrawer` (`task:edit`), `ArticleViewDialog` (`knowledge:edit`), `MaintenanceDrawer` (`maintenance:edit`), `StoresTab` e `EquipmentTab` (`infrastructure:edit`), `ProjectWorkspace` (`project:edit`), e `AttendancePage` (`canModifyAttendance`).
+  - Atualização do ambiente de testes Vitest (`setup.ts`) para suportar corretamente contextos em componentes que consomem `useAuth` e `useToast`, recuperando 100% de estabilidade da suíte (111/111 testes passando).
+  - Auditoria completa de uso do `AttachmentManager` em todas as entidades do sistema comprovando proteção total contra escalada de privilégios via UI.
 - **Fase 12.2 — Tarefa 5.1: MIME AllowList e Hardening do Upload**:
   - Implementada política de segurança centralizada em `backend/app/services/attachment_security.py` definindo `ALLOWED_EXTENSIONS_MAP` categorizada para Documentos (`.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx`, `.txt`, `.csv`), Imagens (`.png`, `.jpg`, `.jpeg`, `.webp`) e Arquivos Técnicos/Texto (`.json`, `.xml`, `.log`, `.yaml`, `.yml`, `.zip`).
   - Blocklist estrita (`DANGEROUS_EXTENSIONS`) e rejeição com HTTP 400 para executáveis, scripts (`.exe`, `.dll`, `.msi`, `.bat`, `.cmd`, `.com`, `.scr`, `.ps1`, `.psm1`, `.vbs`, `.vbe`, `.js`, `.jse`, `.jar`, `.sh`, `.bash`, `.apk`, `.deb`, `.rpm`, `.bin`), extensões não suportadas e arquivos sem extensão.
@@ -137,17 +142,25 @@
   - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
   - Ações de atualização rápida de status embutidas na visualização de detalhes.
 
-**Último commit**: feat(attachments): audit attachment lifecycle events
-**Próxima tarefa**: Fase 12.2 concluída — Avaliar próximo passo do roadmap.
+- **Fase 12.3.2 — Correção de RBAC Frontend + Testes de Autenticação**:
+  - Removidas permissões fictícias (`*:edit`) nas integrações do Frontend (`AttachmentManager`, `TaskDetailDrawer`, `MaintenanceDrawer`, etc.) substituindo-as pelas corretas baseadas no backend (`tasks:write`, `knowledge:write`, `maintenance:write`, `equipment:write`, `project:update`, `attachment:upload`, `attachment:delete`).
+  - Corrigido o `AttachmentManager` para não mais utilizar a flag injetada `readOnly` para ocultar os botões de upload e exclusão, usando em vez disso as validações exatas de escopo `hasPermission('attachment:upload')` e `hasPermission('attachment:delete')`.
+  - Removido o mock perigoso global de `useAuth()` do `src/test/setup.ts` que suprimia silenciosamente a ausência do `<AuthProvider>` nos testes, resultando em falsos positivos.
+  - Ajustada a suíte de testes Vitest para testar adequadamente fluxos condicionados a permissões RBAC reais de Upload e Exclusão.
+  - Correção total de todos os testes quebrados, validando explicitamente a ocultação de botões quando o usuário não possui a permissão específica ou forçando a injeção do `AuthContext` via `renderWithProvider` ou isolamento usando mocks pontuais por arquivo.
+
+**Último commit**: fix(frontend): enforce real rbac permissions in UI and test suite
+**Próxima tarefa**: Retomar a Fase 12.3 implementando exclusão em lote e relatórios avançados de storage.
 **Bloqueios**: Nenhum.
 **Pendências**: Nenhuma.
 **Testes**: 
 - Backend Pytest: 149/149 passed (100%)
-- Frontend Vitest: 111/111 passed (100% em 19 arquivos de teste)
+- Frontend Vitest: 112/112 passed (100% em 19 arquivos de teste)
 - TypeScript / Vite build: 0 erros
 - ESLint: 0 erros
 **Problemas conhecidos**: Nenhum.
 **Decisões recentes**:
+- Testes do React não podem esconder a obrigatoriedade do Context API global via `try/catch` de hooks em `setup.ts`. Testes devem configurar provedores de forma explícita.
 - Integração de `AuditLog` nativo para rastreabilidade de eventos de ciclo de vida de anexos: `attachment.uploaded` e `attachment.deleted`, utilizando a função centralizada `record_audit_log` (`backend/app/services/audit.py`).
 - Atomicidade transacional: `Attachment` e `AuditLog` participam da mesma transação do PostgreSQL através de `db.flush()` antes do `db.commit()`. Se a persistência falhar, ambos são revertidos e a limpeza física no storage é executada sem deixar lixo no disco ou no banco.
 - Higienização e privacidade da trilha de auditoria: omissão rigorosa de dados sensíveis ou de infraestrutura (`stored_filename`, caminho físico no storage, conteúdo do arquivo, hashes desnecessários ou tokens), registrando unicamente metadados sanitizados (`original_filename`, `mime_type`, `file_size`, `parent_entity_type`, `parent_entity_id`, IP e User-Agent quando disponíveis).
