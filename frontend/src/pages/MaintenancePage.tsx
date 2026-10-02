@@ -82,17 +82,18 @@ export const MaintenancePage: React.FC = () => {
       setCalendarEvents(calData);
 
       // Refresh selected maintenance if it's open
-      if (selectedMaintenance) {
-        const updated = maintData.find(m => m.id === selectedMaintenance.id);
-        if (updated) setSelectedMaintenance(updated);
-      }
+      setSelectedMaintenance((prev) => {
+        if (!prev) return prev;
+        const updated = maintData.find((m) => m.id === prev.id);
+        return updated ?? prev;
+      });
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Falha ao carregar manutenções';
       setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedStatus, selectedType, searchQuery, selectedMaintenance]);
+  }, [selectedStatus, selectedType, searchQuery]);
 
   useEffect(() => {
     loadData();

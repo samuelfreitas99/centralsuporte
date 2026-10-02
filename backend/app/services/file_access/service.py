@@ -12,6 +12,7 @@ from app.services.file_access.validators import (
     MaintenanceAttachmentValidator,
     ProjectAttachmentValidator,
     TaskAttachmentValidator,
+    DepartmentAttachmentValidator,
 )
 
 
@@ -337,6 +338,7 @@ def create_default_registry() -> AttachmentAccessRegistry:
     registry.register(AttendanceAttachmentValidator())
     registry.register(EquipmentAttachmentValidator())
     registry.register(KnowledgeAttachmentValidator())
+    registry.register(DepartmentAttachmentValidator())
     return registry
 
 

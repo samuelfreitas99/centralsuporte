@@ -55,16 +55,17 @@ export const KnowledgePage: React.FC = () => {
       setCategories(catsData);
       setArticles(artsData);
 
-      if (selectedArticle) {
-        const updated = artsData.find((a) => a.id === selectedArticle.id);
-        if (updated) setSelectedArticle(updated);
-      }
+      setSelectedArticle((prev) => {
+        if (!prev) return prev;
+        const updated = artsData.find((a) => a.id === prev.id);
+        return updated ?? prev;
+      });
     } catch (err) {
       console.error('Falha ao carregar artigos:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchTerm, onlyFavorites, selectedArticle]);
+  }, [selectedCategory, searchTerm, onlyFavorites]);
 
   useEffect(() => {
     loadData();

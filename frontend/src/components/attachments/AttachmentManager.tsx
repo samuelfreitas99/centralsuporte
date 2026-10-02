@@ -58,6 +58,12 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Avoid infinite loops if parent passes new function reference
+  const onAttachmentCountChangeRef = useRef(onAttachmentCountChange);
+  useEffect(() => {
+    onAttachmentCountChangeRef.current = onAttachmentCountChange;
+  }, [onAttachmentCountChange]);
+
   // Upload form states
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [description, setDescription] = useState('');
@@ -76,13 +82,13 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
     try {
       const data = await attachmentService.getAttachments(entityType, entityId);
       setAttachments(data);
-      onAttachmentCountChange?.(data.length);
+      onAttachmentCountChangeRef.current?.(data.length);
     } catch (err: any) {
       setErrorMessage(err.message || 'Não foi possível carregar os anexos.');
     } finally {
       setIsLoading(false);
     }
-  }, [entityType, entityId, onAttachmentCountChange]);
+  }, [entityType, entityId]);
 
   useEffect(() => {
     loadAttachments();
@@ -136,7 +142,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
       });
 
       setAttachments((prev) => [uploaded, ...prev]);
-      onAttachmentCountChange?.(attachments.length + 1);
+      onAttachmentCountChangeRef.current?.(attachments.length + 1);
       setSelectedFile(null);
       setDescription('');
       if (fileInputRef.current) {
@@ -160,7 +166,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
       await attachmentService.deleteAttachment(item.id);
       const remaining = attachments.filter((a) => a.id !== item.id);
       setAttachments(remaining);
-      onAttachmentCountChange?.(remaining.length);
+      onAttachmentCountChangeRef.current?.(remaining.length);
       success('Anexo Excluído', `"${item.original_filename}" foi removido do servidor.`);
     } catch {
       toastError('Erro ao Excluir', 'Não foi possível remover o arquivo.');

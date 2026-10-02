@@ -1,8 +1,14 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.4.4 concluída (Correção de Blockers e Consolidação Final da Central de Arquivos).
+**Estado atual**: Fase 12.5.1 concluída (Correção de Loop de Performance e Re-renders).
 **Fase atual**: Pronta para a próxima feature do Roadmap.
 **Última implementação**:
+- **Fase 12.5.1 — Correção de Loop de Re-render e Performance**:
+  - Implementado _Functional State Update_ (`setSelectedTask(prev => ...)`) para gerenciar itens selecionados em Data Tables/Drawers.
+  - Removido `selectedTask` e afins do array de dependências do `useCallback` de delegação de chamadas `loadTasks`, `loadArticles` e `loadMaintenances`.
+  - Corrigido gargalo crítico onde a abertura de modal gerava loops infinitos de chamadas à API, travando a UI e causando overhead em rede.
+  - Adicionado caso de regressão rigoroso no `TasksPage.test.tsx` com `mockClear()` do Vitest.
+  - Corrigido instabilidade local no `AuditLogsPage.test.tsx` provocada pela inicialização assíncrona do `<select>` combobox.
 - **Fase 12.4.4 — Correção de Blockers e Consolidação Final**:
   - Resolvido o gargalo de N+1 queries na listagem de anexos (`list_attachments`) convertendo os filtros contextuais de Python para Subqueries/Joins otimizados no SQLAlchemy (paginação real direto no banco).
   - Corrigido TypeScript Build devido à alteração no schema do `entity_type` para nullable; atualizado o UI com label `Arquivo geral` padronizado.

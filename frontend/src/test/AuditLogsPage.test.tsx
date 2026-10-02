@@ -78,7 +78,7 @@ describe('AuditLogsPage', () => {
     render(<AuditLogsPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Todas as Ações')).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'CREATE' })).toBeInTheDocument();
     });
 
     const actionSelect = screen.getByRole('combobox', { name: 'Filtrar por ação' });

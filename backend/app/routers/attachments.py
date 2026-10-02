@@ -258,6 +258,10 @@ def list_attachments(
                 )
             ))
 
+        # 4.8 Department
+        # Departments are globally visible, so if the user is authenticated they can see department attachments
+        conditions.append(Attachment.entity_type == "department")
+
         # Apply OR conditions combining all allowed contexts
         query = query.filter(or_(*conditions))
 

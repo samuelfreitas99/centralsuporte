@@ -10,6 +10,7 @@ from app.models import (
     Project,
     Task,
     User,
+    Department,
 )
 from app.services.file_access.registry import AttachmentAccessValidator
 
@@ -242,5 +243,34 @@ class KnowledgeAttachmentValidator(AttachmentAccessValidator):
         if entity.author_id == user.id:
             return True
         if attachment and attachment.uploader_id == user.id:
+            return True
+        return False
+
+class DepartmentAttachmentValidator(AttachmentAccessValidator):
+    @property
+    def entity_type(self) -> str:
+        return "department"
+
+    def get_entity(self, db: Session, entity_id: int) -> Optional[Department]:
+        return db.query(Department).filter(Department.id == entity_id).first()
+
+    def can_read(self, db: Session, user: User, entity: Department) -> bool:
+        # Departments are globally visible to any authenticated user in the system
+        return True
+
+    def can_upload(self, db: Session, user: User, entity: Department) -> bool:
+        if is_admin(user):
+            return True
+        # Rely on equipment:write or similar infrastructure write permission
+        if user.has_permission("equipment:write"):
+            return True
+        return False
+
+    def can_delete(self, db: Session, user: User, entity: Department, attachment: Optional[Attachment] = None) -> bool:
+        if is_admin(user):
+            return True
+        if attachment and attachment.uploader_id == user.id:
+            return True
+        if user.has_permission("equipment:write"):
             return True
         return False

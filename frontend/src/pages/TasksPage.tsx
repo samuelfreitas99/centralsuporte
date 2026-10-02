@@ -43,16 +43,17 @@ export const TasksPage: React.FC = () => {
         search: searchTerm || undefined,
       });
       setTasks(data);
-      if (selectedTask) {
-        const updated = data.find((t) => t.id === selectedTask.id);
-        if (updated) setSelectedTask(updated);
-      }
+      setSelectedTask((prev) => {
+        if (!prev) return prev;
+        const updated = data.find((t) => t.id === prev.id);
+        return updated ?? prev;
+      });
     } catch (err) {
       console.error('Falha ao buscar tarefas:', err);
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, priorityFilter, searchTerm, selectedTask]);
+  }, [statusFilter, priorityFilter, searchTerm]);
 
   useEffect(() => {
     loadTasks();
