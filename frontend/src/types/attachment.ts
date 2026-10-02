@@ -20,8 +20,8 @@ export interface AttachmentItem {
   file_size: number;
   mime_type: string;
   file_hash?: string | null;
-  entity_type: AttachmentEntityType | string;
-  entity_id: number;
+  entity_type?: AttachmentEntityType | string | null;
+  entity_id?: number | null;
   description?: string | null;
   uploader_id?: number | null;
   uploader?: AttachmentUploader | null;
@@ -31,6 +31,6 @@ export interface AttachmentItem {
 export interface AttachmentUploadPayload {
   file: File;
   entity_type: AttachmentEntityType | string;
-  entity_id: number;
+  entity_id?: number;
   description?: string;
 }

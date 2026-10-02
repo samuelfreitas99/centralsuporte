@@ -1,9 +1,9 @@
 import React, { useState, useRef } from 'react';
 import { Upload, X, CheckCircle, AlertCircle, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { attachmentService } from '@/services/attachmentService';
+import { EntitySearch } from './EntitySearch';
 import { formatSize } from './utils';
 
 interface FileUploadDialogProps {
@@ -47,8 +47,8 @@ export const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ isOpen, onCl
   };
 
   const startUpload = async () => {
-    if (!entityType || !entityId) {
-      alert('Selecione a origem (Tipo e ID).');
+    if (!entityType || (entityType !== 'general' && !entityId)) {
+      alert('Selecione o destino do arquivo.');
       return;
     }
 
@@ -64,7 +64,7 @@ export const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ isOpen, onCl
         await attachmentService.uploadAttachment({
           file: item.file,
           entity_type: entityType,
-          entity_id: parseInt(entityId, 10),
+          entity_id: entityType === 'general' ? undefined : parseInt(entityId, 10),
         });
         
         setFiles(prev => prev.map(f => f.id === item.id ? { ...f, status: 'success', progress: 100 } : f));
@@ -108,9 +108,10 @@ export const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ isOpen, onCl
             <h3 className="text-sm font-medium text-muted-foreground">1. Onde deseja vincular?</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-medium">Tipo de Origem</label>
+                <label className="text-xs font-medium">Destino</label>
                 <Select value={entityType} onChange={(e) => setEntityType(e.target.value)} disabled={isUploading}>
                   <option value="" disabled>Selecione...</option>
+                  <option value="general">Arquivo geral</option>
                   <option value="project">Projeto</option>
                   <option value="task">Tarefa</option>
                   <option value="attendance">Atendimento</option>
@@ -119,21 +120,19 @@ export const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ isOpen, onCl
                   <option value="knowledge">Conhecimento</option>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium">ID da Entidade</label>
-                <Input 
-                  type="number" 
-                  placeholder="Ex: 123" 
-                  value={entityId} 
-                  onChange={(e) => setEntityId(e.target.value)}
-                  disabled={isUploading || !entityType}
-                />
-              </div>
+              
+              {entityType && entityType !== 'general' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium">Selecionar {entityType === 'project' ? 'Projeto' : entityType}</label>
+                  <EntitySearch 
+                    entityType={entityType}
+                    value={entityId}
+                    onChange={(id) => setEntityId(id)}
+                    disabled={isUploading}
+                  />
+                </div>
+              )}
             </div>
-            {/* Contextual search/selection limitation disclaimer */}
-            <p className="text-[10px] text-muted-foreground">
-              A busca avançada de contexto está planejada para evolução futura. Por enquanto, informe o ID.
-            </p>
           </div>
 
           <div className="space-y-4">
@@ -198,7 +197,7 @@ export const FileUploadDialog: React.FC<FileUploadDialogProps> = ({ isOpen, onCl
           </Button>
           <Button 
             onClick={startUpload} 
-            disabled={isUploading || files.length === 0 || !entityType || !entityId || files.every(f => f.status === 'success')}
+            disabled={isUploading || files.length === 0 || !entityType || (entityType !== 'general' && !entityId) || files.every(f => f.status === 'success')}
           >
             {isUploading ? 'Enviando...' : 'Enviar arquivos'}
           </Button>

@@ -3,14 +3,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form, Query, Request
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
-
+from sqlalchemy import or_, and_
 from app.database import get_db
-from app.models import Attachment, User
+from app.models import Attachment, User, Project, Task, MaintenanceRecord, Attendance, Equipment, KnowledgeArticle, task_assignments
 from app.schemas import AttachmentResponse
 from app.auth import get_current_active_user, require_permission
 from app.services.storage import StorageAdapter, get_storage
 from app.services.file_access import FileAccessService, get_file_access_service
 from app.services.audit import record_audit_log
+from app.services.file_access.validators import is_admin
 from app.services.attachment_security import (
     MAX_FILE_SIZE,
     validate_upload_metadata,
@@ -24,8 +25,8 @@ router = APIRouter(prefix="/attachments", tags=["attachments"])
 async def upload_attachment(
     request: Request,
     file: UploadFile = File(...),
-    entity_type: str = Form(...),
-    entity_id: int = Form(...),
+    entity_type: Optional[str] = Form(None),
+    entity_id: Optional[int] = Form(None),
     description: Optional[str] = Form(None),
     db: Session = Depends(get_db),
     storage: StorageAdapter = Depends(get_storage),
@@ -36,6 +37,11 @@ async def upload_attachment(
     Upload a file and attach it to an entity.
     Enforces contextual authorization, MIME allowlist, and file content hardening before persisting.
     """
+    # Translate "general" pseudo-type to actual None context
+    if entity_type == "general":
+        entity_type = None
+        entity_id = None
+
     # 1. Contextual and global authorization BEFORE touching storage
     file_access_service.ensure_upload_access(db, current_user, entity_type, entity_id)
 
@@ -167,7 +173,7 @@ def list_attachments(
         file_access_service.ensure_read_access(db, current_user, entity_type, entity_id)
 
     # 2. When only entity_type is provided, validate that entity_type is registered
-    if entity_type and not file_access_service.registry.get(entity_type):
+    if entity_type and entity_type != "general" and not file_access_service.registry.get(entity_type):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Tipo de entidade '{entity_type}' não suportado para anexos.",
@@ -176,7 +182,10 @@ def list_attachments(
     # 3. Query active attachments matching filters
     query = db.query(Attachment).filter(Attachment.deleted_at.is_(None))
     if entity_type:
-        query = query.filter(Attachment.entity_type == entity_type)
+        if entity_type == "general":
+            query = query.filter(Attachment.entity_type.is_(None))
+        else:
+            query = query.filter(Attachment.entity_type == entity_type)
     if entity_id is not None:
         query = query.filter(Attachment.entity_id == entity_id)
     if uploader_id is not None:
@@ -190,26 +199,71 @@ def list_attachments(
     if mime_category:
         query = query.filter(Attachment.mime_type.ilike(f"{mime_category}/%"))
 
-    # For efficient global search without refactoring the whole auth layer, 
-    # we fetch candidates and apply contextual filter in Python, then slice.
-    candidates = query.order_by(Attachment.created_at.desc()).all()
+    # 4. Apply Contextual Authorization Filtering directly in the DB
+    if not is_admin(current_user):
+        conditions = []
 
-    # If already validated for a specific entity, return directly with pagination
-    if entity_type and entity_id is not None:
-        return candidates[skip : skip + limit]
+        # 4.1 General files
+        conditions.append(Attachment.entity_type.is_(None))
 
-    # 4. Contextually filter candidates for entities the user can access
-    allowed = []
-    decision_cache = {}
-    for att in candidates:
-        key = (att.entity_type, att.entity_id)
-        if key not in decision_cache:
-            decision_cache[key] = file_access_service.can_read(db, current_user, att.entity_type, att.entity_id)
-        if decision_cache[key]:
-            allowed.append(att)
-            
-    # Apply pagination AFTER contextual filtering
-    return allowed[skip : skip + limit]
+        # 4.2 Project
+        if current_user.has_permission("project:read"):
+            conditions.append(Attachment.entity_type == "project")
+
+        # 4.3 Task
+        if current_user.has_permission("tasks:read"):
+            conditions.append(and_(
+                Attachment.entity_type == "task",
+                Attachment.entity_id.in_(
+                    db.query(Task.id).filter(
+                        or_(
+                            Task.visibility.in_(["equipe", "todos"]),
+                            Task.creator_id == current_user.id,
+                            Task.id.in_(
+                                db.query(task_assignments.c.task_id).filter(task_assignments.c.user_id == current_user.id)
+                            )
+                        )
+                    )
+                )
+            ))
+
+        # 4.4 Maintenance
+        if current_user.has_permission("maintenance:read"):
+            conditions.append(Attachment.entity_type == "maintenance")
+
+        # 4.5 Attendance
+        if current_user.has_permission("attendance:read"):
+            conditions.append(Attachment.entity_type == "attendance")
+
+        # 4.6 Equipment
+        if current_user.has_permission("equipment:read"):
+            conditions.append(and_(
+                Attachment.entity_type == "equipment",
+                Attachment.entity_id.in_(
+                    db.query(Equipment.id).filter(Equipment.status != "descartado")
+                )
+            ))
+
+        # 4.7 Knowledge
+        if current_user.has_permission("knowledge:read"):
+            conditions.append(and_(
+                Attachment.entity_type == "knowledge",
+                Attachment.entity_id.in_(
+                    db.query(KnowledgeArticle.id).filter(
+                        or_(
+                            KnowledgeArticle.status == "publicado",
+                            KnowledgeArticle.author_id == current_user.id
+                        )
+                    )
+                )
+            ))
+
+        # Apply OR conditions combining all allowed contexts
+        query = query.filter(or_(*conditions))
+
+    # Apply pagination AFTER all database filtering is configured
+    query = query.order_by(Attachment.created_at.desc())
+    return query.offset(skip).limit(limit).all()
 
 
 @router.get("/{attachment_id}", response_model=AttachmentResponse)

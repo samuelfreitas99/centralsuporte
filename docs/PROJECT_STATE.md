@@ -1,8 +1,13 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.4 (Central de Arquivos / Documentos) completada com completude funcional e melhorias de UX (Fase 12.4.2).
+**Estado atual**: Fase 12.4.4 concluída (Correção de Blockers e Consolidação Final da Central de Arquivos).
 **Fase atual**: Pronta para a próxima feature do Roadmap.
 **Última implementação**:
+- **Fase 12.4.4 — Correção de Blockers e Consolidação Final**:
+  - Resolvido o gargalo de N+1 queries na listagem de anexos (`list_attachments`) convertendo os filtros contextuais de Python para Subqueries/Joins otimizados no SQLAlchemy (paginação real direto no banco).
+  - Corrigido TypeScript Build devido à alteração no schema do `entity_type` para nullable; atualizado o UI com label `Arquivo geral` padronizado.
+  - Testes do Pytest corrigidos removendo scripts de teste que geravam dados sujos no DB. Reforço de testes de arquivos gerais e paginação (`test_attachment_nplus1.py`).
+  - Total estabilidade do Git, isolamento de recursos sem impacto a outros contêineres e documentação de domínio sincronizada com regras operacionais de NULL/NULL e RBAC global.
 - **Fase 12.4.2 — Completude Funcional e UX Final da Central de Arquivos**:
   - Alterada a visualização padrão para GRID, priorizando o reconhecimento visual.
   - Implementada galeria nativa de alta performance (`FileViewer`) operando como um lightbox sobreposto em tela cheia com atalhos de teclado (setas, Esc), suporte a zoom, scroll direcional responsivo, preservando a navegação na URL atual e impedindo fechamento acidental ao clicar dentro da imagem.
@@ -201,3 +206,10 @@
 - Navegação hash nativa (`#users`, `#profile`, `#profile?id=X`) respeitando a arquitetura existente da aplicação.
 - Componente `Avatar` independente de APIs externas (Gravatar/Unsplash), priorizando estabilidade e segurança corporativa.
 - Adicionada tela de Roles (Matriz de Permissões) para facilitar administração, protegendo severamente o último administrador contra falhas humanas (auto-bloqueio, desativação acidental e perda de permission `roles:write`).
+- **Fase 12.4.3 — Refinamento do Fluxo de Upload e Arquivos Gerais**:
+  - Modelagem e Schema (`Attachment`) ajustados para permitir `entity_type` e `entity_id` nulos via migração Alembic `7192eafe6bf3`.
+  - Serviço de Autorização Centralizado (`FileAccessService`) atualizado para validar arquivos gerais sem entidade vinculada utilizando exclusivamente controle de RBAC global.
+  - Criado componente inteligente `EntitySearch` no Frontend, integrado aos serviços `searchService` e `projectService` para busca textual dinâmica de instâncias de entidades (Projetos, Tarefas, Equipamentos, etc.), removendo a obrigatoriedade de digitação manual de IDs.
+  - Refatoração do `FileUploadDialog` para suportar seleção explícita da opção "Arquivo geral" como origem e uso do componente `EntitySearch` quando necessário.
+  - Endpoints de anexo atualizados para interpretar o pseudotipo "general" vindo do formulário e mapeá-lo para valores nulos no banco de dados com segurança.
+  - Ferramentas de filtragem de interface (`FileToolbar`) expandidas para incluir exibição isolada de "Arquivos gerais".

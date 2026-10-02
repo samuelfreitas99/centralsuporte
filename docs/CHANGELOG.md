@@ -4,6 +4,8 @@ Todas as alterações notáveis neste projeto serão documentadas neste arquivo.
 
 ## [Unreleased]
 ### Added
+- **Fase 12.4.4**: Correção de blockers estruturais. Substituída a filtragem contextual em memória (que causava N+1 queries) por consultas SQLAlchemy otimizadas (`Subqueries` e `OR`), trazendo verdadeira paginação (LIMIT/OFFSET) para o banco de dados. Corrigidos testes do Pytest afetados por poluição de estado, e resolvido TypeScript Build para entidades nulas.
+- **Fase 12.4.3**: Refinamento do upload e arquivos gerais. Atualizado o schema (`entity_type` e `entity_id` nulos) via Alembic. Introduzido o componente `EntitySearch` para busca dinâmica de vínculos sem ID manual. Implementado label e filtros de "Arquivos gerais".
 - **Fase 12.4.2**: Completude funcional da Central de Arquivos (`/files`). Visualização padrão alterada para grade. Implementado um visualizador imersivo e rápido de imagens em tela inteira sem recarregar a URL (`FileViewer`). Lançada modal unificada de multi-upload inteligente com rastreamento e vínculo contextual a domínios do sistema. Cartões completamente interativos, adaptados aos fluxos ágeis sem poluição visual. Testes frontend refatorados com aderência a TypeScript e cobertura Vitest. Build com 0 warnings.
 - **Fase 12.4.1**: Central de Arquivos base e estabilização de leitura/paginação.
 - **Fase 8.4C**: Preparação para integração com Password Vault. Adicionado `account_email` à entidade `License` para rastrear contas administrativas de software sem comprometer segurança. Modificação no frontend `LicensesTab` para permitir edição de metadados da licença sem alterar a chave por acidente.

@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Download, Trash2 } from 'lucide-react';
-import { formatSize, formatEntityName, getFileIcon } from './utils';
+import { formatSize, getAttachmentContextLabel, getFileIcon } from './utils';
 
 interface FileListItemProps {
   file: AttachmentItem;
@@ -45,7 +45,7 @@ export const FileListItem: React.FC<FileListItemProps> = ({ file, canDelete, onC
             <div className="flex flex-col gap-1 sm:items-end">
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">Origem</span>
               <Badge variant="secondary" className="w-fit text-xs font-medium">
-                {formatEntityName(file.entity_type)} #{file.entity_id}
+                {getAttachmentContextLabel(file)}
               </Badge>
             </div>
             

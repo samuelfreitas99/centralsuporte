@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Download, Trash2 } from 'lucide-react';
 import { FileThumbnail } from './FileThumbnail';
-import { formatSize, formatEntityName, getFileIcon } from './utils';
+import { formatSize, getAttachmentContextLabel, getFileIcon } from './utils';
 
 interface FileCardProps {
   file: AttachmentItem;
@@ -50,7 +50,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, canDelete, onClick, on
           <div className="flex flex-col gap-1.5">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Origem</span>
             <Badge variant="secondary" className="w-fit text-xs font-medium">
-              {formatEntityName(file.entity_type)} #{file.entity_id}
+              {getAttachmentContextLabel(file)}
             </Badge>
           </div>
           <div className="flex items-center gap-1">

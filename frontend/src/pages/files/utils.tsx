@@ -1,4 +1,5 @@
 import { Image as ImageIcon, FileArchive, FileText, FileOutput, File } from 'lucide-react';
+import type { AttachmentItem } from '@/types/attachment';
 
 export const getFileIcon = (mimeType: string, className: string = "h-6 w-6") => {
   if (mimeType.startsWith('image/')) return <ImageIcon className={`${className} text-blue-500`} />;
@@ -19,7 +20,8 @@ export const formatSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 };
 
-export const formatEntityName = (type: string) => {
+export const formatEntityName = (type?: string | null) => {
+  if (!type || type === 'general') return 'Arquivo geral';
   const map: Record<string, string> = {
     project: 'Projeto',
     task: 'Tarefa',
@@ -29,4 +31,11 @@ export const formatEntityName = (type: string) => {
     knowledge: 'Conhecimento',
   };
   return map[type] || type;
+};
+
+export const getAttachmentContextLabel = (file: AttachmentItem) => {
+  if (!file.entity_type || file.entity_type === 'general') {
+    return 'Arquivo geral';
+  }
+  return `${formatEntityName(file.entity_type)} #${file.entity_id}`;
 };

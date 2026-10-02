@@ -31,7 +31,9 @@ export const attachmentService = {
     const formData = new FormData();
     formData.append('file', payload.file);
     formData.append('entity_type', payload.entity_type);
-    formData.append('entity_id', String(payload.entity_id));
+    if (payload.entity_id !== undefined && payload.entity_id !== null && !Number.isNaN(payload.entity_id)) {
+      formData.append('entity_id', String(payload.entity_id));
+    }
     if (payload.description) {
       formData.append('description', payload.description);
     }

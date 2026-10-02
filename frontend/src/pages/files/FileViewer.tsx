@@ -3,7 +3,7 @@ import { X, ChevronLeft, ChevronRight, Download, File as FileIcon } from 'lucide
 import { Button } from '@/components/ui/button';
 import type { AttachmentItem } from '@/types/attachment';
 import { attachmentService } from '@/services/attachmentService';
-import { formatSize, formatEntityName, getFileIcon } from './utils';
+import { formatSize, getAttachmentContextLabel, getFileIcon } from './utils';
 import { Badge } from '@/components/ui/badge';
 
 interface FileViewerProps {
@@ -219,7 +219,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({
              {currentFile.original_filename}
            </h4>
            <Badge variant="secondary" className="bg-white/20 text-white border-none pointer-events-auto backdrop-blur-md">
-             {formatEntityName(currentFile.entity_type)} · {currentFile.entity_id}
+             {getAttachmentContextLabel(currentFile)}
            </Badge>
         </div>
       </div>

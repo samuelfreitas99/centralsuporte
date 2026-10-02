@@ -54,6 +54,7 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
           </Select>
           <Select value={entityType} onChange={(e) => setEntityType(e.target.value)} className="w-[160px] h-10">
             <option value="all">Todas as origens</option>
+            <option value="general">Arquivos gerais</option>
             <option value="project">Projetos</option>
             <option value="task">Tarefas</option>
             <option value="attendance">Atendimentos</option>
@@ -117,6 +118,7 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
                   <label className="text-sm font-medium">Origem</label>
                   <Select value={entityType} onChange={(e) => setEntityType(e.target.value)} className="w-full h-10">
                     <option value="all">Todas as origens</option>
+                    <option value="general">Arquivos gerais</option>
                     <option value="project">Projetos</option>
                     <option value="task">Tarefas</option>
                     <option value="attendance">Atendimentos</option>
@@ -168,7 +170,7 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
           )}
           {entityType !== 'all' && (
             <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 bg-primary/5 cursor-pointer" onClick={() => setEntityType('all')}>
-              Origem: {entityType} ×
+              Origem: {entityType === 'general' ? 'Arquivos gerais' : entityType} ×
             </div>
           )}
         </div>

@@ -986,8 +986,8 @@ class MaintenanceSummaryMetrics(BaseModel):
 
 class AttachmentBase(BaseModel):
     original_filename: str
-    entity_type: str
-    entity_id: int
+    entity_type: Optional[str] = None
+    entity_id: Optional[int] = None
     description: Optional[str] = None
 
 class AttachmentResponse(AttachmentBase):

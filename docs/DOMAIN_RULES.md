@@ -41,3 +41,9 @@ A Central usará a seguinte regra para interfaces de texto longo:
 * **Agregadores Opcionais:** Projetos são "contextualizadores" para trabalhos maiores (ex: Abertura de Loja, Implantação). Eles agrupam itens operacionais (Tasks, Maintenances, Checklists, etc.).
 * **Preservação de Dados (No Cascade Delete):** O Projeto **não é dono** dos registros operacionais e simélides. Excluir um Projeto *nunca* deve excluir as tarefas, checklists, movimentações de estoque, manutenções, e atendimentos associados (garantido por `ON DELETE SET NULL`).
 * **Desvinculação Flexível:** Deve ser possível vincular ou desvincular um registro de um Projeto a qualquer momento sem impactar seu ciclo de vida principal.
+
+## 8. Central de Arquivos / Attachments
+* **Arquivos Gerais (NULL / NULL):** Arquivos podem existir de forma independente (sem vínculo a projetos, tarefas, etc.). Nestes casos, o `entity_type` e o `entity_id` são persistidos como `NULL`.
+* **Autorização de Arquivos Gerais:** A leitura e manipulação de arquivos gerais não exige permissão contextual (pois não há contexto), sendo restrita exclusivamente pelas permissões RBAC globais (`attachment:read`, `attachment:upload`, `attachment:delete`).
+* **Seleção Dinâmica (EntitySearch):** A vinculação manual de arquivos a entidades durante o upload global ocorre através da interface dinâmica `EntitySearch`, que substitui IDs soltos por pesquisas textuais (autocomplete) contextualizadas por domínio (Projetos, Tarefas, Equipamentos).
+* **Ausência de N+1 (Paginação Contextual):** A autorização baseada em contexto (ex: um arquivo numa tarefa privada) é resolvida no banco de dados, utilizando projeção otimizada (`SQLAlchemy or_` com `Subqueries`) para garantir paginação fluida e prevenir consumo excessivo de memória, eliminando a dependência de loops em Python (`N+1`).

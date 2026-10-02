@@ -39,8 +39,8 @@ class FileAccessService:
         self,
         db: Session,
         user: Optional[User],
-        entity_type: str,
-        entity_id: int,
+        entity_type: Optional[str],
+        entity_id: Optional[int],
     ) -> AccessDecision:
         """Evaluates whether the user can read/list/download attachments for the given entity."""
         user_check = self._validate_user(user)
@@ -53,6 +53,10 @@ class FileAccessService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 reason="Acesso negado: permissão global 'attachment:read' necessária.",
             )
+
+        if not entity_type:
+            # Arquivo Geral
+            return AccessDecision(allowed=True, entity=None)
 
         validator = self.registry.get(entity_type)
         if not validator:
@@ -92,8 +96,8 @@ class FileAccessService:
         self,
         db: Session,
         user: Optional[User],
-        entity_type: str,
-        entity_id: int,
+        entity_type: Optional[str],
+        entity_id: Optional[int],
     ) -> AccessDecision:
         """Evaluates whether the user can upload and attach files to the given entity."""
         user_check = self._validate_user(user)
@@ -106,6 +110,10 @@ class FileAccessService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 reason="Acesso negado: permissão global 'attachment:upload' necessária.",
             )
+
+        if not entity_type:
+            # Arquivo Geral
+            return AccessDecision(allowed=True, entity=None)
 
         validator = self.registry.get(entity_type)
         if not validator:
@@ -145,8 +153,8 @@ class FileAccessService:
         self,
         db: Session,
         user: Optional[User],
-        entity_type: str,
-        entity_id: int,
+        entity_type: Optional[str],
+        entity_id: Optional[int],
         attachment: Optional[Attachment] = None,
     ) -> AccessDecision:
         """Evaluates whether the user can delete an attachment from the given entity."""
@@ -160,6 +168,12 @@ class FileAccessService:
                 status_code=status.HTTP_403_FORBIDDEN,
                 reason="Acesso negado: permissão global 'attachment:delete' necessária.",
             )
+
+        if not entity_type:
+            # Arquivo Geral
+            # Ownership check: user can delete if they are the uploader, or if they have Administrador role
+            # (or we just allow it since they have the global attachment:delete permission. Let's allow it as requested).
+            return AccessDecision(allowed=True, entity=None)
 
         validator = self.registry.get(entity_type)
         if not validator:
@@ -219,11 +233,11 @@ class FileAccessService:
             attachment=attachment,
         )
 
-    def can_read(self, db: Session, user: Optional[User], entity_type: str, entity_id: int) -> bool:
+    def can_read(self, db: Session, user: Optional[User], entity_type: Optional[str], entity_id: Optional[int]) -> bool:
         """Returns True if the user is authorized to read attachments for the entity."""
         return self.check_read_access(db, user, entity_type, entity_id).allowed
 
-    def can_upload(self, db: Session, user: Optional[User], entity_type: str, entity_id: int) -> bool:
+    def can_upload(self, db: Session, user: Optional[User], entity_type: Optional[str], entity_id: Optional[int]) -> bool:
         """Returns True if the user is authorized to upload attachments for the entity."""
         return self.check_upload_access(db, user, entity_type, entity_id).allowed
 
@@ -231,21 +245,21 @@ class FileAccessService:
         self,
         db: Session,
         user: Optional[User],
-        entity_type: str,
-        entity_id: int,
+        entity_type: Optional[str],
+        entity_id: Optional[int],
         attachment: Optional[Attachment] = None,
     ) -> bool:
         """Returns True if the user is authorized to delete the attachment from the entity."""
         return self.check_delete_access(db, user, entity_type, entity_id, attachment).allowed
 
-    def ensure_read_access(self, db: Session, user: Optional[User], entity_type: str, entity_id: int) -> Any:
+    def ensure_read_access(self, db: Session, user: Optional[User], entity_type: Optional[str], entity_id: Optional[int]) -> Any:
         """Enforces read access, raising HTTPException on denial. Returns the parent entity."""
         decision = self.check_read_access(db, user, entity_type, entity_id)
         if not decision.allowed:
             raise HTTPException(status_code=decision.status_code, detail=decision.reason)
         return decision.entity
 
-    def ensure_upload_access(self, db: Session, user: Optional[User], entity_type: str, entity_id: int) -> Any:
+    def ensure_upload_access(self, db: Session, user: Optional[User], entity_type: Optional[str], entity_id: Optional[int]) -> Any:
         """Enforces upload access, raising HTTPException on denial. Returns the parent entity."""
         decision = self.check_upload_access(db, user, entity_type, entity_id)
         if not decision.allowed:
@@ -256,8 +270,8 @@ class FileAccessService:
         self,
         db: Session,
         user: Optional[User],
-        entity_type: str,
-        entity_id: int,
+        entity_type: Optional[str],
+        entity_id: Optional[int],
         attachment: Optional[Attachment] = None,
     ) -> Any:
         """Enforces delete access, raising HTTPException on denial. Returns the parent entity."""
