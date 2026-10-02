@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { FilesPage } from '../pages/FilesPage';
+import { FilesPage } from '../pages/files/FilesPage';
 import { attachmentService } from '../services/attachmentService';
 import { useAuth } from '../hooks/useAuth';
 
@@ -114,7 +114,7 @@ describe('FilesPage', () => {
     render(<FilesPage />);
     
     await waitFor(() => {
-      expect(screen.getByText('Nenhum arquivo encontrado')).toBeInTheDocument();
+      expect(screen.getByText('Sua central está vazia')).toBeInTheDocument();
     });
   });
 });

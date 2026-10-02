@@ -47,7 +47,7 @@ const RolesPage = lazy(() =>
 );
 
 const FilesPage = lazy(() =>
-  import('@/pages/FilesPage').then((m) => ({ default: m.FilesPage }))
+  import('@/pages/files/FilesPage').then((m) => ({ default: m.FilesPage }))
 );
 
 export const AuthenticatedView: React.FC = () => {
