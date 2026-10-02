@@ -143,6 +143,11 @@ async def upload_attachment(
 def list_attachments(
     entity_type: Optional[str] = Query(None),
     entity_id: Optional[int] = Query(None),
+    search: Optional[str] = Query(None),
+    mime_category: Optional[str] = Query(None),
+    uploader_id: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
     file_access_service: FileAccessService = Depends(get_file_access_service),
     current_user: User = Depends(get_current_active_user),
@@ -174,12 +179,24 @@ def list_attachments(
         query = query.filter(Attachment.entity_type == entity_type)
     if entity_id is not None:
         query = query.filter(Attachment.entity_id == entity_id)
+    if uploader_id is not None:
+        query = query.filter(Attachment.uploader_id == uploader_id)
+    if search:
+        search_term = f"%{search}%"
+        query = query.filter(
+            (Attachment.original_filename.ilike(search_term)) |
+            (Attachment.description.ilike(search_term))
+        )
+    if mime_category:
+        query = query.filter(Attachment.mime_type.ilike(f"{mime_category}/%"))
 
+    # For efficient global search without refactoring the whole auth layer, 
+    # we fetch candidates and apply contextual filter in Python, then slice.
     candidates = query.order_by(Attachment.created_at.desc()).all()
 
-    # If already validated for a specific entity, return directly
+    # If already validated for a specific entity, return directly with pagination
     if entity_type and entity_id is not None:
-        return candidates
+        return candidates[skip : skip + limit]
 
     # 4. Contextually filter candidates for entities the user can access
     allowed = []
@@ -190,8 +207,9 @@ def list_attachments(
             decision_cache[key] = file_access_service.can_read(db, current_user, att.entity_type, att.entity_id)
         if decision_cache[key]:
             allowed.append(att)
-
-    return allowed
+            
+    # Apply pagination AFTER contextual filtering
+    return allowed[skip : skip + limit]
 
 
 @router.get("/{attachment_id}", response_model=AttachmentResponse)

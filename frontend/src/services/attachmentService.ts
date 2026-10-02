@@ -2,10 +2,23 @@ import { getApiBase, request } from './api';
 import type { AttachmentItem, AttachmentUploadPayload } from '../types/attachment';
 
 export const attachmentService = {
-  async getAttachments(entityType?: string, entityId?: number): Promise<AttachmentItem[]> {
+  async getAttachments(
+    entityType?: string,
+    entityId?: number,
+    search?: string,
+    mimeCategory?: string,
+    uploaderId?: number,
+    skip: number = 0,
+    limit: number = 50
+  ): Promise<AttachmentItem[]> {
     const params = new URLSearchParams();
     if (entityType) params.append('entity_type', entityType);
     if (entityId !== undefined && entityId !== null) params.append('entity_id', String(entityId));
+    if (search) params.append('search', search);
+    if (mimeCategory) params.append('mime_category', mimeCategory);
+    if (uploaderId !== undefined) params.append('uploader_id', String(uploaderId));
+    params.append('skip', String(skip));
+    params.append('limit', String(limit));
     const qs = params.toString() ? `?${params.toString()}` : '';
     return request<AttachmentItem[]>(`/attachments${qs}`);
   },

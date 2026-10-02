@@ -46,6 +46,10 @@ const RolesPage = lazy(() =>
   import('@/pages/RolesPage').then((m) => ({ default: m.RolesPage }))
 );
 
+const FilesPage = lazy(() =>
+  import('@/pages/FilesPage').then((m) => ({ default: m.FilesPage }))
+);
+
 export const AuthenticatedView: React.FC = () => {
   const getHashInfo = () => {
     const hash = window.location.hash.replace('#', '');
@@ -111,6 +115,8 @@ export const AuthenticatedView: React.FC = () => {
           <AttendancePage />
         ) : currentTab === 'equipment' ? (
           <InfrastructurePage />
+        ) : currentTab === 'files' ? (
+          <FilesPage />
         ) : currentTab === 'audit' ? (
           <AuditLogsPage />
         ) : currentTab === 'users' ? (
