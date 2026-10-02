@@ -1,6 +1,18 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Generic, TypeVar
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+T = TypeVar("T")
+
+class PaginatedResponse(BaseModel, Generic[T]):
+    items: List[T]
+    page: int
+    limit: int
+    total: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
 
 # --- Auth & Users Schemas ---
 

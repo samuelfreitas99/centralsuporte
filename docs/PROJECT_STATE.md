@@ -1,8 +1,13 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.5.1 concluída (Correção de Loop de Performance e Re-renders).
-**Fase atual**: Pronta para a próxima feature do Roadmap.
+**Estado atual**: Planejamento da Fase 12.6.1 concluído (Plano de Correção de Performance).
+**Fase atual**: Pronta para a implementação estrutural de Performance (Fases 12.6.2+).
 **Última implementação**:
+- **Fase 12.6 e 12.6.1 — Auditoria e Planejamento de Performance**:
+  - Realizada auditoria profunda em toda a arquitetura de Listagens, detectando ausência crítica de paginação de API, N+1 sistêmico no Pydantic via SQLAlchemy e gargalos de processamento React/DOM em listas enormes.
+  - Documentados planos e provas de conceito em `PHASE_12_6_PERFORMANCE_AUDIT.md` e `PHASE_12_6_1_PERFORMANCE_PLAN.md`.
+  - Definida estratégia unificada de Paginação (Offset+Limit) e separação estrutural de DTOs de Lista e Detalhe.
+  - Nenhuma implementação ou alteração de código foi realizada nesta fase, mantendo o ambiente estável em 100% dos testes.
 - **Fase 12.5.1 — Correção de Loop de Re-render e Performance**:
   - Implementado _Functional State Update_ (`setSelectedTask(prev => ...)`) para gerenciar itens selecionados em Data Tables/Drawers.
   - Removido `selectedTask` e afins do array de dependências do `useCallback` de delegação de chamadas `loadTasks`, `loadArticles` e `loadMaintenances`.
