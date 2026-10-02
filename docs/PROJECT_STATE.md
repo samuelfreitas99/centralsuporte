@@ -1,15 +1,23 @@
 # PROJECT_STATE
 
-**Estado atual**: Fase 12.4 (Central de Arquivos / Documentos) concluída com sucesso.
+**Estado atual**: Fase 12.4 (Central de Arquivos / Documentos) completada com completude funcional e melhorias de UX (Fase 12.4.2).
 **Fase atual**: Pronta para a próxima feature do Roadmap.
 **Última implementação**:
-- **Fase 12.4 — Central de Arquivos**:
+- **Fase 12.4.2 — Completude Funcional e UX Final da Central de Arquivos**:
+  - Alterada a visualização padrão para GRID, priorizando o reconhecimento visual.
+  - Implementada galeria nativa de alta performance (`FileViewer`) operando como um lightbox sobreposto em tela cheia com atalhos de teclado (setas, Esc), suporte a zoom, scroll direcional responsivo, preservando a navegação na URL atual e impedindo fechamento acidental ao clicar dentro da imagem.
+  - Implementado upload global na barra superior (`FileUploadDialog`) capaz de receber múltiplos arquivos e vinculá-los a domínios específicos (knowledge, attendance, task, project, maintenance, equipment) mantendo controle rigoroso das permissões de negócio antes do armazenamento na API.
+  - Refinados os cartões interativos da grade (`FileCard` e `FileListItem`), tornando toda a área clicável para abrir a galeria de modo fluido. Aplicado design focado em "Progressive Disclosure" com o mínimo de bordas, evitando aninhamento desnecessário (caixas dentro de caixas).
+  - Adicionado suporte visual a mais tipos de arquivos (`docx`, `pptx`, `csv`, arquivos comprimidos) através de novos ícones da Lucide.
+  - Assegurado layout mobile responsivo da barra de ferramentas e diálogos (320px-430px) sem quebras visuais.
+  - 100% de sucesso nos testes (Pytest/Vitest) e TypeScript build.
+- **Fase 12.4.1 — Estabilização Central de Arquivos**:
   - Implementada a `FilesPage` para listar documentos de forma centralizada (`/files`).
   - Atualizado backend (`GET /attachments`) com paginação e busca no banco (SQL-level com slice para filtragem contextual segura).
   - Implementado modos de visualização em grade e lista, preview, e download unificados.
   - `AttachmentManager` atualizado para receber e respeitar a flag `readOnly`, desativando o dropzone de upload, botão de deletar e ofuscando a lixeira em modo restrito.
   - Injeção de `useAuth` e permissões de contexto em todos os usos do `AttachmentManager`: `TaskDetailDrawer` (`task:edit`), `ArticleViewDialog` (`knowledge:edit`), `MaintenanceDrawer` (`maintenance:edit`), `StoresTab` e `EquipmentTab` (`infrastructure:edit`), `ProjectWorkspace` (`project:edit`), e `AttendancePage` (`canModifyAttendance`).
-  - Atualização do ambiente de testes Vitest (`setup.ts`) para suportar corretamente contextos em componentes que consomem `useAuth` e `useToast`, recuperando 100% de estabilidade da suíte (111/111 testes passando).
+  - Atualização do ambiente de testes Vitest (`setup.ts`) para suportar corretamente contextos em componentes que consomem `useAuth` e `useToast`, recuperando 100% de estabilidade da suíte.
   - Auditoria completa de uso do `AttachmentManager` em todas as entidades do sistema comprovando proteção total contra escalada de privilégios via UI.
 - **Fase 12.2 — Tarefa 5.1: MIME AllowList e Hardening do Upload**:
   - Implementada política de segurança centralizada em `backend/app/services/attachment_security.py` definindo `ALLOWED_EXTENSIONS_MAP` categorizada para Documentos (`.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx`, `.txt`, `.csv`), Imagens (`.png`, `.jpg`, `.jpeg`, `.webp`) e Arquivos Técnicos/Texto (`.json`, `.xml`, `.log`, `.yaml`, `.yml`, `.zip`).

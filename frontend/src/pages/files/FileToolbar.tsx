@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, LayoutGrid, List as ListIcon, Filter } from 'lucide-react';
+import { Search, LayoutGrid, List as ListIcon, Filter, Upload } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';
@@ -14,10 +14,11 @@ interface FileToolbarProps {
   setEntityType: (val: string) => void;
   viewMode: 'grid' | 'list';
   setViewMode: (val: 'grid' | 'list') => void;
+  onOpenUpload: () => void;
 }
 
 export const FileToolbar: React.FC<FileToolbarProps> = ({
-  search, setSearch, mimeCategory, setMimeCategory, entityType, setEntityType, viewMode, setViewMode
+  search, setSearch, mimeCategory, setMimeCategory, entityType, setEntityType, viewMode, setViewMode, onOpenUpload
 }) => {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   
@@ -40,6 +41,11 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
 
         {/* Desktop Filters & View Toggle */}
         <div className="hidden sm:flex items-center gap-3">
+          <Button onClick={onOpenUpload} className="h-10 bg-primary/10 text-primary hover:bg-primary/20 shadow-none border border-primary/20">
+            <Upload className="h-4 w-4 mr-2" />
+            Adicionar arquivos
+          </Button>
+
           <Select value={mimeCategory} onChange={(e) => setMimeCategory(e.target.value)} className="w-[160px] h-10">
             <option value="all">Todos os tipos</option>
             <option value="image">Imagens</option>
@@ -80,6 +86,9 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
 
         {/* Mobile Filters Toggle */}
         <div className="flex sm:hidden w-full gap-2 relative">
+          <Button onClick={onOpenUpload} variant="outline" className="h-10 shrink-0 text-primary border-primary/20 bg-primary/5">
+            <Upload className="h-4 w-4" />
+          </Button>
           <Button variant="outline" className="flex-1 justify-between h-10" onClick={() => setIsFilterOpen(!isFilterOpen)}>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4" />
@@ -153,14 +162,14 @@ export const FileToolbar: React.FC<FileToolbarProps> = ({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-muted-foreground font-medium">Filtros ativos:</span>
           {mimeCategory !== 'all' && (
-            <Badge variant="outline" className="bg-primary/5 cursor-pointer" onClick={() => setMimeCategory('all')}>
+            <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 bg-primary/5 cursor-pointer" onClick={() => setMimeCategory('all')}>
               Tipo: {mimeCategory === 'image' ? 'Imagens' : mimeCategory === 'application' ? 'Docs/PDF' : 'Textos'} ×
-            </Badge>
+            </div>
           )}
           {entityType !== 'all' && (
-            <Badge variant="outline" className="bg-primary/5 cursor-pointer" onClick={() => setEntityType('all')}>
+            <div className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80 bg-primary/5 cursor-pointer" onClick={() => setEntityType('all')}>
               Origem: {entityType} ×
-            </Badge>
+            </div>
           )}
         </div>
       )}

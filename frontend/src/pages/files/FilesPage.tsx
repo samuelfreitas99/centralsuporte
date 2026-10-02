@@ -8,6 +8,8 @@ import { FileToolbar } from './FileToolbar';
 import { FileCard } from './FileCard';
 import { FileListItem } from './FileListItem';
 import { FileEmptyState } from './FileEmptyState';
+import { FileViewer } from './FileViewer';
+import { FileUploadDialog } from './FileUploadDialog';
 
 export const FilesPage: React.FC = () => {
   const { hasPermission } = useAuth();
@@ -15,11 +17,15 @@ export const FilesPage: React.FC = () => {
   
   const [attachments, setAttachments] = useState<AttachmentItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const [search, setSearch] = useState('');
   const [mimeCategory, setMimeCategory] = useState<string>('all');
   const [entityType, setEntityType] = useState<string>('all');
+
+  const [viewerOpen, setViewerOpen] = useState(false);
+  const [viewerIndex, setViewerIndex] = useState(0);
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   const canRead = hasPermission('attachment:read');
   const canDelete = hasPermission('attachment:delete');
@@ -71,17 +77,9 @@ export const FilesPage: React.FC = () => {
     }
   };
 
-  const handlePreview = async (id: number, mimeType: string) => {
-    if (mimeType.startsWith('image/') || mimeType === 'application/pdf' || mimeType.startsWith('text/')) {
-      try {
-        const url = await attachmentService.fetchPreviewBlobUrl(id);
-        window.open(url, '_blank');
-      } catch (err) {
-        showToast('Erro ao visualizar', { type: 'error', message: err instanceof Error ? err.message : 'Desconhecido' });
-      }
-    } else {
-      showToast('Aviso', { type: 'warning', message: 'Este tipo de arquivo não suporta visualização nativa. Faça o download.' });
-    }
+  const openViewer = (index: number) => {
+    setViewerIndex(index);
+    setViewerOpen(true);
   };
 
   const handleClearFilters = () => {
@@ -116,7 +114,7 @@ export const FilesPage: React.FC = () => {
           Central de Arquivos
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">
-          Acesse os documentos, imagens e manuais aos quais você tem permissão.
+          {attachments.length > 0 ? `${attachments.length} arquivos` : 'Acesse os documentos, imagens e manuais aos quais você tem permissão.'}
         </p>
       </div>
 
@@ -130,6 +128,7 @@ export const FilesPage: React.FC = () => {
         setEntityType={setEntityType}
         viewMode={viewMode}
         setViewMode={setViewMode}
+        onOpenUpload={() => setUploadOpen(true)}
       />
 
       {/* Content Area */}
@@ -145,13 +144,13 @@ export const FilesPage: React.FC = () => {
             ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6" 
             : "flex flex-col gap-3 sm:gap-4"
         }>
-          {attachments.map((file) => (
+          {attachments.map((file, index) => (
             viewMode === 'grid' ? (
               <FileCard 
                 key={file.id} 
                 file={file} 
                 canDelete={canDelete}
-                onPreview={handlePreview}
+                onClick={() => openViewer(index)}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
               />
@@ -160,7 +159,7 @@ export const FilesPage: React.FC = () => {
                 key={file.id} 
                 file={file} 
                 canDelete={canDelete}
-                onPreview={handlePreview}
+                onClick={() => openViewer(index)}
                 onDownload={handleDownload}
                 onDelete={handleDelete}
               />
@@ -168,6 +167,26 @@ export const FilesPage: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Internal Viewer */}
+      <FileViewer
+        files={attachments}
+        currentIndex={viewerIndex}
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        onChangeIndex={setViewerIndex}
+        onDownload={handleDownload}
+      />
+
+      <FileUploadDialog
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onUploadSuccess={() => {
+          setUploadOpen(false);
+          loadAttachments();
+          showToast('Arquivos enviados com sucesso', { type: 'success' });
+        }}
+      />
     </div>
   );
 };

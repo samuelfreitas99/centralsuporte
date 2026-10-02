@@ -9,7 +9,7 @@ interface FileThumbnailProps {
   className?: string;
 }
 
-export const FileThumbnail: React.FC<FileThumbnailProps> = ({ attachmentId, mimeType, className }) => {
+export const FileThumbnail: React.FC<FileThumbnailProps> = ({ attachmentId, className }) => {
   const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);

@@ -3,20 +3,23 @@ import type { AttachmentItem } from '@/types/attachment';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, Eye, Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { formatSize, formatEntityName, getFileIcon } from './utils';
 
 interface FileListItemProps {
   file: AttachmentItem;
   canDelete: boolean;
-  onPreview: (id: number, mimeType: string) => void;
+  onClick: () => void;
   onDownload: (id: number, filename: string) => void;
   onDelete: (id: number) => void;
 }
 
-export const FileListItem: React.FC<FileListItemProps> = ({ file, canDelete, onPreview, onDownload, onDelete }) => {
+export const FileListItem: React.FC<FileListItemProps> = ({ file, canDelete, onClick, onDownload, onDelete }) => {
   return (
-    <Card className="overflow-hidden border-border/40 bg-card hover:bg-card/80 transition-colors group">
+    <Card 
+      className="overflow-hidden border-border/40 bg-card hover:bg-card/80 transition-colors group cursor-pointer"
+      onClick={onClick}
+    >
       <div className="p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         
         {/* Ícone, Nome e Meta */}
@@ -59,17 +62,8 @@ export const FileListItem: React.FC<FileListItemProps> = ({ file, canDelete, onP
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
-              onClick={() => onPreview(file.id, file.mime_type)}
-              title="Visualizar"
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors"
-              onClick={() => onDownload(file.id, file.original_filename)}
+              className="h-8 w-8 hover:bg-primary/10 hover:text-primary transition-colors z-10"
+              onClick={(e) => { e.stopPropagation(); onDownload(file.id, file.original_filename); }}
               title="Baixar arquivo"
             >
               <Download className="h-4 w-4" />
@@ -78,8 +72,8 @@ export const FileListItem: React.FC<FileListItemProps> = ({ file, canDelete, onP
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground"
-                onClick={() => onDelete(file.id)}
+                className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive transition-colors text-muted-foreground z-10"
+                onClick={(e) => { e.stopPropagation(); onDelete(file.id); }}
                 title="Excluir arquivo"
               >
                 <Trash2 className="h-4 w-4" />

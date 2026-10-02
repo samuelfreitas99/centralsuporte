@@ -1,11 +1,13 @@
-import React from 'react';
 import { Image as ImageIcon, FileArchive, FileText, FileOutput, File } from 'lucide-react';
 
 export const getFileIcon = (mimeType: string, className: string = "h-6 w-6") => {
   if (mimeType.startsWith('image/')) return <ImageIcon className={`${className} text-blue-500`} />;
   if (mimeType.startsWith('video/')) return <FileArchive className={`${className} text-purple-500`} />;
   if (mimeType === 'application/pdf') return <FileText className={`${className} text-red-500`} />;
-  if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return <FileOutput className={`${className} text-green-500`} />;
+  if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return <FileOutput className={`${className} text-green-500`} />;
+  if (mimeType.includes('wordprocessing') || mimeType.includes('word')) return <FileText className={`${className} text-blue-600`} />;
+  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return <FileText className={`${className} text-orange-500`} />;
+  if (mimeType.includes('zip') || mimeType.includes('compressed')) return <FileArchive className={`${className} text-yellow-600`} />;
   return <File className={`${className} text-gray-500`} />;
 };
 
