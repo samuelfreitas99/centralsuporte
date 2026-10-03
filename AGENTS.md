@@ -1,3 +1,8 @@
+# COMECE AQUI
+
+Antes de qualquer tarefa, leia `docs/README.md` (índice), `docs/PROJECT_STATE.md` (estado atual)
+e `docs/ROADMAP.md` (próximo item). Como rodar e testar: `docs/DEVELOPMENT.md`.
+
 # REGRA CRÍTICA — OTRS E CENTRAL DE SUPORTE
 
 A empresa utiliza o OTRS como sistema oficial de chamados.
@@ -58,6 +63,21 @@ Antes de criar ou alterar infraestrutura:
 Qualquer ação que possa afetar outros projetos ou containers deve ser evitada.
 
 O projeto deve ser isolado dos demais serviços do servidor.
+
+## REGRA CRÍTICA — TESTES E BANCO DE DADOS
+
+* Os testes do backend rodam no banco `centralsuporte_test`, isolado por `backend/conftest.py`.
+* NUNCA remova esse `conftest.py`, nunca aponte testes para `centralsuporte_db` e nunca crie
+  scripts de teste que gravem no banco da aplicação.
+* NUNCA apague ou "limpe" dados do banco principal sem backup (`pg_dump`) e confirmação do responsável.
+* Uma tarefa só está concluída com: testes backend + testes frontend + `tsc -b` passando.
+
+## REGRA — INTERFACE
+
+* Textos em português do Brasil, curtos e diretos, pensados para o técnico de suporte.
+* Não expor jargão de desenvolvimento na interface ("Fase 8", "MVP", "Roadmap Futuro").
+* Antes de criar uma tela ou função nova, verifique se ela já existe em outra tela (ver
+  `docs/ANALISE_2026-10.md`). Prefira conectar e reutilizar a duplicar.
 
 ## GIT E COMMITS
 

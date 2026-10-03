@@ -1,0 +1,226 @@
+# PROJECT_STATE
+
+**Estado atual**: Planejamento da Fase 12.6.1 concluído (Plano de Correção de Performance).
+**Fase atual**: Pronta para a implementação estrutural de Performance (Fases 12.6.2+).
+**Última implementação**:
+- **Fase 12.6 e 12.6.1 — Auditoria e Planejamento de Performance**:
+  - Realizada auditoria profunda em toda a arquitetura de Listagens, detectando ausência crítica de paginação de API, N+1 sistêmico no Pydantic via SQLAlchemy e gargalos de processamento React/DOM em listas enormes.
+  - Documentados planos e provas de conceito em `PHASE_12_6_PERFORMANCE_AUDIT.md` e `PHASE_12_6_1_PERFORMANCE_PLAN.md`.
+  - Definida estratégia unificada de Paginação (Offset+Limit) e separação estrutural de DTOs de Lista e Detalhe.
+  - Nenhuma implementação ou alteração de código foi realizada nesta fase, mantendo o ambiente estável em 100% dos testes.
+- **Fase 12.5.1 — Correção de Loop de Re-render e Performance**:
+  - Implementado _Functional State Update_ (`setSelectedTask(prev => ...)`) para gerenciar itens selecionados em Data Tables/Drawers.
+  - Removido `selectedTask` e afins do array de dependências do `useCallback` de delegação de chamadas `loadTasks`, `loadArticles` e `loadMaintenances`.
+  - Corrigido gargalo crítico onde a abertura de modal gerava loops infinitos de chamadas à API, travando a UI e causando overhead em rede.
+  - Adicionado caso de regressão rigoroso no `TasksPage.test.tsx` com `mockClear()` do Vitest.
+  - Corrigido instabilidade local no `AuditLogsPage.test.tsx` provocada pela inicialização assíncrona do `<select>` combobox.
+- **Fase 12.4.4 — Correção de Blockers e Consolidação Final**:
+  - Resolvido o gargalo de N+1 queries na listagem de anexos (`list_attachments`) convertendo os filtros contextuais de Python para Subqueries/Joins otimizados no SQLAlchemy (paginação real direto no banco).
+  - Corrigido TypeScript Build devido à alteração no schema do `entity_type` para nullable; atualizado o UI com label `Arquivo geral` padronizado.
+  - Testes do Pytest corrigidos removendo scripts de teste que geravam dados sujos no DB. Reforço de testes de arquivos gerais e paginação (`test_attachment_nplus1.py`).
+  - Total estabilidade do Git, isolamento de recursos sem impacto a outros contêineres e documentação de domínio sincronizada com regras operacionais de NULL/NULL e RBAC global.
+- **Fase 12.4.2 — Completude Funcional e UX Final da Central de Arquivos**:
+  - Alterada a visualização padrão para GRID, priorizando o reconhecimento visual.
+  - Implementada galeria nativa de alta performance (`FileViewer`) operando como um lightbox sobreposto em tela cheia com atalhos de teclado (setas, Esc), suporte a zoom, scroll direcional responsivo, preservando a navegação na URL atual e impedindo fechamento acidental ao clicar dentro da imagem.
+  - Implementado upload global na barra superior (`FileUploadDialog`) capaz de receber múltiplos arquivos e vinculá-los a domínios específicos (knowledge, attendance, task, project, maintenance, equipment) mantendo controle rigoroso das permissões de negócio antes do armazenamento na API.
+  - Refinados os cartões interativos da grade (`FileCard` e `FileListItem`), tornando toda a área clicável para abrir a galeria de modo fluido. Aplicado design focado em "Progressive Disclosure" com o mínimo de bordas, evitando aninhamento desnecessário (caixas dentro de caixas).
+  - Adicionado suporte visual a mais tipos de arquivos (`docx`, `pptx`, `csv`, arquivos comprimidos) através de novos ícones da Lucide.
+  - Assegurado layout mobile responsivo da barra de ferramentas e diálogos (320px-430px) sem quebras visuais.
+  - 100% de sucesso nos testes (Pytest/Vitest) e TypeScript build.
+- **Fase 12.4.1 — Estabilização Central de Arquivos**:
+  - Implementada a `FilesPage` para listar documentos de forma centralizada (`/files`).
+  - Atualizado backend (`GET /attachments`) com paginação e busca no banco (SQL-level com slice para filtragem contextual segura).
+  - Implementado modos de visualização em grade e lista, preview, e download unificados.
+  - `AttachmentManager` atualizado para receber e respeitar a flag `readOnly`, desativando o dropzone de upload, botão de deletar e ofuscando a lixeira em modo restrito.
+  - Injeção de `useAuth` e permissões de contexto em todos os usos do `AttachmentManager`: `TaskDetailDrawer` (`task:edit`), `ArticleViewDialog` (`knowledge:edit`), `MaintenanceDrawer` (`maintenance:edit`), `StoresTab` e `EquipmentTab` (`infrastructure:edit`), `ProjectWorkspace` (`project:edit`), e `AttendancePage` (`canModifyAttendance`).
+  - Atualização do ambiente de testes Vitest (`setup.ts`) para suportar corretamente contextos em componentes que consomem `useAuth` e `useToast`, recuperando 100% de estabilidade da suíte.
+  - Auditoria completa de uso do `AttachmentManager` em todas as entidades do sistema comprovando proteção total contra escalada de privilégios via UI.
+- **Fase 12.2 — Tarefa 5.1: MIME AllowList e Hardening do Upload**:
+  - Implementada política de segurança centralizada em `backend/app/services/attachment_security.py` definindo `ALLOWED_EXTENSIONS_MAP` categorizada para Documentos (`.pdf`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx`, `.txt`, `.csv`), Imagens (`.png`, `.jpg`, `.jpeg`, `.webp`) e Arquivos Técnicos/Texto (`.json`, `.xml`, `.log`, `.yaml`, `.yml`, `.zip`).
+  - Blocklist estrita (`DANGEROUS_EXTENSIONS`) e rejeição com HTTP 400 para executáveis, scripts (`.exe`, `.dll`, `.msi`, `.bat`, `.cmd`, `.com`, `.scr`, `.ps1`, `.psm1`, `.vbs`, `.vbe`, `.js`, `.jse`, `.jar`, `.sh`, `.bash`, `.apk`, `.deb`, `.rpm`, `.bin`), extensões não suportadas e arquivos sem extensão.
+  - Validação cruzada com `Content-Type` do cliente: rejeição de MIME perigoso ou inconsistente com a extensão (HTTP 400). Aceitação de formatos permitidos enviados com MIME genérico (`application/octet-stream`), com normalização para o MIME canônico.
+  - Inspeção de assinaturas binárias (magic bytes): bloqueio universal contra executáveis disfarçados (`MZ`, `\x7fELF`, etc.) e verificação de cabeçalhos legítimos (`%PDF`, `\x89PNG`, `\xff\xd8\xff`, `RIFF`).
+  - Limite de tamanho centralizado e configurável via variável de ambiente (`MAX_ATTACHMENT_SIZE_MB`, padrão: 25 MB) com rejeição e limpeza automática via HTTP 413 Payload Too Large.
+  - Sanitização de `original_filename` prevenindo injeções de path traversal (`../../`).
+  - Criada suíte de testes dedicada `backend/tests/test_attachment_security.py` com 32 testes ponta a ponta.
+  - 138/138 testes backend aprovados no Pytest, 111/111 testes frontend no Vitest, build com 0 erros.
+- **Fase 12.2 — Tarefa 4: Integração do FileAccessService em Leitura, Listagem, Download e Preview**:
+  - `GET /attachments`: Enforçada autorização contextual e permissão global `attachment:read`. Quando `entity_type` e `entity_id` são fornecidos, validação antecipada é executada via `ensure_read_access` (retornando 403 se não autorizado, 404 se inexistente, 400 se não suportado). Na listagem geral, cada anexo é avaliado contextualmente com cache em memória, omitindo registros de entidades às quais o usuário não possui acesso (ex: tarefas privadas). Anexos soft-deleted são sempre excluídos.
+  - `GET /attachments/{id}`: Consulta metadados com verificação de não-deleção (`deleted_at is None`) e autorização contextual via `FileAccessService.ensure_attachment_read_access`. Retorna somente metadados permitidos sem expor caminhos físicos.
+  - `GET /attachments/{id}/download`: Autorização contextual executada estritamente **antes** de qualquer consulta ao `StorageAdapter`. Verificação de existência do arquivo físico no storage após autorização (retornando 404 coerente caso o arquivo físico esteja ausente). Streaming de download via `FileResponse` com `Content-Disposition: attachment`.
+  - `GET /attachments/{id}/preview`: Aplica idêntico fluxo de segurança prévio ao download, retornando `FileResponse` com `Content-Disposition: inline` para imagens, textos e PDFs.
+  - `FileAccessService`: Adicionados métodos auxiliares `ensure_attachment_read_access` (e alias `ensure_attachment_read`) e `ensure_attachment_delete_access`.
+  - Suíte de testes `backend/tests/test_attachment_endpoints.py` expandida com 8 cenários completos cobrindo ciclo de vida, upload/delete, metadados, download seguro com spy no storage, tarefas privadas, preview inline e listagem contextual.
+  - 106/106 testes backend aprovados no Pytest, 111/111 testes frontend no Vitest, build com 0 erros.
+- **Fase 12.2 — Tarefa 3: Integração do FileAccessService nos Endpoints de Upload e Delete**:
+  - Endpoint `POST /attachments/upload` atualizado para injetar `FileAccessService` e invocar `ensure_upload_access(db, current_user, entity_type, entity_id)` **antes** de gravar o arquivo físico no storage, garantindo validação em dois níveis (permissão global `attachment:upload` + autorização contextual na entidade pai) e rejeição imediata em caso de entidade cancelada, privada ou usuário inativo.
+  - Implementada estratégia de resiliência e cleanup transacional: se `storage.save()` tiver sucesso mas a inserção/commit no PostgreSQL falhar, o arquivo físico recém-salvo é removido do storage (`storage.delete`) evitando arquivos órfãos em disco.
+  - Endpoint `DELETE /attachments/{id}` atualizado para verificar existência do anexo e status de deleção (`deleted_at is None`, retornando 404 se inexistente ou já deletado), executar validação contextual via `ensure_delete_access()` e aplicar soft delete preenchendo `deleted_at = datetime.now(timezone.utc)` sem apagar o arquivo físico no storage (delegado para Garbage Collection).
+  - Suíte de testes em `backend/tests/test_attachment_endpoints.py` expandida com 4 cenários ponta-a-ponta cobrindo upload autorizado, todas as negações de upload (permissão global, outsider, tipo desconhecido, entidade inexistente, projeto cancelado, inativo), cleanup após falha simulada de commit no banco, e delete autorizado/negado/já deletado.
+  - 102/102 testes backend aprovados no Pytest, 111/111 testes frontend no Vitest, build com 0 erros.
+- **Fase 12.2 — Tarefa 2: FileAccessService + Registry Pattern + Validadores Contextuais**:
+  - Implementada a arquitetura Registry para autorização de anexos via `AttachmentAccessRegistry` e interface `AttachmentAccessValidator` em `backend/app/services/file_access/registry.py`.
+  - Criados os 6 validadores contextuais de domínio em `backend/app/services/file_access/validators.py`: `ProjectAttachmentValidator`, `TaskAttachmentValidator`, `MaintenanceAttachmentValidator`, `AttendanceAttachmentValidator`, `EquipmentAttachmentValidator`, `KnowledgeAttachmentValidator`.
+  - Implementado o serviço central `FileAccessService` em `backend/app/services/file_access/service.py`, aplicando modelo estrito de dois níveis (Permissão Global RBAC + Autorização Contextual da Entidade), default-deny para tipos desconhecidos e tratamento seguro de status HTTP (401, 403, 404).
+  - Suíte abrangente de 17 testes automatizados em `backend/tests/test_file_access_service.py` validando o Registry, regras de segurança, controle de visibilidade privada em tarefas, status cancelado/descartado, draft em knowledge e restrições de permissões. 99/99 testes backend aprovados.
+- **Fase 12.2 — Tarefa 1: StorageAdapter + Banco de Dados**:
+  - Implementada a abstração `StorageAdapter` e a classe concreta `LocalFileSystemStorage` em `backend/app/services/storage.py`, desacoplando operações de filesystem da API FastAPI e de sessões SQLAlchemy.
+  - Implementado isolamento seguro de arquivos físicos: geração de nomes físicos via UUID + extensão sanitizada (o nome original jamais é usado no sistema de arquivos).
+  - Prevenção rigorosa de path traversal via validação e contenção realpath.
+  - Atualizado o modelo `Attachment` em `backend/app/models.py`: remoção da coluna `file_path` (caminhos absolutos eliminados do banco e da API) e adição de `deleted_at` com índice para suporte a soft delete.
+  - Criada migration Alembic dedicada `253c127af363_remove_file_path_and_add_deleted_at_to_.py`, garantindo migração de dados segura antes do drop da coluna `file_path`, com upgrade e downgrade 100% testados e validados.
+  - Atualizado `backend/app/routers/attachments.py` para utilizar `StorageAdapter` via injeção de dependência e soft delete (marcação de `deleted_at` sem remoção física imediata do arquivo, preservando dados para futura rotina de Garbage Collection).
+  - Criada suíte de testes dedicada `backend/tests/test_storage_adapter.py` cobrindo o ciclo de storage, segurança e integridade do modelo. 100% de aprovação (82/82 testes pytest no backend, 111/111 testes vitest no frontend, build limpo com 0 erros).
+- **Fase 12.1 — Planejamento de Files / Attachments**:
+  - Auditoria do modelo existente de `Attachment` e roteador associado.
+  - Planejamento arquitetural estruturado no documento `docs/PHASE_12_1_FILES_PLAN.md`.
+  - Definida estratégia baseada em `StorageAdapter` (para desacoplamento de storage físico) e `FileAccessService` (para autorização contextual e estrita).
+- **Refinamentos Operacionais — Módulo Projetos, Manutenções, Atendimentos e Tarefas (Pós-Fase 11)**:
+  - **Problema 1 (Manutenção para Múltiplos Equipamentos - N:N)**:
+    - Criada migration Alembic segura `db576bdfff35_add_maintenance_equipment_m_to_n.py` criando a tabela de junção `maintenance_equipment` com chaves estrangeiras com `CASCADE`, migrando retroativamente os vínculos existentes em `maintenance_records.equipment_id`, e tornando a coluna `equipment_id` anulável para compatibilidade regressiva.
+    - Modelos `MaintenanceRecord` e `Equipment` atualizados com relationship N:N bidirecional (`MaintenanceRecord.equipments` e `Equipment.maintenances`).
+    - Schemas Pydantic atualizados para suportar `equipment_id` legada, `equipment_ids: Optional[List[int]]` e lista de `equipments: List[EquipmentResponse]`.
+    - Backend router (`maintenances.py`) agora associa atomicamente múltiplos equipamentos na criação e atualização, emite eventos em `equipment_history` para cada ativo envolvido e sincroniza o status de todos os equipamentos (para `em_manutencao` e restauração para `ativo` na conclusão). Filtro por `equipment_id` agora verifica tanto o campo primário quanto a relação N:N.
+    - Criado componente `EquipmentMultiSelect.tsx` no frontend com busca textual rápida (hostname, modelo, patrimônio), checkboxes com contagem visual, badges removíveis individualmente e fallback de lista.
+    - Integrado na criação (`MaintenanceCreateDrawer`), visualização e edição (`MaintenanceDrawer`), e na listagem geral (`MaintenancePage`) com contagem compacta de múltiplos ativos.
+    - Suporte pleno tanto dentro de Projetos quanto em manutenções avulsas fora de projetos.
+  - **Problema 2 (Novo Atendimento a partir de Projeto com Contexto Bloqueado)**:
+    - Verificado e consolidado o deep linking `#attendance?new=true&project_id=X&project_name=Y` a partir do `ProjectWorkspace`.
+    - No `AttendancePage`, a leitura do hash captura o `project_id` e `project_name` (com fallback assíncrono para lookup na API caso o nome não venha na URL), fixa o estado `lockedProjectName` no `ProjectSelect` em modo somente leitura (exibindo selo "Vinculado"), limpa a URL para `#attendance` via `history.replaceState` preservando a aba, e preenche `attendanceForm.project_id`.
+    - Ao submeter o atendimento, o vínculo `project_id` é persistido com sucesso na tabela `attendances`.
+  - **Problema 3 (Clique na Tarefa no Projeto abre Visualização/Detalhes e Ação Explícita de Edição)**:
+    - Desacoplado o clique direto de edição no `ProjectWorkspace`: tanto na aba "Visão Geral" quanto na aba "Tarefas", o clique em qualquer tarefa agora abre o `TaskDetailDrawer` em modo leitura rica (título, instruções completas, status, prioridade, responsável, datas e checklists associados).
+    - O `TaskDetailDrawer` possui botão de ação explícito "Editar Detalhes" que aciona o formulário de edição (`TaskFormDialog`), mantendo o fluxo operacional fluido e evitando alterações acidentais.
+  - **Validação de Testes**:
+    - Backend: 74 testes aprovados no Pytest (incluindo suíte dedicada `tests/test_refinements_maintenance_attendance.py`).
+    - Frontend: 111 testes aprovados no Vitest (incluindo testes dedicados em `RefinementsMaintenanceTaskAttendance.test.tsx`, `AttendancePage.test.tsx` e `MaintenancePage.test.tsx`).
+    - Build: `tsc -b && vite build` finalizado com 0 erros.
+- **Fase 11.4 — RBAC Administration & Identity Integrity Audit**:
+  - Consolidação administrativa do RBAC M:N.
+  - Atualizadas referências legacy frontend `user.role` nas páginas de Attendance e Commands para utilizar o `hasRole('Administrador')` que suporta a estrutura M:N.
+  - Implementado o gerenciamento de Roles (CRUD de papéis e leitura da matriz de permissões disponíveis) no backend `users.py` com schema validado.
+  - Adicionada trava (server-side protection) para garantir que o "último administrador" do sistema não pode ser desativado, deletado ou ter a role de admin removida.
+  - Criação da página visual `RolesPage.tsx` na interface para gerenciamento de perfis e visualização efetiva da Matriz de Permissões (quem acessa o quê).
+  - Adicionados Logs de Auditoria para `CREATE` e `UPDATE` em perfis.
+  - 100% de passagem nos testes integrados frontend (107/107) e backend (69/69), além de sucesso no build (0 errors).
+- **Fase 11.3 — Users / Profiles / Identity Frontend**:
+  - Construção da tela de gestão de usuários (`UsersPage.tsx`) com tabela operacional densa, cartões responsivos para mobile, barra de pesquisa, filtros rápidos por status (Todos/Ativos/Inativos), departamento e perfil/role.
+  - Implementação do Drawer administrativo (`UserFormDrawer.tsx`) com suporte a criação e edição completa de usuários, seleção múltipla de papéis (M:N via checkboxes), campos de identidade e contato, e bloqueio de segurança contra auto-desativação do próprio administrador logado.
+  - Criação da página de perfil unificada (`ProfilePage.tsx`) que atende tanto ao "Meu Perfil" quanto ao "Perfil de Terceiros", aplicando estrito mascaramento de privacidade em dados sensíveis (email, telefone e preferências mascarados como `[Informação restrita]`) para outros usuários quando não possuir `users:write`.
+  - Grid de estatísticas operacionais de perfil consumindo `/users/{id}/stats` com 5 métricas em tempo real (Atendimentos, Manutenções, Tarefas Pendentes, Tarefas Concluídas e Projetos sob Responsabilidade).
+  - Diálogo de auto-edição de perfil (`EditProfileDialog.tsx`) restrito exclusivamente aos campos permitidos ao próprio usuário (`display_name`, `avatar_url`, `phone`, `preferences`).
+  - Criação do componente `Avatar.tsx` com fallback determinístico de iniciais baseado em paleta semântica HSL, tratamento seguro de falhas de imagem e indicador de status ativo/inativo.
+  - Atualização do `AuthContext` com suporte nativo a múltiplos papéis (`roles: string[]`) em `hasPermission` e `hasRole`, além de método `refreshUser()` para sincronização instantânea do perfil no `Header` e na `Sidebar`.
+  - Integração no `AuthenticatedView` utilizando navegação hash nativa (`#users`, `#profile`, `#profile?id=X`) sem dependência de React Router.
+  - Suíte completa de testes automatizados: 107/107 testes Vitest no frontend e 69/69 testes Pytest no backend aprovados, com 0 erros de TypeScript e 0 erros de ESLint.
+- **Fase 11.2 — Users / Profiles / Identity Backend Foundation**:
+  - Migration Alembic executada com sucesso adicionando campos de identidade (`full_name`, `display_name`, `avatar_url`, `phone`, `job_title`, `department_id`, `last_login_at`, `preferences`) e tabela `user_roles`.
+  - Migrados dados existentes de `role_id` para `user_roles` e removida coluna legada com integridade garantida.
+  - Implementado RBAC M:N com união de permissões de múltiplos papéis sem duplicação.
+  - Criados endpoints `/users/me/profile`, `/users/{id}/profile`, `/users/{id}/stats` com regras estritas de privacidade, restrição de acesso e bloqueio de escalada de privilégios.
+  - Registrado `last_login_at` no fluxo real de login e trilha de auditoria completa em `audit_logs`.
+  - Suíte completa de testes automatizados executada: 69/69 testes de backend e 95/95 testes de frontend aprovados.
+- **Fase 11.1 (Planejamento) — Users / Profiles / Identity Foundation**:
+  - Arquitetura estabelecida para integração de dados de identidade operacionais à tabela `User`.
+  - Transição de `role_id` (1:N) para M:N (`user_roles`).
+- **Fase 10.4.3 — Evolução do Project Workspace / Operational Project Dashboard**:
+  - Transformado `ProjectWorkspace` em um painel operacional focado em produtividade.
+  - Otimizado cabeçalho com metadados e ações rápidas.
+  - Implementado lazy loading do progresso em `ProjectList` com novos cards compactos.
+- **Fase 10.4.2 — Integração Operacional Completa do Project Workspace**:
+  - Correção de GAP funcional na criação de novos atendimentos (`AttendancePage`) via Workspace do projeto.
+  - Adição de `project_name` no payload da URL hash (`#attendance?new=true&project_id=X&project_name=Y`) no componente `ProjectWorkspace`.
+  - Tratamento do estado `lockedProjectName` em `AttendancePage` para forçar o vínculo contextual obrigatório na seleção (`ProjectSelect`), impossibilitando falhas de associação.
+  - Implementação de teste automatizado `test_attendance_project_association` assegurando a integridade do vínculo no backend.
+  - Ajuste contextual no `ProjectSelect`: O dropdown é ocultado e substituído por uma visão bloqueada de escopo quando o `ProjectWorkspace` instancia formulários (UX limpa e estrita, conforme a regra de agregação).
+  - Reescrito o _empty state_ de `ProjectList` para um formato focado em clareza com um CTA claro, além de instaurar uma ordenação semântica e operacional aos projetos para realçar itens "Em andamento".
+  - Correção de contraste e tema global no formulário raiz (`ProjectFormDrawer`).
+- **Fase 10.3.3 — Auditoria de Integração e Contexto do Projeto**:
+  - Testes end-to-end de integração no backend (`test_integration_phase10_3_3.py`) comprovaram o funcionamento perfeito da agregação (`project_id` repassado, e persistido via `ON DELETE SET NULL`, cascata em `project_equipment`).
+  - Investigado o fluxo do frontend: O estado `initialProjectId` foi corretamente implementado na 10.3.2, e o bloqueio de UI foi documentado como requisito e sanado na 10.4.1.
+  - Integração visual de projetos nos módulos operacionais finalizada.
+  - O componente `ProjectSelect` foi devidamente injetado nos modais `TaskFormDialog`, `MaintenanceDrawer`, `MaintenanceCreateDrawer` e na página `AttendancePage`.
+  - Tratamento adequado para "desvincular" entidades de projetos, enviando `project_id: null` para backend tratar via `exclude_unset=True`.
+  - Construído e finalizado o `ProjectWorkspace`, renderizando abas separadas de *Visão Geral*, *Tarefas*, *Equipamentos*, e *Manutenções* filtrados e consultados dinamicamente via backend.
+  - Correção de lints de `BadgeProps` e `react/jsx-runtime` (erros de TS configurado).
+- **Fase 10.2.1 — Auditoria da Integração de Projetos**:
+  - Implementado suporte funcional a `project_id` em Tasks, Checklists, Maintenances, Attendances, CalendarEvents e StockMovements.
+  - Testes de integração E2E criados (`test_integration_phase10_2.py`) cobrindo ciclo completo de vínculos e desvínculos.
+  - Adicionado suporte a `unset` (nullifier) via `exclude_unset=True` nos payloads.
+- **Fase 10.1.1 — Auditoria da Fundação Backend de Projetos**:
+  - Auditoria concluída. Regra crítica de Preserve Data (ON DELETE SET NULL) testada e validada em integração.
+  - Endpoints adicionados para gerenciamento de Equipment em Projetos.
+- **Fase 10.1 — Fundação Backend de Projetos Operacionais**:
+  - Geração de migração para tabelas de `projects`, `project_notes` e `project_equipment`.
+  - Inclusão do campo `project_id` em Tarefas, Manutenções, Atendimentos, Eventos, Checklists e Movimentações de Estoque (`ON DELETE SET NULL`).
+  - Implementação do roteador de Projetos (CRUD, Resumo, Notas e Timeline).
+  - Testes automatizados escritos com 100% de aprovação (pytest).
+- **Fase 10.0 — Arquitetura de Projetos Operacionais**:
+  - Criação do plano arquitetural detalhado em `docs/PHASE_10_PROJECTS_PLAN.md` definindo que os projetos atuarão como agregadores de entidades preexistentes sem invasão de responsabilidades.
+- **Fase 9.5.1 — Fechamento Funcional (Testes UI)**:
+  - Testes do Frontend (Vitest) atualizados para refletir corretamente o novo modelo de Drawer/Progressive Disclosure.
+  - Cobertura de testes e2e UI restaurada (95/95 passed).
+- **Fase 9.5 — Auditoria Final da Fase 9**:
+  - Auditoria completa confirmando a robustez do banco de dados, snapshots, integração de Status, permissões e refatoração visual.
+- **Fase 9.4 — Redesign do Painel de Manutenções**:
+  - `MaintenancePage` reescrita com padrão de Workspace Operacional.
+  - Implementado alternador de visualização Lista (Tabela densa) vs Calendário.
+  - Substituído formulário modal complexo por `MaintenanceCreateDrawer` com divulgação progressiva (Progressive Disclosure).
+  - Substituído `MaintenanceEditDialog` por `MaintenanceDrawer` atuando como visão consolidada de detalhes e edição.
+  - Ações de atualização rápida de status embutidas na visualização de detalhes.
+
+- **Fase 12.3.2 — Correção de RBAC Frontend + Testes de Autenticação**:
+  - Removidas permissões fictícias (`*:edit`) nas integrações do Frontend (`AttachmentManager`, `TaskDetailDrawer`, `MaintenanceDrawer`, etc.) substituindo-as pelas corretas baseadas no backend (`tasks:write`, `knowledge:write`, `maintenance:write`, `equipment:write`, `project:update`, `attachment:upload`, `attachment:delete`).
+  - Corrigido o `AttachmentManager` para não mais utilizar a flag injetada `readOnly` para ocultar os botões de upload e exclusão, usando em vez disso as validações exatas de escopo `hasPermission('attachment:upload')` e `hasPermission('attachment:delete')`.
+  - Removido o mock perigoso global de `useAuth()` do `src/test/setup.ts` que suprimia silenciosamente a ausência do `<AuthProvider>` nos testes, resultando em falsos positivos.
+  - Ajustada a suíte de testes Vitest para testar adequadamente fluxos condicionados a permissões RBAC reais de Upload e Exclusão.
+  - Correção total de todos os testes quebrados, validando explicitamente a ocultação de botões quando o usuário não possui a permissão específica ou forçando a injeção do `AuthContext` via `renderWithProvider` ou isolamento usando mocks pontuais por arquivo.
+
+**Último commit**: fix(frontend): enforce real rbac permissions in UI and test suite
+**Próxima tarefa**: Retomar a Fase 12.3 implementando exclusão em lote e relatórios avançados de storage.
+**Bloqueios**: Nenhum.
+**Pendências**: Nenhuma.
+**Testes**: 
+- Backend Pytest: 149/149 passed (100%)
+- Frontend Vitest: 112/112 passed (100% em 19 arquivos de teste)
+- TypeScript / Vite build: 0 erros
+- ESLint: 0 erros
+**Problemas conhecidos**: Nenhum.
+**Decisões recentes**:
+- Testes do React não podem esconder a obrigatoriedade do Context API global via `try/catch` de hooks em `setup.ts`. Testes devem configurar provedores de forma explícita.
+- Integração de `AuditLog` nativo para rastreabilidade de eventos de ciclo de vida de anexos: `attachment.uploaded` e `attachment.deleted`, utilizando a função centralizada `record_audit_log` (`backend/app/services/audit.py`).
+- Atomicidade transacional: `Attachment` e `AuditLog` participam da mesma transação do PostgreSQL através de `db.flush()` antes do `db.commit()`. Se a persistência falhar, ambos são revertidos e a limpeza física no storage é executada sem deixar lixo no disco ou no banco.
+- Higienização e privacidade da trilha de auditoria: omissão rigorosa de dados sensíveis ou de infraestrutura (`stored_filename`, caminho físico no storage, conteúdo do arquivo, hashes desnecessários ou tokens), registrando unicamente metadados sanitizados (`original_filename`, `mime_type`, `file_size`, `parent_entity_type`, `parent_entity_id`, IP e User-Agent quando disponíveis).
+- Não-auditoria de tentativas negadas ou inválidas: operações bloqueadas por falta de permissão (403), formato perigoso ou MIME inválido (400), arquivo inexistente ou já deletado (404) ou tamanho excedido (413) são abortadas antes de tocar na trilha de auditoria, registrando exclusivamente operações efetivamente concluídas.
+- Preservação da integridade de Soft Delete: a auditoria do evento `attachment.deleted` marca o encerramento lógico do anexo sem acionar remoção física prematura no storage, mantendo o arquivo preservado para futura Garbage Collection assíncrona.
+- Implementação de módulo centralizado de segurança de arquivos (`backend/app/services/attachment_security.py`) com MIME AllowList, validação estrita de extensões e detecção de magic bytes em streaming.
+- Validação em duas etapas: metadados antes de qualquer escrita no disco ou storage (extensão permitida, blocklist perigosa e coerência MIME x extensão) e validação de conteúdo/assinatura logo após buffer inicial.
+- Rejeição de formatos perigosos (executáveis, scripts shell/PowerShell/batch, instaladores, binários) e arquivos sem extensão com HTTP 400.
+- Tolerância controlada para clientes que enviam `application/octet-stream` em formatos legítimos (.docx, .xlsx, .pdf, etc.), sem abrir brechas para executáveis disfarçados.
+- Centralização do limite de tamanho em `MAX_ATTACHMENT_SIZE_MB` (padrão 25MB) aplicado no streaming com limpeza imediata em caso de excedente (HTTP 413).
+- Sanitização estrita de `original_filename` prevenindo path traversal, mantendo armazenamento físico baseado exclusivamente em UUID.
+- Integração de `FileAccessService` nos endpoints de leitura, listagem, download e preview (`GET /attachments`, `GET /attachments/{id}`, `GET /attachments/{id}/download`, `GET /attachments/{id}/preview`).
+- Validação contextual de permissões realizada estritamente antes do acesso físico ao `StorageAdapter` em download e preview, impedindo qualquer vazamento ou consumo de I/O em requisições não autorizadas.
+- Listagem geral de anexos com filtragem contextual segura por registro, omitindo silenciosamente anexos de entidades às quais o usuário não possui permissão de leitura (ex: tarefas privadas).
+- Integração de `FileAccessService` nos endpoints `POST /attachments/upload` e `DELETE /attachments/{id}`.
+- Validação contextual de permissões realizada estritamente antes da escrita no storage em `POST /attachments/upload`, prevenindo consumo de disco não autorizado.
+- Estratégia de cleanup transacional em upload: remoção do arquivo recém-salvo no storage (`storage.delete`) caso ocorra falha ao comitar no PostgreSQL.
+- Exclusão estritamente lógica (`soft delete`) em `DELETE /attachments/{id}` preenchendo `deleted_at`, sem apagar o arquivo físico no storage (preservação para Garbage Collection assíncrona). Retorno 404 caso o anexo não exista ou já esteja deletado.
+- Implementação de `FileAccessService` e `AttachmentAccessRegistry` com padrão Registry, isolando validações contextuais de entidades (Project, Task, Maintenance, Attendance, Equipment, Knowledge) e garantindo default-deny para tipos desconhecidos.
+- Modelo de dois níveis de autorização: Permissão Global (RBAC) + Autorização Contextual da Entidade, garantindo que `attachment:read/upload/delete` não conceda acesso irrestrito a anexos de entidades protegidas ou confidenciais.
+- Desacoplamento físico completo via `StorageAdapter` e implementação `LocalFileSystemStorage`, operando sobre volume persistente Docker `/app/uploads`.
+- Remoção da coluna de caminho absoluto `file_path` do banco de dados e do modelo `Attachment`, armazenando apenas o identificador físico `stored_filename` (`UUID + extensão sanitizada`).
+- Migração Alembic `253c127af363` segura garantindo integridade de dados e total reversibilidade em upgrade e downgrade.
+- Preservação da tabela `User` para identidade operacional, sem criação de tabela `Profile` separada.
+- RBAC M:N implementado via tabela associativa `user_roles` com retrocompatibilidade e união de permissões de múltiplos papéis.
+- Endpoints e telas de visualização de perfil (`/users/{id}/profile`) com mascaramento obrigatório de dados sensíveis para terceiros quando sem permissão `users:write`.
+- Navegação hash nativa (`#users`, `#profile`, `#profile?id=X`) respeitando a arquitetura existente da aplicação.
+- Componente `Avatar` independente de APIs externas (Gravatar/Unsplash), priorizando estabilidade e segurança corporativa.
+- Adicionada tela de Roles (Matriz de Permissões) para facilitar administração, protegendo severamente o último administrador contra falhas humanas (auto-bloqueio, desativação acidental e perda de permission `roles:write`).
+- **Fase 12.4.3 — Refinamento do Fluxo de Upload e Arquivos Gerais**:
+  - Modelagem e Schema (`Attachment`) ajustados para permitir `entity_type` e `entity_id` nulos via migração Alembic `7192eafe6bf3`.
+  - Serviço de Autorização Centralizado (`FileAccessService`) atualizado para validar arquivos gerais sem entidade vinculada utilizando exclusivamente controle de RBAC global.
+  - Criado componente inteligente `EntitySearch` no Frontend, integrado aos serviços `searchService` e `projectService` para busca textual dinâmica de instâncias de entidades (Projetos, Tarefas, Equipamentos, etc.), removendo a obrigatoriedade de digitação manual de IDs.
+  - Refatoração do `FileUploadDialog` para suportar seleção explícita da opção "Arquivo geral" como origem e uso do componente `EntitySearch` quando necessário.
+  - Endpoints de anexo atualizados para interpretar o pseudotipo "general" vindo do formulário e mapeá-lo para valores nulos no banco de dados com segurança.
+  - Ferramentas de filtragem de interface (`FileToolbar`) expandidas para incluir exibição isolada de "Arquivos gerais".

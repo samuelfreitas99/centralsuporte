@@ -1,29 +1,84 @@
 # ARCHITECTURE — Central de Suporte
 
-A Central de Suporte é desenhada sobre um monolito ágil no backend (FastAPI) e uma SPA moderna no frontend (React). Esta arquitetura descreve como os domínios se comunicam e se separam.
+Como o sistema é construído **hoje**. O que o produto deve fazer está em `PRODUCT_SPEC.md`;
+como rodar e testar, em `DEVELOPMENT.md`.
 
-## 1. Princípios Arquiteturais Base
-* **Frontend:** SPA (Single Page Application) servida pelo Vite, baseada em React e Tailwind CSS. Composição modular via shadcn/ui.
-* **Backend:** FastAPI (Python) com SQLAlchemy 2.0 assíncrono.
-* **Banco de Dados:** PostgreSQL relacional.
+## 1. Stack
 
-## 2. Separação de Módulos e Domínios
-O sistema evita o modelo de "uma grande teia de aranha" mantendo limites contextuais claros (Bounded Contexts):
-* **Domain: Auth & Identity:** Gere usuários e RBAC.
-* **Domain: Infrastructure:** Gere equipamentos, redes, estoques e licenças. (Independe do domínio de tarefas).
-* **Domain: Operations (Produtividade):** Gere Projetos, Tarefas, Lembretes e Agendas.
-* **Domain: Knowledge & Core:** O coração da Central (Atendimentos internos, Base de conhecimento, Comandos).
-* **Cross-Cutting:** Auditoria, Storage (Arquivos), Motor de Busca.
+| Camada | Tecnologia |
+|---|---|
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, componentes próprios em `src/components/ui`, `motion/react`, `lucide-react` |
+| Backend | Python 3.12, FastAPI, SQLAlchemy 2 (sessões **síncronas**), Pydantic 2, Alembic |
+| Banco | PostgreSQL 16 |
+| Infra | Docker Compose isolado (`centralsuporte_*`), ver `DEVELOPMENT.md` |
 
-## 3. Como os novos módulos se integram (Pós-MVP)
+## 2. Estrutura do repositório
 
-### Projetos Operacionais
-* Funcionará como a camada hierárquica superior no domínio de `Operations`. Uma `Task` ou um `Attendance` poderão ter um `project_id` opcional. O Projeto agregará visualmente (dashboard próprio do projeto) as tarefas atreladas.
+```
+backend/
+  app/
+    main.py            # cria a app, registra roteadores, seed e agendador de automação
+    models.py          # todos os modelos SQLAlchemy
+    schemas.py         # todos os schemas Pydantic
+    auth.py            # JWT, hash de senha, require_permission
+    initial_data.py    # permissões, perfis padrão e usuário admin (seed idempotente)
+    routers/           # um arquivo por domínio (ver §3)
+    services/          # audit, automation, storage, attachment_security, file_access/
+    utils/pagination.py
+  alembic/versions/    # migrações
+  conftest.py          # isola testes no banco centralsuporte_test
+  tests/
+frontend/src/
+  components/
+    AuthenticatedView.tsx  # "roteador": hash -> página
+    layout/                # AppLayout, Header, Sidebar, nav-items.ts, NotificationsDropdown, CommandPalette
+    ui/                    # componentes base (button, card, drawer, dialog, tabs, Pagination...)
+    <dominio>/             # componentes de um domínio (tasks, maintenance, knowledge, ...)
+  pages/               # uma página por módulo (algumas com subpastas: files/, projects/, infrastructure/tabs/)
+  services/            # clientes HTTP por domínio (usam services/api.ts)
+  types/               # tipos TypeScript por domínio
+  hooks/               # useAuth, useTheme, usePagination
+  test/                # testes vitest
+docs/                  # ver docs/README.md
+```
 
-### Cofre de Senhas
-* Pertencerá a um domínio de infraestrutura altamente isolado. Terá sua própria suíte de injeção de dependências para gerenciar a Chave de Criptografia Mestra (que ficará estritamente em `.env` do SO, nunca hardcoded).
+## 3. Domínios e módulos
 
-### Camada de Storage e Arquivos (Fase 12)
+| Domínio | Roteadores (backend) | Páginas (frontend, hash) |
+|---|---|---|
+| Identidade e acesso | `auth`, `users` (inclui roles/permissions) | `#users`, `#roles`, `#profile` |
+| Operação diária | `attendances`, `tasks`, `checklists`, `checklist_templates`, `reminders`, `calendar`, `maintenances`, `projects` | `#attendance`, `#tasks`, `#maintenances`, `#projects` |
+| Conhecimento | `knowledge`, `commands`, `responses` | `#knowledge`, `#commands` |
+| Inventário | `infrastructure` (stores, departments, locations, equipment, licenses, stock) | `#equipment` (abas) |
+| Transversal | `attachments`, `search`, `reports`, `dashboard`, `audit`, `automation` | `#files`, `#reports`, `#audit`, `#dashboard`; busca = paleta Ctrl+K |
+
+Relações centrais:
+
+* **Atendimento** → `equipment_id` (opcional), `project_id` (opcional), `knowledge_article_id` (quando convertido em artigo). Referência ao OTRS por `otrs_ticket`/`otrs_url` (nunca substitui o OTRS).
+* **Manutenção** ↔ **Equipamento** é N:N (`maintenance_equipment`); `maintenance_records.equipment_id` é legado.
+* **Projeto** agrega tarefas, manutenções, atendimentos, checklists, eventos e movimentos de estoque via `project_id` com `ON DELETE SET NULL`.
+* **Anexo** é polimórfico (`entity_type` + `entity_id`, ou ambos nulos para "arquivo geral").
+
+## 4. Frontend — navegação e padrões
+
+* **Roteamento por hash**, sem biblioteca: `#modulo?param=valor`. `AuthenticatedView` lê o hash e
+  renderiza a página (lazy-loaded). `nav-items.ts` define menu, grupos e permissões.
+* **Deep link**: páginas aceitam `#modulo?id=N` para abrir o item (drawer/diálogo). A busca global usa isso.
+* **Busca global**: `CommandPalette` (Ctrl+K / botão no topo) consulta `GET /search/global` e navega para `url_tab` + `id`.
+* **Paginação**: hook `usePagination` (estado em `?page=&limit=` no hash) + componente `ui/Pagination`.
+* **Permissões**: `useAuth().hasPermission(...)`; o backend é a autoridade, o front só esconde ações.
+
+## 5. Serviços transversais (backend)
+
+### 5.1 Autenticação e RBAC
+JWT (`SECRET_KEY` via ambiente). Usuário tem N perfis (`user_roles`); perfil tem N permissões.
+`Administrador` tem acesso total. Endpoints usam `require_permission("dominio:acao")`.
+
+### 5.2 Auditoria
+`record_audit_log` grava em `audit_logs` (imutável) com sanitização de chaves sensíveis.
+Histórico técnico de equipamento (`equipment_history`) é separado da auditoria (ver `DOMAIN_RULES.md` §2).
+
+### 5.3 Arquivos e anexos
 * O armazenamento físico é estritamente isolado da API através da interface `StorageAdapter`. A implementação padrão é `LocalFileSystemStorage` (diretório persistente configurável, como `/app/uploads`). O banco de dados armazena apenas metadados lógicos e o identificador físico `stored_filename` (`UUID + extensão sanitizada`), sem persistir caminhos absolutos.
 * **Upload com Autorização Antecipada**: A autorização contextual do usuário na entidade alvo via `FileAccessService` ocorre antes de qualquer escrita no disco, impedindo consumo indevido de IO e armazenamento. Caso ocorra erro ou falha no commit do registro no PostgreSQL, é executado rollback e limpeza física imediata (`cleanup`) exclusivamente do arquivo recém-gravado.
 * **Ciclo de Vida e Soft Delete**: Deleções realizam soft delete (`deleted_at != NULL`), removendo o anexo das listagens e consultas normais da API sem remover o arquivo físico da mídia no momento da requisição. A exclusão física definitiva será delegada a rotinas assíncronas dedicadas de Garbage Collection.
@@ -34,8 +89,13 @@ O sistema evita o modelo de "uma grande teia de aranha" mantendo limites context
 * A autorização é centralizada no `FileAccessService`, baseado no padrão **Registry** (`AttachmentAccessRegistry`). Cada entidade possui um validador contextual dedicado (`ProjectAttachmentValidator`, `TaskAttachmentValidator`, `MaintenanceAttachmentValidator`, `AttendanceAttachmentValidator`, `EquipmentAttachmentValidator`, `KnowledgeAttachmentValidator`) que implementa o contrato `AttachmentAccessValidator`. O acesso exige permissão global RBAC (`attachment:read/upload/delete`) combinada obrigatoriamente com autorização contextual na entidade pai, com política default-deny para tipos desconhecidos.
 
 
-## 4. Evolução do Dashboard
-* O Dashboard abandonará as "queries isoladas aleatórias" e passará a consumir um `DashboardService` que unificará KPIs de "Início de Turno" (Agenda do Dia, Tarefas Atrasadas, Licenças Vencendo nos próximos 7 dias).
 
-## 5. Evolução da Agenda
-* Passará de uma lista isolada para um calendário consolidado de turnos/squad. Terá integração visual com manutenções agendadas de infraestrutura.
+### 5.4 Automação
+Worker assíncrono no `lifespan` da API (a cada 60 min) gera alertas como registros de `Reminder`
+(tarefas vencendo, manutenções agendadas, equipamentos com falhas recorrentes), com idempotência.
+Disparo manual: `POST /automation/trigger`.
+
+## 6. Futuro (não implementado)
+
+* **Cofre de senhas**: domínio isolado, AES-256-GCM, chave mestra só em variável de ambiente, auditoria `PASSWORD_REVEAL` (ver `DECISIONS.md`).
+* **Integração OTRS**: só após confirmar API disponível.

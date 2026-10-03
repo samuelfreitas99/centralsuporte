@@ -95,3 +95,13 @@
 - **Contexto**: Atividades como limpezas preventivas em lote, inspeções de parque de PDVs ou upgrades de firmware englobam múltiplos equipamentos sob uma mesma intervenção, sem justificar a fragmentação em registros redundantes.
 - **Consequências**: Rastreabilidade bidirecional preservada (consulta por equipamento lista todas as manutenções coletivas e individuais; manutenção lista todos os equipamentos envolvidos), com suporte a múltiplos ativos tanto em manutenções dentro de Projetos quanto fora de Projetos, sem acoplamento entre o relacionamento de equipamentos e o campo `project_id`.
 
+
+### 2026-10-03: Ciclo S — Simplificação antes de novos módulos
+- **Decisão**: Interromper a criação de novos módulos (Cofre, Cotações) e executar o Ciclo S descrito em `ROADMAP.md`: isolar testes, reorganizar a navegação por intenção de uso, conectar Atendimento ↔ Equipamento, tornar o Início útil e consolidar componentes compartilhados.
+- **Contexto**: Análise completa (`ANALISE_2026-10.md`) mostrou que o sistema tem funcionalidade suficiente, mas fluxos desconectados, navegação confusa, funções repetidas entre telas e testes que poluíam o banco real.
+- **Consequências**: A numeração antiga de fases (0–15 do MVP e 10–12 "Pós-MVP") é encerrada; os documentos de fase foram movidos para `docs/history/`. O trabalho passa a ser referenciado por itens `S<n>.<m>` do roadmap.
+
+### 2026-10-03: Banco de testes isolado
+- **Decisão**: A suíte pytest usa exclusivamente o banco `centralsuporte_test` (recriado a cada execução por `backend/conftest.py`, com trava de nome `*_test`) e um diretório temporário de uploads.
+- **Contexto**: Os testes gravavam no banco da aplicação, acumulando centenas de usuários, perfis, tarefas e lembretes falsos.
+- **Consequências**: Testes ficam determinísticos e o banco real deixa de ser poluído. A limpeza dos dados de teste já existentes no banco principal é uma ação separada (S0.5), que exige backup e confirmação.
