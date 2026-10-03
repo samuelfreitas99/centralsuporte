@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, Plus, Pencil } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { roleService } from '@/services/roleService';
 import type { Role, Permission } from '@/types/auth';
@@ -90,17 +90,11 @@ export const RolesPage: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background relative overflow-hidden">
-      {/* Header */}
-      <div className="flex-none p-4 md:p-6 border-b border-border/40 bg-card/50 backdrop-blur-sm z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="flex flex-col h-full relative">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            Perfis e Permissões
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Matriz de administração de regras de acesso (RBAC).
-          </p>
+          <h2 className="text-base font-bold text-foreground">Perfis e permissões</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Marque o que cada perfil pode ver e alterar.</p>
         </div>
         {canWrite && (
           <Button onClick={() => handleOpenModal()} className="gap-2">

@@ -3,6 +3,7 @@ import { Shield, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { UsersPage } from '@/pages/UsersPage';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { RolesPage } from '@/pages/RolesPage';
 
 type AccessTab = 'users' | 'roles';
@@ -22,6 +23,11 @@ export const AccessPage: React.FC<AccessPageProps> = ({ tab, navigate }) => {
 
   return (
     <div className="space-y-5">
+      <PageHeader
+        icon={Users}
+        title="Usuários e Permissões"
+        description="Quem acessa a Central e o que cada perfil pode fazer."
+      />
       {tabs.length > 1 && (
         <div role="tablist" aria-label="Usuários e permissões" className="inline-flex gap-1 rounded-xl border border-border/70 bg-muted/40 p-1">
           {tabs.map((t) => {

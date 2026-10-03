@@ -48,7 +48,7 @@ describe('FilesPage', () => {
     render(<FilesPage />);
     
     // Check header
-    expect(screen.getByText('Central de Arquivos')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Arquivos' })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(attachmentService.getAttachments).toHaveBeenCalledWith(undefined, undefined, '', undefined, undefined, 0, 50);

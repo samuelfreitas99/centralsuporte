@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useAuth } from '@/hooks/useAuth';
 import { attachmentService } from '@/services/attachmentService';
@@ -108,18 +109,12 @@ export const FilesPage: React.FC = () => {
   const isSearchActive = search !== '' || mimeCategory !== 'all' || entityType !== 'all';
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-[1600px] mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <FolderOpen className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
-          Central de Arquivos
-        </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          {attachments.length > 0 ? `${attachments.length} arquivos` : 'Acesse os documentos, imagens e manuais aos quais você tem permissão.'}
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        icon={FolderOpen}
+        title="Arquivos"
+        description="Documentos, fotos e manuais da equipe, soltos ou anexados a atendimentos, tarefas e equipamentos."
+      />
 
       {/* Toolbar */}
       <FileToolbar

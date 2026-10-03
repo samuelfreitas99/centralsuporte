@@ -218,16 +218,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onSelectTab, onOpenProfile
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-xl font-heading font-bold text-foreground tracking-tight">
-              Usuários
-            </h2>
+            <h2 className="text-base font-bold text-foreground">Usuários</h2>
             <Badge variant="outline" className="font-mono text-xs border-border/70 text-muted-foreground">
               {filteredUsers.length} de {users.length}
             </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Gerenciamento de operadores, papéis de acesso (RBAC) e identidades operacionais.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
