@@ -34,7 +34,7 @@ Itens pendentes do `ROADMAP.md`: S4.1 (resto: `PageHeader`, `FilterBar`, `Status
 
 ## Pendências que dependem do responsável
 
-* **S0.6 — Produção:** definir `SECRET_KEY` e `DEFAULT_ADMIN_PASSWORD` no `.env` e trocar a senha do `admin`.
+* **S0.6 — Produção:** `SECRET_KEY` já definida no `.env` (fora do Git). Falta trocar a senha do `admin` (padrão `admin123`) e, ao sair do desenvolvimento, rodar sem `--reload` e com build estático do frontend.
 
 ## Avisos para quem continuar
 

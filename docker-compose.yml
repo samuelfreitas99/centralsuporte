@@ -28,6 +28,8 @@ services:
       - "8088:8000"
     environment:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-suporte}:${POSTGRES_PASSWORD:-suporte_password}@db:5432/${POSTGRES_DB:-centralsuporte_db}
+      - SECRET_KEY=${SECRET_KEY:-}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy

@@ -20,7 +20,10 @@ docker compose logs -f backend  # logs da API
 ```
 
 O frontend chama a API em `http(s)://<host>:8088` (ver `frontend/src/services/api.ts`).
-Login padrão criado no primeiro start: `admin` / `admin123` (troque via `DEFAULT_ADMIN_PASSWORD` antes do primeiro start em produção).
+Login padrão criado no primeiro start: `admin` / `admin123` (ou `DEFAULT_ADMIN_PASSWORD`, se definido antes do primeiro start).
+
+O `.env` (não versionado) define as credenciais do Postgres e a `SECRET_KEY` dos tokens JWT; modelo em `.env.example`.
+Depois de alterar o `.env`, recrie só o backend: `docker compose up -d --no-deps backend`.
 
 ---
 

@@ -31,7 +31,9 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S0.4 Reorganizar documentação (`docs/README.md`, histórico em `docs/history/`) — P-07
 - [x] S0.7 Exigir permissões RBAC em Atendimentos, Manutenções, Infraestrutura, Comandos e Respostas — P-08
 - [x] S0.5 Banco principal recriado do zero (banco era experimental; backup em `~/centralsuporte_backups/`) — P-02
-- [ ] S0.6 Configuração de produção: `.env` com `SECRET_KEY`/`DEFAULT_ADMIN_PASSWORD`, sem `--reload`, frontend com build estático — P-06
+- [~] S0.6 Configuração de produção — P-06
+  - feito: `.env` fora do Git, `SECRET_KEY` própria gerada no `.env` e repassada pelo compose, aviso no log se faltar
+  - falta: trocar a senha do `admin` pela interface; sem `--reload` e frontend com build estático quando sair do desenvolvimento
 
 ### S1 — Navegação clara
 - [x] S1.1 Menu reorganizado por intenção (Início / Dia a dia / Conhecimento / Inventário / Gestão) com nomes curtos — P-10

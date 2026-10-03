@@ -82,7 +82,7 @@ def init_db_data(db: Session):
     admin_role = db.query(Role).filter(Role.name == "Administrador").first()
     admin_user = db.query(User).filter(User.username == "admin").first()
     if not admin_user:
-        default_pwd = os.environ.get("DEFAULT_ADMIN_PASSWORD", "admin123")
+        default_pwd = os.environ.get("DEFAULT_ADMIN_PASSWORD") or "admin123"
         admin_user = User(
             username="admin",
             email="admin@centralsuporte.local",
