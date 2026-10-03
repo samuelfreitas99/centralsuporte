@@ -63,7 +63,8 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
   - feito: lista de equipamentos sem histórico embutido (`EquipmentListResponse`): 4 MB → 375 KB, 0,52 s → 0,04 s
   - feito: lista de manutenções usa `EquipmentListResponse` + eager loading: 17 MB → 2,3 MB, 1,39 s → 0,26 s
   - feito: atendimentos paginados (`PaginatedResponse[AttendanceListResponse]`, sem notas na lista; detalhe sempre via `GET /attendances/{id}`): 1,2 MB → ~78 KB por página (30 itens)
-  - falta: paginação em equipamentos, manutenções e artigos (seguir o padrão de tarefas/atendimentos)
+  - feito: artigos paginados e leves (`KnowledgeArticleListResponse`: sem conteúdo/versões, com `has_commands`/`versions_count`); edição carrega o artigo completo
+  - falta: paginação em equipamentos e manutenções (seguir o padrão de tarefas/atendimentos/artigos)
 - [x] S4.4 Tabela de rotas única no lugar da cadeia de ternários em `AuthenticatedView.tsx` — P-63
 
 ---

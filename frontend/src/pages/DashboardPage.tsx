@@ -85,7 +85,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
         organizationService.getTasks({ assigned_to_me: true, limit: 20 }).catch(() => null),
         organizationService.getReminders('pendente', 'manual').catch(() => [] as Reminder[]),
         attendanceService.getAttendances({ limit: 5 }).then((r) => r.items).catch(() => [] as AttendanceItem[]),
-        knowledgeService.getArticles().catch(() => [] as KnowledgeArticle[]),
+        knowledgeService.getArticles({ status: 'publicado', limit: 5 }).then((r) => r.items).catch(() => [] as KnowledgeArticle[]),
       ]);
       if (cancelled) return;
       setSummary(summaryData);

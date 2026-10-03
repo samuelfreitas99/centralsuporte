@@ -67,7 +67,7 @@ def test_knowledge_categories_and_articles_crud():
     # 5. Search Article
     search_res = client.get("/knowledge/articles?search=journalctl", headers=headers)
     assert search_res.status_code == 200
-    assert any(a["id"] == article_id for a in search_res.json())
+    assert any(a["id"] == article_id for a in search_res.json()["items"])
 
     # 6. Update Article (Generates version 2)
     update_res = client.put(
@@ -92,7 +92,7 @@ def test_knowledge_categories_and_articles_crud():
     # 8. Filter Favorites
     fav_list = client.get("/knowledge/articles?only_favorites=true", headers=headers)
     assert fav_list.status_code == 200
-    assert any(a["id"] == article_id for a in fav_list.json())
+    assert any(a["id"] == article_id for a in fav_list.json()["items"])
 
     # 9. Delete Article
     del_res = client.delete(f"/knowledge/articles/{article_id}", headers=headers)
@@ -161,14 +161,14 @@ def test_knowledge_category_management_and_favorites():
     assert fav_on.json()["is_favorite"] is True
 
     fav_list = client.get("/knowledge/articles?only_favorites=true", headers=headers)
-    assert any(a["id"] == art_id for a in fav_list.json())
+    assert any(a["id"] == art_id for a in fav_list.json()["items"])
 
     fav_off = client.post(f"/knowledge/articles/{art_id}/favorite", headers=headers)
     assert fav_off.status_code == 200
     assert fav_off.json()["is_favorite"] is False
 
     fav_list_after = client.get("/knowledge/articles?only_favorites=true", headers=headers)
-    assert not any(a["id"] == art_id for a in fav_list_after.json())
+    assert not any(a["id"] == art_id for a in fav_list_after.json()["items"])
 
     # 7. Delete Category - Article should remain with category_id = None
     del_cat_res = client.delete(f"/knowledge/categories/{cat_id}", headers=headers)
@@ -183,3 +183,25 @@ def test_knowledge_category_management_and_favorites():
     # Cleanup article
     client.delete(f"/knowledge/articles/{art_id}", headers=headers)
 
+
+
+def test_article_list_is_paginated_and_lightweight():
+    token = get_auth_token()
+    headers = {"Authorization": f"Bearer {token}"}
+    created = client.post(
+        "/knowledge/articles",
+        json={"title": "Lista leve", "content": "conteúdo longo", "commands": "ipconfig /all", "status": "publicado"},
+        headers=headers,
+    )
+    assert created.status_code == 201, created.text
+    art_id = created.json()["id"]
+
+    page = client.get("/knowledge/articles?search=Lista%20leve&limit=5", headers=headers).json()
+    assert page["page"] == 1 and page["limit"] == 5
+    item = next(a for a in page["items"] if a["id"] == art_id)
+    assert "content" not in item and "versions" not in item
+    assert item["has_commands"] is True
+    assert item["versions_count"] >= 1
+
+    detail = client.get(f"/knowledge/articles/{art_id}", headers=headers).json()
+    assert detail["content"] == "conteúdo longo"

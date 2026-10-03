@@ -27,9 +27,15 @@ import { ArticleFormDialog } from '@/components/knowledge/ArticleFormDialog';
 import { ArticleViewDialog } from '@/components/knowledge/ArticleViewDialog';
 import { CategoryManagementDialog } from '@/components/knowledge/CategoryManagementDialog';
 import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
+import { Pagination } from '@/components/ui/Pagination';
+
+const PAGE_SIZE = 24;
 
 export const KnowledgePage: React.FC = () => {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalArticles, setTotalArticles] = useState(0);
   const [categories, setCategories] = useState<KnowledgeCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,6 +49,14 @@ export const KnowledgePage: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<KnowledgeArticle | null>(null);
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
 
+  // Volta para a página 1 sempre que um filtro muda.
+  const filterKey = `${selectedCategory}|${searchTerm}|${onlyFavorites}`;
+  const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+  if (filterKey !== lastFilterKey) {
+    setLastFilterKey(filterKey);
+    setPage(1);
+  }
+
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -52,22 +66,20 @@ export const KnowledgePage: React.FC = () => {
           category_id: selectedCategory ? Number(selectedCategory) : undefined,
           search: searchTerm || undefined,
           only_favorites: onlyFavorites || undefined,
+          page,
+          limit: PAGE_SIZE,
         }),
       ]);
       setCategories(catsData);
-      setArticles(artsData);
-
-      setSelectedArticle((prev) => {
-        if (!prev) return prev;
-        const updated = artsData.find((a) => a.id === prev.id);
-        return updated ?? prev;
-      });
+      setArticles(artsData.items);
+      setTotalPages(artsData.total_pages);
+      setTotalArticles(artsData.total);
     } catch (err) {
       console.error('Falha ao carregar artigos:', err);
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, searchTerm, onlyFavorites]);
+  }, [selectedCategory, searchTerm, onlyFavorites, page]);
 
   useEffect(() => {
     loadData();
@@ -103,9 +115,14 @@ export const KnowledgePage: React.FC = () => {
     setFormDialogOpen(true);
   };
 
-  const handleOpenEdit = (article: KnowledgeArticle) => {
-    setArticleToEdit(article);
-    setFormDialogOpen(true);
+  // A lista não traz o conteúdo: a edição sempre parte do artigo completo.
+  const handleOpenEdit = async (article: KnowledgeArticle) => {
+    try {
+      setArticleToEdit(await knowledgeService.getArticleById(article.id));
+      setFormDialogOpen(true);
+    } catch (err) {
+      console.error('Falha ao carregar artigo para edição:', err);
+    }
   };
 
   const handleOpenView = async (article: KnowledgeArticle) => {
@@ -221,7 +238,7 @@ export const KnowledgePage: React.FC = () => {
             </div>
 
             <div className="text-xs font-semibold text-muted-foreground">
-              {articles.length} artigo{articles.length !== 1 ? 's' : ''} encontrado{articles.length !== 1 ? 's' : ''}
+              {totalArticles} artigo{totalArticles !== 1 ? 's' : ''} encontrado{totalArticles !== 1 ? 's' : ''}
             </div>
           </div>
 
@@ -238,7 +255,7 @@ export const KnowledgePage: React.FC = () => {
                   : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              Todas ({categories.reduce((acc, c) => acc + (c.articles_count || 0), 0) || articles.length})
+              Todas ({categories.reduce((acc, c) => acc + (c.articles_count || 0), 0) || totalArticles})
             </button>
 
             <button
@@ -371,7 +388,7 @@ export const KnowledgePage: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        {article.commands && (
+                        {article.has_commands && (
                           <span className="flex items-center gap-1 text-primary font-mono text-[10px]" title="Contém comandos">
                             <Terminal className="h-3 w-3" />
                             <span>Comandos</span>
@@ -383,10 +400,10 @@ export const KnowledgePage: React.FC = () => {
                           <span>{article.views_count}</span>
                         </span>
 
-                        {article.versions && (
+                        {Boolean(article.versions_count) && (
                           <span className="flex items-center gap-1 font-semibold text-primary">
                             <History className="h-3 w-3" />
-                            <span>v{article.versions.length}</span>
+                            <span>v{article.versions_count}</span>
                           </span>
                         )}
                       </div>
@@ -396,6 +413,9 @@ export const KnowledgePage: React.FC = () => {
               ))}
             </div>
           )}
+          <div className="pt-4">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         </CardContent>
       </Card>
 

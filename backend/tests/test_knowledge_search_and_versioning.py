@@ -47,52 +47,52 @@ def test_search_consistency_across_all_fields():
     # Test Search by Title term
     res_title = client.get(f"/knowledge/articles?search={unique_keyword}", headers=headers)
     assert res_title.status_code == 200
-    assert any(a["id"] == art_id for a in res_title.json())
+    assert any(a["id"] == art_id for a in res_title.json()["items"])
 
     # Test Search by Summary term
     res_summary = client.get(f"/knowledge/articles?search={uid}_summary", headers=headers)
     assert res_summary.status_code == 200
-    assert any(a["id"] == art_id for a in res_summary.json())
+    assert any(a["id"] == art_id for a in res_summary.json()["items"])
 
     # Test Search by Content term
     res_content = client.get(f"/knowledge/articles?search={uid}_content", headers=headers)
     assert res_content.status_code == 200
-    assert any(a["id"] == art_id for a in res_content.json())
+    assert any(a["id"] == art_id for a in res_content.json()["items"])
 
     # Test Search by Problem term
     res_problem = client.get(f"/knowledge/articles?search={uid}_problem", headers=headers)
     assert res_problem.status_code == 200
-    assert any(a["id"] == art_id for a in res_problem.json())
+    assert any(a["id"] == art_id for a in res_problem.json()["items"])
 
     # Test Search by Solution term
     res_solution = client.get(f"/knowledge/articles?search={uid}_solution", headers=headers)
     assert res_solution.status_code == 200
-    assert any(a["id"] == art_id for a in res_solution.json())
+    assert any(a["id"] == art_id for a in res_solution.json()["items"])
 
     # Test Search by Commands term
     res_commands = client.get(f"/knowledge/articles?search={uid}_commands", headers=headers)
     assert res_commands.status_code == 200
-    assert any(a["id"] == art_id for a in res_commands.json())
+    assert any(a["id"] == art_id for a in res_commands.json()["items"])
 
     # Test Search by Tag term
     res_tag = client.get(f"/knowledge/articles?search=tag_{uid}", headers=headers)
     assert res_tag.status_code == 200
-    assert any(a["id"] == art_id for a in res_tag.json())
+    assert any(a["id"] == art_id for a in res_tag.json()["items"])
 
     # Test Case Insensitivity (uppercase search query)
     res_case = client.get(f"/knowledge/articles?search={unique_keyword.upper()}", headers=headers)
     assert res_case.status_code == 200
-    assert any(a["id"] == art_id for a in res_case.json())
+    assert any(a["id"] == art_id for a in res_case.json()["items"])
 
     # Test Combined Search + Category Filter
     res_cat = client.get(f"/knowledge/articles?search={unique_keyword}&category_id={cat_id}", headers=headers)
     assert res_cat.status_code == 200
-    assert any(a["id"] == art_id for a in res_cat.json())
+    assert any(a["id"] == art_id for a in res_cat.json()["items"])
 
     # Combined Search + Wrong Category -> should return empty
     res_wrong_cat = client.get(f"/knowledge/articles?search={unique_keyword}&category_id=99999", headers=headers)
     assert res_wrong_cat.status_code == 200
-    assert not any(a["id"] == art_id for a in res_wrong_cat.json())
+    assert not any(a["id"] == art_id for a in res_wrong_cat.json()["items"])
 
     # Cleanup
     client.delete(f"/knowledge/articles/{art_id}", headers=headers)

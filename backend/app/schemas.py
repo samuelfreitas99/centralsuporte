@@ -423,6 +423,26 @@ class KnowledgeArticleUpdate(BaseModel):
     tag_names: Optional[List[str]] = None
     change_summary: Optional[str] = None
 
+class KnowledgeArticleListResponse(BaseModel):
+    """Item de listagem: sem conteúdo nem versões (carregados em GET /knowledge/articles/{id})."""
+    id: int
+    title: str
+    summary: Optional[str] = None
+    category_id: Optional[int] = None
+    category: Optional[KnowledgeCategoryResponse] = None
+    author_id: int
+    author: Optional[UserSimpleResponse] = None
+    status: str
+    visibility: str
+    views_count: int
+    created_at: datetime
+    updated_at: datetime
+    tags: List[KnowledgeTagResponse] = []
+    is_favorite: Optional[bool] = False
+    has_commands: bool = False
+    versions_count: int = 0
+    model_config = ConfigDict(from_attributes=True)
+
 class KnowledgeArticleResponse(BaseModel):
     id: int
     title: str

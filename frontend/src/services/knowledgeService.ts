@@ -1,4 +1,5 @@
 import { request } from './api';
+import type { PaginatedResponse } from '@/types/pagination';
 import type {
   KnowledgeArticle,
   KnowledgeCategory,
@@ -42,16 +43,21 @@ export const knowledgeService = {
     status?: string;
     search?: string;
     only_favorites?: boolean;
-  }): Promise<KnowledgeArticle[]> => {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<KnowledgeArticle>> => {
     const query = new URLSearchParams();
     if (params?.category_id) query.append('category_id', params.category_id.toString());
     if (params?.tag) query.append('tag', params.tag);
     if (params?.status) query.append('status', params.status);
     if (params?.search) query.append('search', params.search);
     if (params?.only_favorites) query.append('only_favorites', 'true');
+    if (params?.page) query.append('page', params.page.toString());
+    if (params?.limit) query.append('limit', params.limit.toString());
 
     const qs = query.toString();
-    return request<KnowledgeArticle[]>(`/knowledge/articles${qs ? `?${qs}` : ''}`);
+    // Itens da lista não trazem content/problem/solution/commands/versions: use getArticleById.
+    return request<PaginatedResponse<KnowledgeArticle>>(`/knowledge/articles${qs ? `?${qs}` : ''}`);
   },
 
   getArticleById: async (id: number): Promise<KnowledgeArticle> => {

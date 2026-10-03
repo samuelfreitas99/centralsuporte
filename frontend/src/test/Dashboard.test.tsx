@@ -107,13 +107,13 @@ describe('DashboardPage', () => {
         equipment: { name: a.equipment }
       }))
     ));
-    (knowledgeService.getArticles as any).mockResolvedValue(
+    (knowledgeService.getArticles as any).mockResolvedValue(pageOf(
       mockKnowledge.map(k => ({
         ...k,
         category: { name: k.category },
         tags: k.tags.map(t => ({ name: t }))
       }))
-    );
+    ));
   });
 
   it('renders technical shift header and user information', async () => {

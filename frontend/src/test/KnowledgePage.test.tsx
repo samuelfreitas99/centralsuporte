@@ -9,6 +9,8 @@ vi.mock('@/hooks/useAuth', () => ({
     hasPermission: vi.fn().mockReturnValue(true),
   }),
 }));
+import { pageOf } from './fixtures/pagination';
+
 vi.mock('@/services/knowledgeService', () => ({
   knowledgeService: {
     getCategories: vi.fn(),
@@ -82,7 +84,7 @@ describe('KnowledgePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(knowledgeService.getCategories).mockResolvedValue(mockCategories);
-    vi.mocked(knowledgeService.getArticles).mockResolvedValue(mockArticles);
+    vi.mocked(knowledgeService.getArticles).mockResolvedValue(pageOf(mockArticles));
     vi.mocked(knowledgeService.getArticleById).mockResolvedValue(mockArticles[0]);
     vi.mocked(knowledgeService.createCategory).mockResolvedValue({
       id: 3,

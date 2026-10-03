@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy.orm import Session, joinedload, selectinload
+from sqlalchemy import or_, func
 
 from app.database import get_db
 from app.models import (
@@ -13,7 +13,10 @@ from app.models import (
     User,
 )
 from app.auth import get_current_active_user, require_permission
+from app.utils.pagination import PaginationParams, paginate
 from app.schemas import (
+    KnowledgeArticleListResponse,
+    PaginatedResponse,
     KnowledgeCategoryCreate,
     KnowledgeCategoryUpdate,
     KnowledgeCategoryResponse,
@@ -115,13 +118,14 @@ def list_tags(
 
 # --- Articles Endpoints ---
 
-@router.get("/articles", response_model=List[KnowledgeArticleResponse])
+@router.get("/articles", response_model=PaginatedResponse[KnowledgeArticleListResponse])
 def list_articles(
     category_id: Optional[int] = None,
     tag: Optional[str] = None,
     status_filter: Optional[str] = Query(None, alias="status"),
     search: Optional[str] = None,
     only_favorites: Optional[bool] = False,
+    pagination: PaginationParams = Depends(PaginationParams),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("knowledge:read")),
 ):
@@ -162,14 +166,33 @@ def list_articles(
             )
         )
 
-    articles = query.order_by(KnowledgeArticle.updated_at.desc()).all()
+    total = query.count()
+    articles = (
+        query.options(
+            joinedload(KnowledgeArticle.category),
+            joinedload(KnowledgeArticle.author),
+            selectinload(KnowledgeArticle.tags),
+        )
+        .order_by(KnowledgeArticle.updated_at.desc())
+        .offset(pagination.offset)
+        .limit(pagination.limit)
+        .all()
+    )
 
-    # Map favorite status
+    ids = [a.id for a in articles]
+    version_counts = dict(
+        db.query(KnowledgeVersion.article_id, func.count(KnowledgeVersion.id))
+        .filter(KnowledgeVersion.article_id.in_(ids))
+        .group_by(KnowledgeVersion.article_id)
+        .all()
+    ) if ids else {}
     favorite_ids = {a.id for a in current_user.favorite_articles}
     for art in articles:
         art.is_favorite = art.id in favorite_ids
+        art.has_commands = bool(art.commands and art.commands.strip())
+        art.versions_count = version_counts.get(art.id, 0)
 
-    return articles
+    return paginate(articles, pagination.page, pagination.limit, total)
 
 @router.post("/articles", response_model=KnowledgeArticleResponse, status_code=status.HTTP_201_CREATED)
 def create_article(

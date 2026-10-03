@@ -59,6 +59,9 @@ export interface KnowledgeArticle {
   tags: KnowledgeTag[];
   versions: KnowledgeVersion[];
   is_favorite?: boolean;
+  /** Só na listagem paginada (que não traz `commands` nem `versions`). */
+  has_commands?: boolean;
+  versions_count?: number;
 }
 
 export interface KnowledgeArticleCreatePayload {
