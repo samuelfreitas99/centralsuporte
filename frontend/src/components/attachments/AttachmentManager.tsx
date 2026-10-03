@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import {
   Paperclip,
   UploadCloud,
@@ -157,8 +158,10 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
   };
 
   // Delete handler
+  const confirm = useConfirm();
+
   const handleDelete = async (item: AttachmentItem) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o anexo "${item.original_filename}"?`)) {
+    if (!(await confirm({ title: 'Excluir anexo?', description: item.original_filename }))) {
       return;
     }
 

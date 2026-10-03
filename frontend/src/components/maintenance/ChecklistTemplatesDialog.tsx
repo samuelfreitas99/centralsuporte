@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import {
   Dialog,
   DialogContent,
@@ -110,8 +111,10 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Tem certeza que deseja excluir este template?')) return;
+    if (!(await confirm({ title: 'Excluir este modelo de checklist?' }))) return;
     try {
       await checklistTemplateService.deleteTemplate(id);
       success('Sucesso', 'Template excluído com sucesso');

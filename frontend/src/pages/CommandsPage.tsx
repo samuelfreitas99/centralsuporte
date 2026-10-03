@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Terminal,
@@ -307,8 +308,10 @@ export const CommandsPage: React.FC = () => {
   };
 
   // Delete Command
+  const confirm = useConfirm();
+
   const handleDeleteCommand = async (cmd: CommandItem) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o comando "${cmd.title}"?`)) return;
+    if (!(await confirm({ title: 'Excluir comando?', description: cmd.title }))) return;
     try {
       await commandService.deleteCommand(cmd.id);
       success('Comando excluído', 'O comando foi removido da biblioteca.');
@@ -374,7 +377,7 @@ export const CommandsPage: React.FC = () => {
 
   // Delete Response
   const handleDeleteResponse = async (resp: StandardResponseItem) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a resposta "${resp.title}"?`)) return;
+    if (!(await confirm({ title: 'Excluir resposta padrão?', description: resp.title }))) return;
     try {
       await responseService.deleteResponse(resp.id);
       success('Resposta excluída', 'A resposta foi removida da biblioteca.');

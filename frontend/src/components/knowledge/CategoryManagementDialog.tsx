@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import {
   Dialog,
   DialogContent,
@@ -102,12 +103,14 @@ export const CategoryManagementDialog: React.FC<CategoryManagementDialogProps> =
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (category: KnowledgeCategory) => {
     const warning = (category.articles_count && category.articles_count > 0)
-      ? `A categoria "${category.name}" possui ${category.articles_count} artigo(s) associado(s).\n\nEles continuarão existindo na base, mas ficarão sem categoria definida.\n\nDeseja continuar e excluir a categoria?`
-      : `Deseja realmente excluir a categoria "${category.name}"?`;
+      ? `${category.articles_count} artigo(s) continuarão na base, mas ficarão sem categoria.`
+      : undefined;
 
-    if (!confirm(warning)) return;
+    if (!(await confirm({ title: `Excluir a categoria "${category.name}"?`, description: warning }))) return;
 
     try {
       await knowledgeService.deleteCategory(category.id);

@@ -81,6 +81,10 @@ docker exec centralsuporte_backend sh -c "cd /app && alembic upgrade head"
 * Tipos em `src/types/`. Permissões no front via `useAuth().hasPermission('...')`.
 * Textos de interface em **português do Brasil**, curtos e diretos. Sem jargão de desenvolvimento
   ("Fase 8", "MVP", "Roadmap") na interface.
+* Confirmações: `const confirm = useConfirm();` e `if (!(await confirm({ title: 'Excluir X?' }))) return;`
+  (`hooks/useConfirm.ts`). Nunca use `window.confirm`.
+* Abrir item de outra tela: deep link `#modulo?id=N`; na página use `useDeepLinkId` / `clearDeepLinkId` (`hooks/useDeepLink.ts`).
+* Escolher equipamento: `components/infrastructure/EquipmentPicker`.
 * Animações apenas com `motion/react`. Visual: `DESIGN_SYSTEM.md` e `UI_UX.md`.
 
 ---

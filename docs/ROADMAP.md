@@ -51,7 +51,9 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S3.2 Lembretes pessoais x alertas automáticos (`reminders.source`); listagem só do próprio usuário; sino mostra avisos com selo "Automático", Início e Tarefas mostram "Meus lembretes" — P-30, P-31, P-33
 
 ### S4 — Código compartilhado e manutenção
-- [ ] S4.1 Componentes comuns: `PageHeader`, `FilterBar`, `StatusBadge`, `ConfirmDialog` (substituir `window.confirm`) — P-60, P-61
+- [~] S4.1 Componentes comuns — P-60, P-61
+  - feito: `ConfirmDialog` + `useConfirm` (todas as 16 chamadas de `window.confirm` substituídas)
+  - falta: `PageHeader`, `FilterBar`, `StatusBadge`
 - [ ] S4.2 Quebrar `CommandsPage.tsx` e `AttendancePage.tsx` em componentes menores — P-51
 - [ ] S4.3 Paginação em atendimentos, equipamentos e artigos; lista de equipamentos sem histórico embutido — P-62
 - [x] S4.4 Tabela de rotas única no lugar da cadeia de ternários em `AuthenticatedView.tsx` — P-63

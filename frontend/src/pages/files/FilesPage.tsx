@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { useAuth } from '@/hooks/useAuth';
 import { attachmentService } from '@/services/attachmentService';
 import type { AttachmentItem } from '@/types/attachment';
@@ -56,8 +57,10 @@ export const FilesPage: React.FC = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [search, mimeCategory, entityType, canRead]);
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (!window.confirm('Deseja realmente excluir este arquivo? (Isso não poderá ser desfeito na interface)')) {
+    if (!(await confirm({ title: 'Excluir este arquivo?', description: 'Não é possível desfazer pela interface.' }))) {
       return;
     }
     try {

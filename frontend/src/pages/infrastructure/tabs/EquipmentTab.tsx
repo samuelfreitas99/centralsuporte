@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { equipmentToForm } from '../equipmentForm';
 import { clearDeepLinkId } from '@/hooks/useDeepLink';
 import { EquipmentActivity } from '@/components/infrastructure/EquipmentActivity';
@@ -198,8 +199,10 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDeleteEquipment = async (eq: EquipmentItem) => {
-    if (!window.confirm(`Tem certeza que deseja excluir ${eq.hostname || 'este equipamento'}?`)) return;
+    if (!(await confirm({ title: `Excluir ${eq.hostname || 'este equipamento'}?`, description: 'O histórico técnico é preservado.' }))) return;
     try {
       await infrastructureService.deleteEquipment(eq.id);
       setEquipmentList((prev) => prev.filter((item) => item.id !== eq.id));

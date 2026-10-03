@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,8 +62,10 @@ export const RemindersSection: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDelete = async (id: number) => {
-    if (!confirm('Deseja excluir este lembrete?')) return;
+    if (!(await confirm({ title: 'Excluir este lembrete?' }))) return;
     try {
       await organizationService.deleteReminder(id);
       loadReminders();

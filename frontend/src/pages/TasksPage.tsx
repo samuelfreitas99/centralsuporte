@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,8 +107,10 @@ export const TasksPage: React.FC = () => {
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDeleteTask = async (taskId: number) => {
-    if (!confirm('Tem certeza que deseja excluir esta tarefa e seus checklists associados?')) return;
+    if (!(await confirm({ title: 'Excluir tarefa?', description: 'Os checklists da tarefa também serão excluídos.' }))) return;
     try {
       await organizationService.deleteTask(taskId);
       if (selectedTaskId === taskId) {

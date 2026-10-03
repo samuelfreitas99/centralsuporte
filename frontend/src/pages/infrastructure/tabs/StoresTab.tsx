@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Building2,
@@ -129,8 +130,10 @@ export const StoresTab: React.FC<StoresTabProps> = ({
     }
   };
 
+  const confirm = useConfirm();
+
   const handleDeleteStore = async (id: number) => {
-    if (!window.confirm('Arquivar/Inativar esta unidade? Dependências (se ativas) podem impedir a inativação.')) return;
+    if (!(await confirm({ title: 'Inativar esta loja?', description: 'Ela deixa de aparecer nas listas ativas. Dependências ativas podem impedir a inativação.', confirmLabel: 'Inativar' }))) return;
     try {
       await infrastructureService.deleteStore(id);
       setStores((prev) => prev.map((s) => s.id === id ? { ...s, status: 'inativa' } : s));
@@ -173,7 +176,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
   };
 
   const handleDeleteDept = async (id: number) => {
-    if (!window.confirm('Arquivar/Inativar este setor?')) return;
+    if (!(await confirm({ title: 'Inativar este departamento?', confirmLabel: 'Inativar' }))) return;
     try {
       await infrastructureService.deleteDepartment(id);
       setDepartments((prev) => prev.map((d) => d.id === id ? { ...d, status: 'inativa' } : d));
@@ -215,7 +218,7 @@ export const StoresTab: React.FC<StoresTabProps> = ({
   };
 
   const handleDeleteLoc = async (id: number) => {
-    if (!window.confirm('Arquivar este local técnico?')) return;
+    if (!(await confirm({ title: 'Arquivar este local técnico?', confirmLabel: 'Arquivar' }))) return;
     try {
       await infrastructureService.deleteLocation(id);
       setTechnicalLocations((prev) => prev.map((l) => l.id === id ? { ...l, status: 'inativa' } : l));

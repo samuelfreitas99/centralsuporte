@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Headset,
@@ -333,8 +334,10 @@ export const AttendancePage: React.FC = () => {
   };
 
   // Delete Attendance
+  const confirm = useConfirm();
+
   const handleDeleteAttendance = async (att: AttendanceItem) => {
-    if (!window.confirm(`Tem certeza que deseja excluir o atendimento "${att.title}"?`)) return;
+    if (!(await confirm({ title: 'Excluir atendimento?', description: `"${att.title}" e suas notas serão removidos. O chamado no OTRS não é afetado.` }))) return;
     try {
       await attendanceService.deleteAttendance(att.id);
       success('Atendimento excluído', 'O registro foi removido com sucesso.');

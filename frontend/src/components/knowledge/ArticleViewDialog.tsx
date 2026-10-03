@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useConfirm } from '@/hooks/useConfirm';
 import {
   Dialog,
   DialogContent,
@@ -52,11 +53,12 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
   const [activeTab, setActiveTab] = useState<'content' | 'versions'>('content');
   const [copied, setCopied] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+  const confirm = useConfirm();
 
   if (!article) return null;
 
   const handleRestoreVersion = async (versionNumber: number) => {
-    if (!confirm(`Deseja restaurar o conteúdo para a Versão v${versionNumber}? Uma nova versão com a restauração será criada.`)) return;
+    if (!(await confirm({ title: `Restaurar a versão v${versionNumber}?`, description: 'Uma nova versão será criada com esse conteúdo; nada é perdido.', confirmLabel: 'Restaurar', destructive: false }))) return;
     try {
       await knowledgeService.restoreArticleVersion(article.id, versionNumber);
       if (onRestored) onRestored();
@@ -87,7 +89,7 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
   };
 
   const handleDelete = async () => {
-    if (!confirm('Deseja realmente excluir este artigo da base de conhecimento?')) return;
+    if (!(await confirm({ title: 'Excluir este artigo?', description: 'Ele sai da Base de Conhecimento.' }))) return;
     try {
       await knowledgeService.deleteArticle(article.id);
       onOpenChange(false);
