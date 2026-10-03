@@ -1,6 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text, Float, desc
-from sqlalchemy.orm import relationship
+from sqlalchemy import event
+from sqlalchemy.orm import relationship, Session
 from app.database import Base
 
 # Association table for Project and Equipment
@@ -113,14 +114,8 @@ class User(Base):
         if role is not None:
             self.roles = [role]
         elif role_id is not None:
-            from app.database import SessionLocal
-            db = SessionLocal()
-            try:
-                r = db.query(Role).filter(Role.id == role_id).first()
-                if r:
-                    self.roles = [r]
-            finally:
-                db.close()
+            # Resolvido no before_flush, na mesma sessão que persiste o usuário.
+            self._pending_role_id = role_id
 
     @property
     def role(self):
@@ -763,3 +758,15 @@ class AuditLog(Base):
     # Relationships
     user = relationship("User")
 
+
+
+@event.listens_for(Session, "before_flush")
+def _resolve_pending_user_roles(session, flush_context, instances):
+    """Compatibilidade com `User(role_id=...)` (modelo antigo de perfil único)."""
+    for obj in list(session.new):
+        if isinstance(obj, User):
+            pending = obj.__dict__.pop("_pending_role_id", None)
+            if pending is not None and not obj.roles:
+                role = session.get(Role, pending)
+                if role:
+                    obj.roles = [role]
