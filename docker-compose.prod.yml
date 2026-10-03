@@ -2,11 +2,12 @@
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 # Diferenças em relação ao desenvolvimento:
 #   - backend sem --reload, código vindo da imagem; aplica migrações ao iniciar
-#   - frontend compilado (Vite build) servido por nginx na mesma porta 5173
+#   - frontend compilado (Vite build) servido por nginx: http na 5173 e https na 8443;
+#     a API fica em /api no mesmo endereço (certificados: ./deploy/make-certs.sh)
 #   - uploads continuam persistidos em ./backend/uploads
 services:
   backend:
-    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
     volumes: !override
       - ./backend/uploads:/app/uploads
 
@@ -16,5 +17,9 @@ services:
       dockerfile: Dockerfile.prod
     ports: !override
       - "5173:80"
-    volumes: !reset []
+      - "8443:443"
+    volumes: !override
+      - ./deploy/certs/server.crt:/etc/nginx/certs/server.crt:ro
+      - ./deploy/certs/server.key:/etc/nginx/certs/server.key:ro
+      - ./deploy/certs/ca.crt:/etc/nginx/certs/ca.crt:ro
     environment: !reset []

@@ -32,3 +32,6 @@ backend/uploads/*
 # IDEs
 .vscode/
 .idea/
+
+# Certificados HTTPS (gerados por deploy/make-certs.sh)
+deploy/certs/
