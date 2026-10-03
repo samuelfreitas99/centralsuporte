@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { maintenanceTypeLabel } from '@/lib/status';
 import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
@@ -221,7 +222,7 @@ export const MaintenancePage: React.FC = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={() => setIsTemplatesModalOpen(true)}>
             <FileText className="h-4 w-4 mr-2" />
-            Templates
+            Modelos de checklist
           </Button>
           <Button variant="default" size="sm" onClick={() => setIsCreateDrawerOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
@@ -345,7 +346,7 @@ export const MaintenancePage: React.FC = () => {
                         >
                           <td className="px-4 py-3">
                             <p className="font-semibold text-foreground">{maint.title}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{maint.maintenance_type}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{maintenanceTypeLabel(maint.maintenance_type)}</p>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1.5 text-xs">

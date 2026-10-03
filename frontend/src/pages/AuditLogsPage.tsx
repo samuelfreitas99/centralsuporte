@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { auditActionLabel } from '@/lib/status';
 import { formatDateTime } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import {
@@ -253,7 +254,7 @@ export const AuditLogsPage: React.FC = () => {
                           log.action
                         )}`}
                       >
-                        {log.action}
+                        {auditActionLabel(log.action)}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">

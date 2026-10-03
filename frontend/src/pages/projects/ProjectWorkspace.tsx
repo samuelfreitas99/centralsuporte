@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { priorityLabel, statusLabel, maintenanceTypeLabel } from '@/lib/status';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -301,7 +302,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                             <CheckSquare className="h-4 w-4 text-blue-400 mt-0.5" />
                             <div>
                               <p className="text-sm font-medium group-hover:text-blue-400 transition-colors">{task.title}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">Tarefa • {task.priority}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Tarefa • {priorityLabel(task.priority)}</p>
                             </div>
                           </div>
                         </div>
@@ -412,8 +413,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                         <div>
                           <h4 className="font-medium text-sm text-foreground/90 group-hover:text-blue-400 transition-colors">{task.title}</h4>
                           <div className="flex gap-2 mt-1.5">
-                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{task.status.replace('_', ' ')}</span>
-                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{task.priority}</span>
+                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{statusLabel('task', task.status)}</span>
+                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{priorityLabel(task.priority)}</span>
                           </div>
                         </div>
                         <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedTask(task); setTaskDetailOpen(true); }}>Visualizar</Button>
@@ -453,8 +454,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                         <div>
                           <h4 className="font-medium text-sm text-foreground/90">{maint.title}</h4>
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{maint.status.replace('_', ' ')}</span>
-                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{maint.maintenance_type}</span>
+                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{statusLabel('maintenance', maint.status)}</span>
+                            <span className="text-[10px] uppercase font-medium tracking-wider text-muted-foreground bg-slate-800/60 px-2 py-0.5 rounded border border-border/40">{maintenanceTypeLabel(maint.maintenance_type)}</span>
                             {maint.equipments && maint.equipments.length > 0 && (
                               <span className="text-[10px] text-muted-foreground bg-slate-800/40 px-2 py-0.5 rounded border border-border/40 flex items-center gap-1">
                                 <HardDrive className="h-3 w-3 text-primary shrink-0" />

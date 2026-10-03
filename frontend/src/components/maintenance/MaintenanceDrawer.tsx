@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { maintenanceTypeLabel } from '@/lib/status';
 import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
@@ -130,17 +131,6 @@ export const MaintenanceDrawer: React.FC<Props> = ({
 
   const getStatusBadge = (status: string) => <StatusBadge domain="maintenance" status={status} />;
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case 'preventiva': return 'Preventiva';
-      case 'corretiva': return 'Corretiva';
-      case 'substituicao': return 'Substituição';
-      case 'atualizacao': return 'Atualização';
-      case 'configuracao': return 'Configuração';
-      case 'instalacao': return 'Instalação';
-      default: return 'Outro';
-    }
-  };
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -359,7 +349,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Tipo</p>
-                      <p className="text-sm font-medium">{getTypeLabel(maintenance.maintenance_type)}</p>
+                      <p className="text-sm font-medium">{maintenanceTypeLabel(maintenance.maintenance_type)}</p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Agendado Para</p>

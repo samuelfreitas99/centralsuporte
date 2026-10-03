@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { priorityLabel } from '@/lib/status';
 import { formatDate } from '@/lib/format';
 import {
   Bell,
@@ -205,7 +206,7 @@ export const NotificationsDropdown: React.FC = () => {
                                 : 'bg-muted text-muted-foreground border-border/60'
                             }`}
                           >
-                            {rem.priority}
+                            {priorityLabel(rem.priority)}
                           </span>
                         </div>
                         {rem.description && (

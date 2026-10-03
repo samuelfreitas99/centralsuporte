@@ -6,6 +6,12 @@ from app import schemas, models
 from app.database import get_db
 from app.auth import get_current_user, require_permission
 
+PROJECT_ACTION_TITLES = {
+    "CREATE": "Projeto criado",
+    "UPDATE": "Projeto atualizado",
+    "DELETE": "Projeto excluído",
+}
+
 router = APIRouter(
     prefix="/projects",
     tags=["Projects"]
@@ -350,7 +356,7 @@ def get_project_timeline(
             created_at=note.created_at
         ))
         
-    # 2. Fetch AuditLogs related to project
+    # 2. Fetch AuditLogs related to project (títulos em linguagem de gente)
     audit_logs = db.query(models.AuditLog).filter(
         models.AuditLog.entity_type == "project",
         models.AuditLog.entity_id == project_id
@@ -360,8 +366,8 @@ def get_project_timeline(
         events.append(schemas.ProjectTimelineEvent(
             id=log.id,
             type="audit",
-            title=f"Ação: {log.action}",
-            description=log.details or f"O projeto foi {log.action.lower()}.",
+            title=PROJECT_ACTION_TITLES.get(log.action, log.action.capitalize()),
+            description="",
             author=schemas.UserSimpleResponse.model_validate(log.user) if log.user else None,
             created_at=log.created_at
         ))

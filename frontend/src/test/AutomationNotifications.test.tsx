@@ -73,7 +73,7 @@ describe('NotificationsDropdown (Phase 13 Automation)', () => {
       expect(screen.getByText('Alertas & Regras Reativas')).toBeInTheDocument();
       expect(screen.getByText(/Revisão Firewall/i)).toBeInTheDocument();
       expect(screen.getByText(/Manutenção Programada: SW-CORE/i)).toBeInTheDocument();
-      expect(screen.getByText('urgente')).toBeInTheDocument();
+      expect(screen.getByText('Urgente')).toBeInTheDocument();
     });
   });
 

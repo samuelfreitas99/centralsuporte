@@ -62,3 +62,36 @@ export const statusOptions = (domain: StatusDomain) =>
 
 export const priorityOptions = () =>
   Object.entries(PRIORITY_META).map(([value, meta]) => ({ value, label: meta.label }));
+
+export const MAINTENANCE_TYPE_LABEL: Record<string, string> = {
+  preventiva: 'Preventiva',
+  corretiva: 'Corretiva',
+  substituicao: 'Substituição',
+  atualizacao: 'Atualização',
+  configuracao: 'Configuração',
+  instalacao: 'Instalação',
+  outro: 'Outro',
+};
+export const maintenanceTypeLabel = (type: string) => MAINTENANCE_TYPE_LABEL[type] ?? type;
+export const maintenanceTypeOptions = () =>
+  Object.entries(MAINTENANCE_TYPE_LABEL).map(([value, label]) => ({ value, label }));
+
+export const priorityLabel = (priority: string) => priorityMeta(priority).label;
+export const statusLabel = (domain: StatusDomain, status: string) => statusMeta(domain, status).label;
+
+/** Ações gravadas na auditoria, em linguagem de gente. */
+export const AUDIT_ACTION_LABEL: Record<string, string> = {
+  LOGIN: 'Login',
+  LOGIN_FAILED: 'Login recusado',
+  LOGIN_BLOCKED: 'Login bloqueado',
+  CREATE: 'Criação',
+  UPDATE: 'Alteração',
+  DELETE: 'Exclusão',
+  PASSWORD_CHANGED: 'Senha alterada',
+  PASSWORD_REVEAL: 'Senha revelada',
+  LICENSE_KEY_REVEAL: 'Chave revelada',
+  AUTOMATION_RUN: 'Automação',
+  'attachment.uploaded': 'Anexo enviado',
+  'attachment.deleted': 'Anexo excluído',
+};
+export const auditActionLabel = (action: string) => AUDIT_ACTION_LABEL[action] ?? action;

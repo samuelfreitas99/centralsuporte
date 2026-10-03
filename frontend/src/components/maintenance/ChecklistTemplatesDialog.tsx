@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { maintenanceTypeLabel } from '@/lib/status';
 import { useConfirm } from '@/hooks/useConfirm';
 import {
   Dialog,
@@ -99,10 +100,10 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
     try {
       if (viewMode === 'create') {
         await checklistTemplateService.createTemplate(formData as ChecklistTemplateCreate);
-        success('Sucesso', 'Template criado com sucesso');
+        success('Sucesso', 'Modelo criado.');
       } else if (viewMode === 'edit' && editingId) {
         await checklistTemplateService.updateTemplate(editingId, formData as ChecklistTemplateUpdate);
-        success('Sucesso', 'Template atualizado com sucesso');
+        success('Sucesso', 'Modelo atualizado.');
       }
       setViewMode('list');
       loadTemplates();
@@ -117,7 +118,7 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
     if (!(await confirm({ title: 'Excluir este modelo de checklist?' }))) return;
     try {
       await checklistTemplateService.deleteTemplate(id);
-      success('Sucesso', 'Template excluído com sucesso');
+      success('Sucesso', 'Modelo excluído.');
       loadTemplates();
     } catch (err) {
       toastError('Erro', 'Falha ao excluir template. Pode haver dependências.');
@@ -127,7 +128,7 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
   const handleToggleActive = async (id: number, currentActive: boolean) => {
     try {
       await checklistTemplateService.updateTemplate(id, { is_active: !currentActive });
-      success('Sucesso', `Template ${!currentActive ? 'ativado' : 'inativado'} com sucesso`);
+      success('Sucesso', `Modelo ${!currentActive ? 'ativado' : 'inativado'} com sucesso`);
       loadTemplates();
     } catch (err) {
       toastError('Erro', 'Falha ao alterar status do template');
@@ -138,7 +139,7 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Modelos de Checklist (Templates)</DialogTitle>
+          <DialogTitle>Modelos de checklist</DialogTitle>
           <DialogDescription>Gerencie os templates de checklists operacionais.</DialogDescription>
         </DialogHeader>
 
@@ -146,7 +147,7 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
           <div className="space-y-4">
             <div className="flex justify-end">
               <Button onClick={handleOpenCreate} className="gap-2">
-                <Plus size={16} /> Novo Template
+                <Plus size={16} /> Novo modelo
               </Button>
             </div>
             
@@ -165,7 +166,7 @@ export const ChecklistTemplatesDialog: React.FC<Props> = ({ isOpen, onClose }) =
                       </h4>
                       <p className="text-sm text-muted-foreground">{tpl.description}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {tpl.items.length} itens • {tpl.maintenance_type}
+                        {tpl.items.length} itens • {maintenanceTypeLabel(tpl.maintenance_type)}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">

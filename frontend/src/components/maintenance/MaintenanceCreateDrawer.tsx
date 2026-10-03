@@ -262,7 +262,7 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
                     </h4>
                     
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold">Template de Checklist (Opcional)</label>
+                      <label className="text-xs font-semibold">Modelo de checklist (opcional)</label>
                       <select
                         value={form.checklist_template_id || ''}
                         onChange={e => setForm({ ...form, checklist_template_id: e.target.value ? Number(e.target.value) : undefined })}

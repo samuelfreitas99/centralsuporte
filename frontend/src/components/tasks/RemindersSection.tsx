@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { priorityLabel } from '@/lib/status';
 import { formatDateTime } from '@/lib/format';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -167,7 +168,7 @@ export const RemindersSection: React.FC = () => {
                           variant={rem.priority === 'alta' ? 'destructive' : rem.priority === 'baixa' ? 'secondary' : 'default'}
                           className="text-[10px] py-0 h-4"
                         >
-                          {rem.priority}
+                          {priorityLabel(rem.priority)}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
