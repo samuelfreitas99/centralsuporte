@@ -58,7 +58,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
   - feito: `PageHeader` em todas as telas principais (mesmo tamanho, ícone e posição das ações; descrições curtas); banner OTRS repetido removido de Atendimentos
   - feito: `StatusBadge`/`PriorityBadge` + `lib/status.ts` substituindo 11 funções duplicadas (o card de atendimentos do Início mostrava status inexistentes)
   - falta: `FilterBar`
-- [ ] S4.2 Quebrar `CommandsPage.tsx` e `AttendancePage.tsx` em componentes menores — P-51
+- [x] S4.2 Telas gigantes divididas: `AttendancePage` 1.058 → 475 linhas (`components/attendance/`), `CommandsPage` 1.356 → 726 (`components/commands/`) — P-51
 - [~] S4.3 Listas leves e paginadas — P-62
   - feito: lista de equipamentos sem histórico embutido (`EquipmentListResponse`): 4 MB → 375 KB, 0,52 s → 0,04 s
   - feito: lista de manutenções usa `EquipmentListResponse` + eager loading: 17 MB → 2,3 MB, 1,39 s → 0,26 s

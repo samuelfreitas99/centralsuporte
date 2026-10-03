@@ -7,35 +7,23 @@ import {
   MessageSquare,
   Search,
   Plus,
-  Copy,
-  Check,
   AlertTriangle,
   Layers,
   Users,
-  Edit2,
-  Trash2,
-  Lock,
   RefreshCw,
-  ArrowUp,
-  ArrowDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-} from '@/components/ui/drawer';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
+import { CommandFormDrawer } from '@/components/commands/CommandFormDrawer';
+import { CommandCard } from '@/components/commands/CommandCard';
+import { ResponseCard } from '@/components/commands/ResponseCard';
+import { ResponseFormDrawer } from '@/components/commands/ResponseFormDrawer';
 import { commandService } from '@/services/commandService';
 import { responseService } from '@/services/responseService';
 import type {
@@ -408,19 +396,6 @@ export const CommandsPage: React.FC = () => {
   }, [availableSystems]);
 
   // Audience labels helper
-  const getAudienceLabel = (audience: string) => {
-    switch (audience) {
-      case 'usuario_final':
-        return { label: 'Usuário Final', variant: 'success' as const };
-      case 'tecnico':
-        return { label: 'Equipe Técnica', variant: 'default' as const };
-      case 'fornecedor':
-        return { label: 'Fornecedor', variant: 'info' as const };
-      default:
-        return { label: audience, variant: 'secondary' as const };
-    }
-  };
-
   return (
     <div className="space-y-6">
       <PageHeader icon={Terminal} title="Comandos e Respostas" description="Comandos de terminal e respostas padrão para copiar com um clique.">
@@ -686,8 +661,6 @@ export const CommandsPage: React.FC = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <AnimatePresence>
             {commands.map((cmd) => {
-              const isCopied = copiedId === `cmd-${cmd.id}`;
-              const hasWarning = Boolean(cmd.warning && cmd.warning.trim().length > 0);
 
               return (
                 <motion.div
@@ -697,179 +670,7 @@ export const CommandsPage: React.FC = () => {
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="h-full flex flex-col justify-between border-border/80 bg-card/75 hover:border-blue-500/40 hover:shadow-lg transition-all duration-200">
-                    <CardContent className="p-5 space-y-3.5">
-                      {/* Top Badges Row */}
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant="default" className="text-[11px] font-mono">
-                            {cmd.system || 'Geral'}
-                          </Badge>
-                          {cmd.category && (
-                            <Badge variant="secondary" className="text-[11px]">
-                              {cmd.category}
-                            </Badge>
-                          )}
-                          {cmd.visibility === 'privado' && (
-                            <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-500/30 flex items-center gap-1">
-                              <Lock className="h-3 w-3" />
-                              <span>Privado</span>
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Copy counter */}
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-mono">
-                          <Copy className="h-3 w-3 text-blue-400" />
-                          <span>{cmd.copies_count} cópias</span>
-                        </div>
-                      </div>
-
-                      {/* Title & Description */}
-                      <div>
-                        <h3 className="text-base font-bold text-foreground tracking-tight leading-snug">
-                          {cmd.title}
-                        </h3>
-                        {cmd.description && (
-                          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                            {cmd.description}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Destructive / Operational Warning Callout */}
-                      {hasWarning && (
-                        <div className="flex flex-col gap-1.5 rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-xs">
-                          <div className="flex items-center gap-1.5 font-bold uppercase tracking-wider text-[10px] text-destructive">
-                            <AlertTriangle className="h-4 w-4 shrink-0" />
-                            <span>Risco Operacional: Comando Destrutivo</span>
-                          </div>
-                          <div className="font-medium leading-relaxed opacity-90 text-foreground">
-                            {cmd.warning}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Steps Code blocks */}
-                      <div className="space-y-3 max-h-[350px] overflow-y-auto pr-1 custom-scrollbar">
-                        {cmd.steps?.map((step) => {
-                          const stepCopiedId = `cmd-${cmd.id}-step-${step.id}`;
-                          const isStepCopied = copiedId === stepCopiedId;
-                          return (
-                            <div key={step.id} className="relative group rounded-xl border border-border/80 bg-slate-950/80 p-3 overflow-hidden shadow-inner">
-                              <div className="flex items-center justify-between text-[11px] text-slate-500 font-mono pb-1.5 mb-1.5 border-b border-white/[0.05]">
-                                <span className="flex items-center gap-1.5 text-slate-400 font-semibold">
-                                  <span className="h-2 w-2 rounded-full bg-emerald-500/80" />
-                                  <span>Passo {step.position}: {step.title}</span>
-                                </span>
-                              </div>
-                              {step.description && (
-                                <p className="text-[11px] text-slate-400 mb-2">{step.description}</p>
-                              )}
-                              <div className="font-mono text-xs sm:text-sm text-blue-300 whitespace-pre-wrap break-all py-1 selection:bg-blue-600/40">
-                                {step.command_text}
-                              </div>
-                              <div className="mt-3 flex items-center justify-end">
-                                <Button
-                                  size="sm"
-                                  variant={isStepCopied ? 'secondary' : 'default'}
-                                  onClick={() => handleCopyStep(cmd, step)}
-                                  className="h-7 px-2 text-[10px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                                >
-                                  {isStepCopied ? (
-                                    <>
-                                      <Check className="h-3 w-3" />
-                                      <span>Copiado!</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className="h-3 w-3" />
-                                      <span>Copiar Passo</span>
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Copy All Action */}
-                      <div className="mt-3 flex items-center justify-between">
-                          {hasWarning ? (
-                            <span className="text-[10px] text-muted-foreground italic max-w-[60%]">
-                              Copiar não executa o comando. Use com cautela.
-                            </span>
-                          ) : (
-                            <span />
-                          )}
-                          <Button
-                            size="sm"
-                            variant={isCopied ? 'secondary' : 'default'}
-                            onClick={() => handleCopyCommand(cmd)}
-                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm w-full sm:w-auto"
-                          >
-                            {isCopied ? (
-                              <>
-                                <Check className="h-3.5 w-3.5" />
-                                <span>Procedimento Copiado!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="h-3.5 w-3.5" />
-                                <span>Copiar Todos</span>
-                              </>
-                            )}
-                          </Button>
-                      </div>
-
-                      {/* Technical Notes / Guidelines */}
-                      {cmd.notes && (
-                        <div className="text-[11px] text-muted-foreground bg-muted/20 rounded-lg p-2.5 border border-border/40">
-                          <span className="font-semibold text-foreground mr-1">Observações:</span>
-                          {cmd.notes}
-                        </div>
-                      )}
-
-                      {/* Footer: Tags and Edit/Delete controls */}
-                      <div className="pt-2 flex items-center justify-between border-t border-border/60 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {cmd.tags &&
-                            cmd.tags.split(',').map((t, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted/40 text-muted-foreground"
-                              >
-                                #{t.trim()}
-                              </span>
-                            ))}
-                        </div>
-
-                        {canModifyCommand(cmd) && (
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenCommandDrawer(cmd)}
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                              aria-label="Editar comando"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteCommand(cmd)}
-                              className="h-7 w-7 text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
-                              aria-label="Excluir comando"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <CommandCard cmd={cmd} copiedId={copiedId} canModify={canModifyCommand(cmd)} onCopy={() => handleCopyCommand(cmd)} onCopyStep={(step) => handleCopyStep(cmd, step)} onEdit={() => handleOpenCommandDrawer(cmd)} onDelete={() => handleDeleteCommand(cmd)} />
                 </motion.div>
               );
             })}
@@ -882,8 +683,6 @@ export const CommandsPage: React.FC = () => {
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
           <AnimatePresence>
             {responses.map((resp) => {
-              const isCopied = copiedId === `resp-${resp.id}`;
-              const audienceInfo = getAudienceLabel(resp.audience);
 
               return (
                 <motion.div
@@ -893,107 +692,7 @@ export const CommandsPage: React.FC = () => {
                   exit={{ opacity: 0, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="h-full flex flex-col justify-between border-border/80 bg-card/75 hover:border-blue-500/40 hover:shadow-lg transition-all duration-200">
-                    <CardContent className="p-5 space-y-3.5">
-                      {/* Top Badges Row */}
-                      <div className="flex items-center justify-between gap-2 flex-wrap">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <Badge variant={audienceInfo.variant} className="text-[11px]">
-                            {audienceInfo.label}
-                          </Badge>
-                          {resp.category && (
-                            <Badge variant="secondary" className="text-[11px]">
-                              {resp.category}
-                            </Badge>
-                          )}
-                          {resp.visibility === 'privado' && (
-                            <Badge variant="outline" className="text-[10px] text-amber-400 border-amber-500/30 flex items-center gap-1">
-                              <Lock className="h-3 w-3" />
-                              <span>Privado</span>
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Copy counter */}
-                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-mono">
-                          <Copy className="h-3 w-3 text-blue-400" />
-                          <span>{resp.copies_count} cópias</span>
-                        </div>
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-base font-bold text-foreground tracking-tight leading-snug">
-                        {resp.title}
-                      </h3>
-
-                      {/* Content Preview Box */}
-                      <div className="relative rounded-xl border border-border/80 bg-muted/20 p-3.5 space-y-2">
-                        <div className="text-xs sm:text-sm text-foreground/90 whitespace-pre-line leading-relaxed font-sans max-h-48 overflow-y-auto selection:bg-blue-600/30 pr-1">
-                          {resp.content}
-                        </div>
-
-                        {/* Copy Action */}
-                        <div className="pt-2 flex items-center justify-end border-t border-border/40">
-                          <Button
-                            size="sm"
-                            variant={isCopied ? 'secondary' : 'default'}
-                            onClick={() => handleCopyResponse(resp)}
-                            className="h-8 px-3 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
-                          >
-                            {isCopied ? (
-                              <>
-                                <Check className="h-3.5 w-3.5" />
-                                <span>Copiado!</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="h-3.5 w-3.5" />
-                                <span>Copiar Resposta</span>
-                              </>
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Footer: Tags and Actions */}
-                      <div className="pt-2 flex items-center justify-between border-t border-border/60 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          {resp.tags &&
-                            resp.tags.split(',').map((t, idx) => (
-                              <span
-                                key={idx}
-                                className="text-[10px] px-1.5 py-0.5 rounded bg-muted/40 text-muted-foreground"
-                              >
-                                #{t.trim()}
-                              </span>
-                            ))}
-                        </div>
-
-                        {canModifyResponse(resp) && (
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleOpenResponseDrawer(resp)}
-                              className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                              aria-label="Editar resposta"
-                            >
-                              <Edit2 className="h-3.5 w-3.5" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteResponse(resp)}
-                              className="h-7 w-7 text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
-                              aria-label="Excluir resposta"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <ResponseCard resp={resp} copiedId={copiedId} canModify={canModifyResponse(resp)} onCopy={() => handleCopyResponse(resp)} onEdit={() => handleOpenResponseDrawer(resp)} onDelete={() => handleDeleteResponse(resp)} />
                 </motion.div>
               );
             })}
@@ -1002,355 +701,26 @@ export const CommandsPage: React.FC = () => {
       )}
 
       {/* 5. MODAL: CREATE / EDIT COMMAND */}
-      <Drawer open={isCommandDrawerOpen} onOpenChange={setIsCommandDrawerOpen}>
-        <DrawerContent size="lg" side="right">
-          <form onSubmit={handleSaveCommand} className="space-y-4 overflow-y-auto max-h-[85vh] px-4 pb-8 custom-scrollbar">
-            <DrawerHeader>
-              <DrawerTitle className="flex items-center gap-2 font-heading">
-                <Terminal className="h-5 w-5 text-blue-400" />
-                <span>{editingCommand ? 'Editar Comando Operacional' : 'Novo Comando Operacional'}</span>
-              </DrawerTitle>
-              <DrawerDescription>
-                Cadastre comandos técnicos úteis para diagnósticos e rotinas de suporte rápido.
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="space-y-3.5 text-sm">
-              {/* Title */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Título do Comando *
-                </label>
-                <Input
-                  value={commandForm.title}
-                  onChange={(e) => setCommandForm({ ...commandForm, title: e.target.value })}
-                  placeholder="Ex: Liberar IP travado no DHCP ou Limpeza de cache DNS"
-                  required
-                />
-              </div>
-
-              {/* Command Code Area (Steps) */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-foreground">Passos do Procedimento *</label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 text-xs"
-                    onClick={() => {
-                      const newSteps = [...commandForm.steps, { position: commandForm.steps.length + 1, title: `Passo ${commandForm.steps.length + 1}`, command_text: '' }];
-                      setCommandForm({ ...commandForm, steps: newSteps });
-                    }}
-                  >
-                    <Plus className="h-3.5 w-3.5 mr-1" /> Adicionar Passo
-                  </Button>
-                </div>
-                
-                {commandForm.steps.map((step, index) => (
-                  <div key={index} className="rounded-xl border border-border/60 bg-muted/10 p-3 space-y-3 relative">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex-1">
-                        <Input
-                          value={step.title}
-                          onChange={(e) => {
-                            const newSteps = [...commandForm.steps];
-                            newSteps[index].title = e.target.value;
-                            setCommandForm({ ...commandForm, steps: newSteps });
-                          }}
-                          placeholder="Título do passo"
-                          className="h-8 text-xs font-semibold"
-                          required
-                        />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          disabled={index === 0}
-                          onClick={() => {
-                            const newSteps = [...commandForm.steps];
-                            [newSteps[index], newSteps[index - 1]] = [newSteps[index - 1], newSteps[index]];
-                            newSteps.forEach((s, i) => s.position = i + 1);
-                            setCommandForm({ ...commandForm, steps: newSteps });
-                          }}
-                          className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-foreground"
-                        >
-                          <ArrowUp className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          disabled={index === commandForm.steps.length - 1}
-                          onClick={() => {
-                            const newSteps = [...commandForm.steps];
-                            [newSteps[index], newSteps[index + 1]] = [newSteps[index + 1], newSteps[index]];
-                            newSteps.forEach((s, i) => s.position = i + 1);
-                            setCommandForm({ ...commandForm, steps: newSteps });
-                          }}
-                          className="h-7 w-7 cursor-pointer text-muted-foreground hover:text-foreground"
-                        >
-                          <ArrowDown className="h-3.5 w-3.5" />
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          disabled={commandForm.steps.length === 1}
-                          onClick={() => {
-                            const newSteps = commandForm.steps.filter((_, i) => i !== index);
-                            newSteps.forEach((s, i) => s.position = i + 1);
-                            setCommandForm({ ...commandForm, steps: newSteps });
-                          }}
-                          className="h-7 w-7 cursor-pointer text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <textarea
-                      value={step.description || ''}
-                      onChange={(e) => {
-                        const newSteps = [...commandForm.steps];
-                        newSteps[index].description = e.target.value;
-                        setCommandForm({ ...commandForm, steps: newSteps });
-                      }}
-                      rows={1}
-                      placeholder="Descrição opcional..."
-                      className="w-full rounded-lg border border-border/80 bg-background p-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary/40"
-                    />
-
-                    <textarea
-                      value={step.command_text}
-                      onChange={(e) => {
-                        const newSteps = [...commandForm.steps];
-                        newSteps[index].command_text = e.target.value;
-                        setCommandForm({ ...commandForm, steps: newSteps });
-                      }}
-                      rows={2}
-                      required
-                      placeholder="Código do comando..."
-                      className="w-full rounded-lg border border-border/80 bg-slate-950 p-2.5 font-mono text-xs text-blue-300 focus:outline-none focus:ring-1 focus:ring-primary/40"
-                    />
-                  </div>
-                ))}
-              </div>
-
-              {/* System and Category Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Sistema Operacional / Plataforma
-                  </label>
-                  <Input
-                    value={commandForm.system || ''}
-                    onChange={(e) => setCommandForm({ ...commandForm, system: e.target.value })}
-                    placeholder="Linux, Windows, Mikrotik, Docker..."
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Categoria Operacional
-                  </label>
-                  <Input
-                    value={commandForm.category || ''}
-                    onChange={(e) => setCommandForm({ ...commandForm, category: e.target.value })}
-                    placeholder="Redes, Banco de Dados, Backup..."
-                  />
-                </div>
-              </div>
-
-              {/* Warning notice (critical for support) */}
-              <div>
-                <label className="text-xs font-semibold text-warning mb-1 flex items-center gap-1.5">
-                  <AlertTriangle className="h-3.5 w-3.5" />
-                  <span>Aviso de Atenção / Efeitos Colaterais (Opcional)</span>
-                </label>
-                <Input
-                  value={commandForm.warning || ''}
-                  onChange={(e) => setCommandForm({ ...commandForm, warning: e.target.value })}
-                  placeholder="Ex: Reinicia a placa de rede por 5s ou Derruba conexões ativas"
-                  className="border-warning/40 bg-warning/10 text-foreground placeholder:text-foreground/50"
-                />
-              </div>
-
-              {/* Notes / Context */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Instruções e Observações Técnicas
-                </label>
-                <textarea
-                  value={commandForm.notes || ''}
-                  onChange={(e) => setCommandForm({ ...commandForm, notes: e.target.value })}
-                  rows={2}
-                  placeholder="Explicação dos parâmetros, quando utilizar, permissões necessárias..."
-                  className="w-full rounded-lg border border-border/80 bg-background/60 p-2.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed"
-                />
-              </div>
-
-              {/* Tags and Visibility Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Tags (separadas por vírgula)
-                  </label>
-                  <Input
-                    value={commandForm.tags || ''}
-                    onChange={(e) => setCommandForm({ ...commandForm, tags: e.target.value })}
-                    placeholder="dns, cache, rede, windows"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Visibilidade
-                  </label>
-                  <select
-                    value={commandForm.visibility || 'equipe'}
-                    onChange={(e) => setCommandForm({ ...commandForm, visibility: e.target.value })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                  >
-                    <option value="equipe">Visível para toda a equipe</option>
-                    <option value="privado">Apenas eu (Privado)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <DrawerFooter className="pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsCommandDrawerOpen(false)}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
-                {isSubmitting ? 'Salvando...' : editingCommand ? 'Salvar Alterações' : 'Cadastrar Comando'}
-              </Button>
-            </DrawerFooter>
-          </form>
-        </DrawerContent>
-      </Drawer>
+      <CommandFormDrawer
+        open={isCommandDrawerOpen}
+        onOpenChange={setIsCommandDrawerOpen}
+        isEditing={Boolean(editingCommand)}
+        form={commandForm}
+        setForm={setCommandForm}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSaveCommand}
+      />
 
       {/* 6. MODAL: CREATE / EDIT STANDARD RESPONSE */}
-      <Drawer open={isResponseDrawerOpen} onOpenChange={setIsResponseDrawerOpen}>
-        <DrawerContent size="lg" side="right">
-          <form onSubmit={handleSaveResponse} className="space-y-4 overflow-y-auto max-h-[85vh] px-4 pb-8 custom-scrollbar">
-            <DrawerHeader>
-              <DrawerTitle className="flex items-center gap-2 font-heading">
-                <MessageSquare className="h-5 w-5 text-blue-400" />
-                <span>{editingResponse ? 'Editar Resposta Padrão' : 'Nova Resposta Padrão'}</span>
-              </DrawerTitle>
-              <DrawerDescription>
-                Crie modelos de respostas para padronizar e agilizar a comunicação técnica.
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="space-y-3.5 text-sm">
-              {/* Title */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Identificador / Título da Resposta *
-                </label>
-                <Input
-                  value={responseForm.title}
-                  onChange={(e) => setResponseForm({ ...responseForm, title: e.target.value })}
-                  placeholder="Ex: Orientação de Reinício de Roteador ou Abertura de Chamado OTRS"
-                  required
-                />
-              </div>
-
-              {/* Content Area */}
-              <div>
-                <label className="text-xs font-semibold text-foreground mb-1 block">
-                  Texto da Mensagem *
-                </label>
-                <textarea
-                  value={responseForm.content}
-                  onChange={(e) => setResponseForm({ ...responseForm, content: e.target.value })}
-                  rows={6}
-                  required
-                  placeholder="Olá [Nome], identificamos que... Favor reiniciar o equipamento..."
-                  className="w-full rounded-xl border border-border/80 bg-background/60 p-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 leading-relaxed font-sans"
-                />
-              </div>
-
-              {/* Audience and Category Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Público-Alvo
-                  </label>
-                  <select
-                    value={responseForm.audience || 'usuario_final'}
-                    onChange={(e) => setResponseForm({ ...responseForm, audience: e.target.value })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                  >
-                    <option value="usuario_final">Usuário Final</option>
-                    <option value="tecnico">Equipe Técnica / Interna</option>
-                    <option value="fornecedor">Fornecedor / Terceiro</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Categoria
-                  </label>
-                  <Input
-                    value={responseForm.category || ''}
-                    onChange={(e) => setResponseForm({ ...responseForm, category: e.target.value })}
-                    placeholder="Atendimento, Manutenção, Orientação..."
-                  />
-                </div>
-              </div>
-
-              {/* Tags and Visibility Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Tags (separadas por vírgula)
-                  </label>
-                  <Input
-                    value={responseForm.tags || ''}
-                    onChange={(e) => setResponseForm({ ...responseForm, tags: e.target.value })}
-                    placeholder="atendimento, reinicio, orientacao"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground mb-1 block">
-                    Visibilidade
-                  </label>
-                  <select
-                    value={responseForm.visibility || 'equipe'}
-                    onChange={(e) => setResponseForm({ ...responseForm, visibility: e.target.value })}
-                    className="w-full h-9 rounded-lg border border-border/80 bg-background/60 px-3 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                  >
-                    <option value="equipe">Visível para toda a equipe</option>
-                    <option value="privado">Apenas eu (Privado)</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            <DrawerFooter className="pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setIsResponseDrawerOpen(false)}
-                disabled={isSubmitting}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="cursor-pointer">
-                {isSubmitting ? 'Salvando...' : editingResponse ? 'Salvar Alterações' : 'Cadastrar Resposta'}
-              </Button>
-            </DrawerFooter>
-          </form>
-        </DrawerContent>
-      </Drawer>
+      <ResponseFormDrawer
+        open={isResponseDrawerOpen}
+        onOpenChange={setIsResponseDrawerOpen}
+        isEditing={Boolean(editingResponse)}
+        form={responseForm}
+        setForm={setResponseForm}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSaveResponse}
+      />
     </div>
   );
 };
