@@ -388,7 +388,7 @@ export const AttendancePage: React.FC = () => {
                           {att.title}
                         </h3>
                         <p className="text-sm text-muted-foreground line-clamp-1 font-medium">
-                          {att.diagnosis || att.problem_description || 'Sem descrição detalhada'}
+                          {att.problem_description || att.diagnosis || 'Sem descrição.'}
                         </p>
                       </div>
 

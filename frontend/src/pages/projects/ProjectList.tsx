@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
+import { statusOptions } from '@/lib/status';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Briefcase, Calendar, User as UserIcon, Building2, Clock } from 'lucide-react';
+import { Plus, Briefcase, Calendar, User as UserIcon, Building2, Clock } from 'lucide-react';
 import { projectService } from '@/services/projectService';
 import type { Project, ProjectSummary } from '@/types/projects';
 import { ProjectFormDrawer } from './ProjectFormDrawer';
@@ -78,35 +79,18 @@ export const ProjectList: React.FC = () => {
       <PageHeader icon={Briefcase} title="Projetos" description="Implantações, reformas e aberturas de loja que agrupam várias atividades.">
         <Button onClick={() => { setProjectToEdit(null); setFormOpen(true); }} className="w-full sm:w-auto flex items-center gap-2 shadow-sm">
           <Plus className="h-4 w-4" />
-          Novo Projeto
+          Novo projeto
         </Button>
       </PageHeader>
 
-      <div className="bg-card/40 border border-border/40 p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center justify-between shadow-sm">
-        <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Pesquisar projetos..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-background/50 border-border/50 focus:border-blue-500/50 h-10"
-          />
-        </div>
-        <div className="w-full sm:w-auto flex gap-2">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full sm:w-48 h-10 rounded-md border border-border/50 bg-background/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-foreground"
-          >
-            <option value="">Todos os status</option>
-            <option value="planejado">Planejado</option>
-            <option value="em_andamento">Em Andamento</option>
-            <option value="pausado">Pausado</option>
-            <option value="concluido">Concluído</option>
-            <option value="cancelado">Cancelado</option>
-          </select>
-        </div>
-      </div>
+      <FilterBar search={searchTerm} onSearch={setSearchTerm} placeholder="Buscar projeto pelo nome...">
+        <FilterSelect
+          label="Status"
+          value={statusFilter || 'all'}
+          onChange={(value) => setStatusFilter(value === 'all' ? '' : value)}
+          options={statusOptions('project')}
+        />
+      </FilterBar>
 
       {loading ? (
         <div className="p-12 text-center text-muted-foreground animate-pulse">Carregando projetos...</div>
