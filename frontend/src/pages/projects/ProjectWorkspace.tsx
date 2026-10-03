@@ -154,10 +154,10 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                 {project.store && (
                   <span className="flex items-center gap-1.5"><Building2 className="h-4 w-4 opacity-70" /> {project.store.name}</span>
                 )}
-                {(project.target_date || project.completion_date) && (
+                {(project.expected_end_date || project.end_date) && (
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-4 w-4 opacity-70" /> 
-                    {project.completion_date ? `Concluído em: ${formatDate(project.completion_date)}` : `Prazo: ${formatDate(project.target_date!)}`}
+                    {project.end_date ? `Concluído em: ${formatDate(project.end_date)}` : `Prazo: ${formatDate(project.expected_end_date!)}`}
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">

@@ -31,7 +31,7 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
     title: '',
     description: '',
     status: 'planejado',
-    target_date: '',
+    expected_end_date: '',
     store_id: '',
   });
 
@@ -43,7 +43,7 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
           title: project.title,
           description: project.description || '',
           status: project.status,
-          target_date: project.target_date ? project.target_date.split('T')[0] : '',
+          expected_end_date: project.expected_end_date ? project.expected_end_date.split('T')[0] : '',
           store_id: project.store_id?.toString() || '',
         });
       } else {
@@ -51,7 +51,7 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
           title: '',
           description: '',
           status: 'planejado',
-          target_date: '',
+          expected_end_date: '',
           store_id: '',
         });
       }
@@ -79,7 +79,7 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
     try {
       setLoading(true);
       const storeId = formData.store_id ? parseInt(formData.store_id, 10) : undefined;
-      const targetDate = formData.target_date ? new Date(formData.target_date).toISOString() : undefined;
+      const targetDate = formData.expected_end_date ? new Date(formData.expected_end_date).toISOString() : undefined;
 
       if (project) {
         const payload: ProjectUpdatePayload = {
@@ -87,7 +87,7 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
           description: formData.description,
           status: formData.status,
           store_id: storeId || null,
-          target_date: targetDate,
+          expected_end_date: targetDate,
         };
         await projectService.updateProject(project.id, payload);
         success('Projeto atualizado com sucesso!');
@@ -97,7 +97,7 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
           description: formData.description,
           status: formData.status,
           store_id: storeId,
-          target_date: targetDate,
+          expected_end_date: targetDate,
         };
         await projectService.createProject(payload);
         success('Projeto criado com sucesso!');
@@ -175,8 +175,8 @@ export const ProjectFormDrawer: React.FC<ProjectFormDrawerProps> = ({
                 <label className="text-sm font-medium text-foreground">Data Prevista (Opcional)</label>
                 <Input
                   type="date"
-                  name="target_date"
-                  value={formData.target_date}
+                  name="expected_end_date"
+                  value={formData.expected_end_date}
                   onChange={handleChange}
                 />
               </div>

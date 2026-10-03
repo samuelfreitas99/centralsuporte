@@ -1,18 +1,20 @@
 import type { User } from './auth';
-import type { StoreItem, EquipmentItem } from './infrastructure';
+import type { StoreItem } from './infrastructure';
 
 export interface Project {
   id: number;
   title: string;
   description?: string;
   status: string; // planejado, em_andamento, pausado, concluido, cancelado
-  target_date?: string;
-  completion_date?: string;
+  start_date?: string | null;
+  /** Prazo previsto */
+  expected_end_date?: string | null;
+  /** Data real de conclusão */
+  end_date?: string | null;
   owner_id?: number;
   owner?: User;
   store_id?: number;
   store?: StoreItem;
-  equipment_list?: EquipmentItem[];
   created_at: string;
   updated_at: string;
 }
@@ -21,7 +23,7 @@ export interface ProjectCreatePayload {
   title: string;
   description?: string;
   status?: string;
-  target_date?: string;
+  expected_end_date?: string;
   owner_id?: number;
   store_id?: number;
 }
@@ -30,8 +32,8 @@ export interface ProjectUpdatePayload {
   title?: string;
   description?: string;
   status?: string;
-  target_date?: string;
-  completion_date?: string;
+  expected_end_date?: string;
+  end_date?: string;
   owner_id?: number | null;
   store_id?: number | null;
 }

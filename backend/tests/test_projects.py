@@ -116,3 +116,16 @@ def test_delete_project_preserves_task():
     task_after = client.get(f"/tasks/{task_id}", headers=headers)
     assert task_after.status_code == 200
     assert task_after.json()["project_id"] is None
+
+
+def test_project_deadline_is_saved_and_returned():
+    """O prazo do formulário (expected_end_date) precisa ser salvo — o frontend enviava um campo inexistente."""
+    from fastapi.testclient import TestClient
+    from app.main import app
+    c = TestClient(app)
+    token = c.post("/auth/login", json={"username": "admin", "password": "admin123"}).json()["access_token"]
+    h = {"Authorization": f"Bearer {token}"}
+    created = c.post("/projects/", json={"title": "Prazo", "expected_end_date": "2026-12-20T00:00:00Z"}, headers=h).json()
+    assert created["expected_end_date"].startswith("2026-12-20")
+    upd = c.put(f"/projects/{created['id']}", json={"end_date": "2026-12-18T00:00:00Z", "status": "concluido"}, headers=h).json()
+    assert upd["end_date"].startswith("2026-12-18")

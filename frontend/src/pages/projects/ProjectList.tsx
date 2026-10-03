@@ -177,10 +177,10 @@ export const ProjectList: React.FC = () => {
                         <div className="flex items-center gap-1.5">
                           <Calendar className="h-3.5 w-3.5 text-slate-400" />
                           <span className="truncate">
-                            {project.completion_date 
-                              ? `Fim: ${formatDate(project.completion_date)}` 
-                              : project.target_date 
-                                ? `Prazo: ${formatDate(project.target_date)}` 
+                            {project.end_date 
+                              ? `Fim: ${formatDate(project.end_date)}` 
+                              : project.expected_end_date 
+                                ? `Prazo: ${formatDate(project.expected_end_date)}` 
                                 : 'Sem prazo'}
                           </span>
                         </div>
