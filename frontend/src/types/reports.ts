@@ -1,30 +1,32 @@
+/** Contrato de GET /reports/summary (fonte: backend/app/schemas.py — OperationalSummaryReport). */
 export interface RecurrentEquipmentIssue {
   equipment_id: number;
-  hostname: string;
+  hostname?: string | null;
   patrimony?: string | null;
-  equipment_type: string;
   store_name?: string | null;
-  incident_count: number;
-  maintenance_count: number;
-  total_events: number;
+  total_incidents: number;
+  attendances_count: number;
+  maintenances_count: number;
 }
 
 export interface TechnicianPerformanceMetric {
   technician_id: number;
-  technician_name: string;
-  resolved_attendances: number;
-  completed_maintenances: number;
+  username: string;
+  attendances_count: number;
+  maintenances_count: number;
   total_actions: number;
 }
 
 export interface OperationalSummaryReport {
   period_days: number;
-  total_attendances: number;
-  resolved_attendances: number;
-  attendance_resolution_rate: number;
-  total_maintenances: number;
-  completed_maintenances: number;
-  total_maintenance_cost: number;
+  attendances_total: number;
+  attendances_resolved: number;
+  attendances_in_progress: number;
+  resolution_rate: number;
+  maintenances_total: number;
+  maintenances_preventive: number;
+  maintenances_corrective: number;
+  maintenances_total_cost: number;
   recurrent_equipment: RecurrentEquipmentIssue[];
-  technicians_performance: TechnicianPerformanceMetric[];
+  top_technicians: TechnicianPerformanceMetric[];
 }
