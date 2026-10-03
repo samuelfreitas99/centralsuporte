@@ -91,3 +91,16 @@ A evolução do produto trará 3 novos domínios críticos:
 ### 5.3. Cotações / Compras (Operacional)
 * **Comportamento Esperado:** Módulo para formalizar solicitações de compras de peças (ex: memórias, monitores) aprovadas pela gestão da TI.
 * NÃO envolve pagamentos, NF-e ou integração bancária. É apenas controle de aprovação operacional.
+
+---
+
+## 6. Experiência de uso (atualizado em 2026-10-03)
+
+* **App instalável (PWA)**: a Central pode ser instalada no computador/celular a partir do endereço HTTPS.
+* **Avisos**: o sino concentra o que já está na hora — lembretes pessoais (`source=manual`) e alertas
+  automáticos (`source=automacao`: tarefas vencendo, manutenções do dia, equipamentos com falhas
+  repetidas). Avisos novos viram notificação do sistema quando o usuário permite. Lembretes futuros
+  ficam em "Meus lembretes".
+* **Primeiros passos**: o Início explica o fluxo da equipe para novos usuários (dispensável).
+* **Troca de senha**: todo usuário troca a própria senha em Meu Perfil.
+* **Linguagem**: textos curtos em português; datas no formato dd/mm/aaaa hh:mm; nada de jargão técnico na interface.

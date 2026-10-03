@@ -72,6 +72,22 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 
 ---
 
+## Ciclo U — Uso real e acabamento (2026-10-03, concluído)
+
+Revisão tela a tela com dados realistas (ambiente de demonstração + screenshots) e colocação em produção.
+
+- [x] U1 Bugs de contrato frontend × backend escondidos por mocks: Relatórios derrubava o app; prazo de projeto nunca era salvo
+- [x] U2 Contador de Respostas Padrão, datas em formato único (`lib/format.ts`), rótulos humanos (tipos de manutenção, prioridades, auditoria)
+- [x] U3 Cabeçalho padrão em Arquivos e Usuários e Permissões; filtros duplicados removidos da Base de Conhecimento; `FilterBar` em Projetos
+- [x] U4 Tarefas: lista "Abertas" por prazo, concluir com um clique, atrasadas em destaque, responsáveis visíveis
+- [x] U5 Início: sem busca/perfil duplicados, tarefas da equipe quando não há atribuídas, horários relativos, "Primeiros passos" para novos usuários
+- [x] U6 Comandos: cartões compactos com passos copiáveis
+- [x] U7 PWA (manifesto, ícones, service worker) e notificações do sistema a partir do sino de avisos
+- [x] U8 Login na identidade visual do app; textos de ajuda revisados
+- [x] U9 Produção: nginx com HTTPS (CA interna) e API na mesma origem (`/api`); guia da equipe (`GUIA_DA_EQUIPE.md`)
+
+---
+
 ## Backlog (não iniciar sem decisão registrada em `DECISIONS.md`)
 
 * **Cofre de Senhas** — requisitos de segurança já definidos em `DECISIONS.md` (2026-09-24).
@@ -79,3 +95,5 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 * **Editor rich text** para a Base de Conhecimento (imagens inline) — `DOMAIN_RULES.md` §6.
 * **Arquivos N:N** (um documento ligado a várias entidades).
 * **Integração com OTRS** — somente após confirmar API disponível (`AGENTS.md`).
+* **Web Push** (notificações com a Central fechada) — exige VAPID + `pywebpush` + tabela de inscrições; hoje os avisos chegam com a Central aberta em alguma aba/app.
+* **Testes de contrato** frontend × backend (ex.: gerar tipos TypeScript a partir do OpenAPI do FastAPI) para evitar regressões como as do U1.

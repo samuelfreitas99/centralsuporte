@@ -19,26 +19,42 @@ docker compose up -d            # sobe só os serviços deste projeto
 docker compose logs -f backend  # logs da API
 ```
 
-O frontend chama a API em `http(s)://<host>:8088` (ver `frontend/src/services/api.ts`).
+Em produção o frontend chama a API em `/api` (mesma origem, via nginx). Em desenvolvimento chama `http://<host>:8088` (ver `frontend/src/services/api.ts`).
 Login padrão criado no primeiro start: `admin` / `admin123` (ou `DEFAULT_ADMIN_PASSWORD`, se definido antes do primeiro start).
 
 O `.env` (não versionado) define as credenciais do Postgres e a `SECRET_KEY` dos tokens JWT; modelo em `.env.example`.
 Depois de alterar o `.env`, recrie só o backend: `docker compose up -d --no-deps backend`.
 
-### Modo produção
+### Modo atual: PRODUÇÃO (desde 2026-10-03)
 
-Quando o sistema sair do desenvolvimento:
+O servidor roda o override de produção:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build   # aplica mudanças (rebuild)
 ```
 
-O override (`docker-compose.prod.yml`) roda o backend sem `--reload`, com o código da imagem, e aplica as
-migrações ao iniciar (`alembic upgrade head`). O frontend é compilado (`frontend/Dockerfile.prod`) e servido por
-nginx na mesma porta 5173. Os anexos continuam em `./backend/uploads`. Para voltar ao desenvolvimento:
-`docker compose up -d --build`.
+* Backend sem `--reload` (código da imagem), migrações aplicadas ao iniciar, IP real via proxy headers.
+* Frontend compilado servido por nginx: **http :5173** e **https :8443**; a API fica em **/api** no mesmo endereço.
+* Certificados em `deploy/certs/` (fora do Git), gerados por `./deploy/make-certs.sh <ip> <hostname>`.
+  Rodar de novo renova o certificado do servidor reaproveitando a CA (os PCs não precisam reinstalar).
+* Como a equipe acessa e instala o certificado/app: `GUIA_DA_EQUIPE.md`.
 
-Antes de usar em produção: troque a senha do `admin` em **Meu Perfil → Alterar senha**.
+**Qualquer mudança de código só aparece depois do rebuild acima.** Para desenvolver com recarga
+automática, volte ao modo dev (`docker compose up -d --build`) e, ao terminar, suba produção de novo.
+
+### Ambiente de demonstração (revisão visual / screenshots)
+
+Para revisar telas com dados realistas sem tocar no banco real:
+
+```bash
+docker exec centralsuporte_db psql -U suporte -d postgres -c "CREATE DATABASE centralsuporte_demo;"
+docker run --rm --network centralsuporte_network -v $PWD/backend:/app -w /app \
+  -e DATABASE_URL=postgresql://suporte:suporte_password@db:5432/centralsuporte_demo \
+  -e UPLOAD_DIR=/tmp/demo_uploads centralsuporte-backend python -m scripts.seed_demo
+```
+
+Depois suba um backend temporário apontando para esse banco (porta só em 127.0.0.1) e use-o com um
+frontend dev (`VITE_API_URL`). Remova os containers e o banco `_demo` ao terminar.
 
 ---
 
@@ -101,6 +117,8 @@ docker exec centralsuporte_backend sh -c "cd /app && alembic upgrade head"
   ("Fase 8", "MVP", "Roadmap") na interface.
 * Cabeçalho de tela: sempre `<PageHeader icon title description>{ações}</PageHeader>` (`components/ui/PageHeader.tsx`); título igual ao rótulo do menu.
 * Busca e filtros de lista: `<FilterBar search onSearch placeholder>` + `<FilterSelect>` (`components/ui/FilterBar.tsx`); a busca já tem debounce.
+* Datas: sempre `formatDate`/`formatTime`/`formatDateTime`/`formatRelative` (`lib/format.ts`), nunca `toLocaleString` direto.
+* Tipos de `src/types/` devem espelhar os schemas de resposta do backend (`app/schemas.py`). Testes com mock não pegam contrato errado: ao mudar um schema, revise o tipo e rode a tela com dados reais.
 * Status e prioridade: `<StatusBadge domain status>` / `<PriorityBadge priority>`; rótulos e cores só em `lib/status.ts`.
 * Confirmações: `const confirm = useConfirm();` e `if (!(await confirm({ title: 'Excluir X?' }))) return;`
   (`hooks/useConfirm.ts`). Nunca use `window.confirm`.

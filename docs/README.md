@@ -12,6 +12,7 @@ Consulte conforme a tarefa:
 
 | Documento | Para quê |
 |---|---|
+| `GUIA_DA_EQUIPE.md` | Para quem **usa** a Central: acesso, certificado, app/notificações, fluxo do dia a dia. |
 | `PRODUCT_SPEC.md` | **O que** o produto deve fazer (fonte de verdade funcional). |
 | `ANALISE_2026-10.md` | Diagnóstico de problemas de UX/fluxo (códigos `P-xx` citados no roadmap). |
 | `ARCHITECTURE.md` | **Como** o sistema é construído (módulos, navegação, padrões). |

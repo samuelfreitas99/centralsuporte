@@ -115,3 +115,13 @@
 - **Decisão**: Listagens de tarefas, atendimentos, artigos e manutenções usam paginação no servidor (`PaginatedResponse[XListResponse]`, DTO de lista sem campos pesados; detalhe sempre via `GET /recurso/{id}`). A listagem de equipamentos continua completa no servidor (sem histórico embutido) e é paginada apenas na tela.
 - **Contexto**: A lista de equipamentos alimenta seletores (manutenção, projeto, atendimento) e filtros instantâneos na aba de inventário; com o DTO leve ela custa ~0,7 KB por equipamento.
 - **Consequências**: Se o inventário passar de alguns milhares de itens, migrar a aba para paginação no servidor (o endpoint já filtra por `q`, loja, tipo e status) e os seletores para busca no servidor, como o `EquipmentPicker` já faz.
+
+### 2026-10-03: Produção com nginx, API na mesma origem e HTTPS com CA interna
+- **Decisão**: A Central passa a rodar em modo produção (`docker-compose.prod.yml`). O nginx do frontend serve o app em http :5173 e https :8443 e repassa `/api/` ao backend. O HTTPS usa uma CA interna gerada por `deploy/make-certs.sh`, instalada uma vez nos PCs da equipe.
+- **Contexto**: Navegadores só permitem instalar PWA e mostrar notificações em contexto seguro; a rede interna não tem domínio público para um certificado de autoridade pública. API na mesma origem elimina a porta 8088 no navegador e CORS.
+- **Consequências**: Mudanças de código exigem rebuild (`up -d --build`). A chave da CA fica só no servidor (`deploy/certs/`, fora do Git); o nginx recebe apenas o certificado/chave do servidor e o certificado público da CA. Web Push (com o app fechado) fica no backlog.
+
+### 2026-10-03: Tipos do frontend espelham os schemas do backend
+- **Decisão**: Os tipos em `frontend/src/types/` devem refletir exatamente os schemas de resposta de `backend/app/schemas.py`; telas são revisadas com dados reais (ambiente de demonstração), não só com testes de mock.
+- **Contexto**: A tela de Relatórios quebrava o app inteiro e o prazo de projetos nunca era salvo porque o frontend usava nomes de campos que a API não tinha — os testes passavam porque mockavam o formato errado.
+- **Consequências**: Próximo passo recomendado no backlog: gerar os tipos a partir do OpenAPI do FastAPI.

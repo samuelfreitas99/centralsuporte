@@ -1,2 +1,9 @@
-# centralsuporte
-A Central de Suporte é uma aplicação web interna destinada à organização e operação da equipe de suporte técnico.  Seu objetivo é centralizar informações, conhecimento técnico, tarefas, procedimentos, registros internos de atendimento, equipamentos, manutenções, arquivos e organização operacional que atualmente ficam dispersos em diferentes meios.
+# Central de Suporte
+
+Aplicação web interna da equipe de suporte técnico: atendimentos (complementares ao OTRS),
+base de conhecimento, comandos, tarefas, manutenções, projetos e inventário.
+
+* **Usar:** [`docs/GUIA_DA_EQUIPE.md`](docs/GUIA_DA_EQUIPE.md)
+* **Desenvolver / continuar o projeto:** comece por [`AGENTS.md`](AGENTS.md) e [`docs/README.md`](docs/README.md)
+
+Stack: React + TypeScript + Vite · FastAPI + SQLAlchemy · PostgreSQL · Docker Compose (nginx com HTTPS em produção).

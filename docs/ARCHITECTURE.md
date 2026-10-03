@@ -67,6 +67,17 @@ Relações centrais:
 * **Busca global**: `CommandPalette` (Ctrl+K / botão no topo) consulta `GET /search/global` e navega para `url_tab` + `id`.
 * **Paginação**: hook `usePagination` (estado em `?page=&limit=` no hash) + componente `ui/Pagination`.
 * **Permissões**: `useAuth().hasPermission(...)`; o backend é a autoridade, o front só esconde ações.
+* **Utilitários comuns**: `lib/format.ts` (datas pt-BR), `lib/status.ts` (rótulos/cores de status, prioridade, tipo de manutenção, ações de auditoria), `components/ui/PageHeader`, `FilterBar`, `StatusBadge`, `ConfirmDialog`.
+* **PWA e avisos**: `public/manifest.webmanifest`, `public/sw.js` (cache da casca do app, nunca da API; abre a tela ao clicar na notificação) e `lib/notifications.ts`. O sino (`NotificationsDropdown`) consulta os lembretes vencidos a cada minuto e transforma os novos em notificação do sistema (exige HTTPS).
+
+### Implantação (produção)
+
+```
+navegador ──https :8443 / http :5173──▶ nginx (centralsuporte_frontend)
+                                          ├─ /          → app compilado (Vite)
+                                          ├─ /ca.crt    → certificado público da CA interna
+                                          └─ /api/*     → backend:8000 (FastAPI) ──▶ db (PostgreSQL)
+```
 
 ## 5. Serviços transversais (backend)
 
