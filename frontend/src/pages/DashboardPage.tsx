@@ -9,7 +9,6 @@ import {
   KeyRound,
   Package,
   PlusCircle,
-  Search,
   Wrench,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -71,6 +70,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
 
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
+  const [teamTasks, setTeamTasks] = useState<Task[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [attendances, setAttendances] = useState<AttendanceItem[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
@@ -82,16 +82,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
       // Cada bloco falha de forma independente (ex.: sem permissão para um módulo).
       const [summaryData, tasksData, remindersData, attendancesData, articlesData] = await Promise.all([
         dashboardService.getSummary().catch(() => null),
-        organizationService.getTasks({ assigned_to_me: true, limit: 20 }).catch(() => null),
+        organizationService.getTasks({ assigned_to_me: true, status: 'abertas', limit: 5 }).catch(() => null),
         organizationService.getReminders('pendente', 'manual').catch(() => [] as Reminder[]),
         attendanceService.getAttendances({ limit: 5 }).then((r) => r.items).catch(() => [] as AttendanceItem[]),
         knowledgeService.getArticles({ status: 'publicado', limit: 5 }).then((r) => r.items).catch(() => [] as KnowledgeArticle[]),
       ]);
       if (cancelled) return;
       setSummary(summaryData);
-      setMyTasks(
-        ((tasksData?.items ?? []) as Task[]).filter((t) => t.status === 'pendente' || t.status === 'em_andamento')
-      );
+      const mine = (tasksData?.items ?? []) as Task[];
+      setMyTasks(mine);
+      // Sem tarefas atribuídas: mostra as abertas da equipe (o que vence primeiro).
+      if (mine.length === 0) {
+        const team = await organizationService.getTasks({ status: 'abertas', limit: 5 }).catch(() => null);
+        if (!cancelled) setTeamTasks((team?.items ?? []) as Task[]);
+      }
       setReminders(remindersData);
       setAttendances(attendancesData);
       setArticles(articlesData);
@@ -123,15 +127,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
             Novo atendimento
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
-          className="h-8 gap-1.5 text-xs font-medium"
-        >
-          <Search className="h-3.5 w-3.5" />
-          Buscar (Ctrl+K)
-        </Button>
       </div>
 
       {/* Alertas de início de turno */}
@@ -212,7 +207,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
       </section>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-        <TaskListSection tasks={myTasks.slice(0, 5)} loading={loading} onNavigateToTasks={() => go('tasks')} />
+        {myTasks.length > 0 || teamTasks.length === 0 ? (
+          <TaskListSection tasks={myTasks} loading={loading} onNavigateToTasks={() => go('tasks')} />
+        ) : (
+          <TaskListSection
+            title="Tarefas abertas da equipe"
+            tasks={teamTasks}
+            loading={loading}
+            onNavigateToTasks={() => go('tasks')}
+          />
+        )}
         <RemindersSection reminders={reminders.slice(0, 5)} loading={loading} onNavigateToReminders={() => go('tasks')} />
         <RecentAttendancesSection
           attendances={attendances.slice(0, 5)}

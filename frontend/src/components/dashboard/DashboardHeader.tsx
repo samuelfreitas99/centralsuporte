@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { Badge } from '@/components/ui/badge';
-import { Clock, ShieldCheck } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 export const DashboardHeader: React.FC = () => {
   const { user } = useAuth();
@@ -38,10 +38,6 @@ export const DashboardHeader: React.FC = () => {
         <Badge variant="secondary" className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
           <Clock className="h-3 w-3" />
           <span>{formattedDate}</span>
-        </Badge>
-        <Badge variant="default" className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium">
-          <ShieldCheck className="h-3 w-3" />
-          <span>{user?.role?.name || 'Técnico'}</span>
         </Badge>
       </div>
     </div>

@@ -121,7 +121,8 @@ describe('DashboardPage', () => {
 
     expect(screen.getByText(/olá, admin/i)).toBeInTheDocument();
     expect(screen.getByText('Seu turno')).toBeInTheDocument();
-    expect(screen.getByText('Administrador')).toBeInTheDocument();
+    // O perfil já aparece no topo da aplicação; o cabeçalho do Início não repete.
+    expect(screen.queryByText('Administrador')).not.toBeInTheDocument();
   });
 
   it('renders real server-side counts instead of counting loaded items', async () => {
@@ -194,6 +195,6 @@ describe('DashboardPage', () => {
     vi.mocked(dashboardService.getSummary).mockRejectedValue(new Error('offline'));
     renderDashboard();
     expect(await screen.findByText('Validar link de contingência 4G - Filial 04')).toBeInTheDocument();
-    expect(screen.queryByText('Minhas tarefas')).not.toBeInTheDocument();
+    expect(screen.queryByText(/abertas na equipe/)).not.toBeInTheDocument();
   });
 });

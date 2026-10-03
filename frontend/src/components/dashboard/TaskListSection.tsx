@@ -10,11 +10,14 @@ import { organizationService } from '@/services/organizationService';
 
 interface TaskListSectionProps {
   tasks: Task[];
+  /** Título do card (ex.: "Minhas tarefas" ou "Tarefas abertas da equipe"). */
+  title?: string;
+  emptyText?: string;
   loading?: boolean;
   onNavigateToTasks?: () => void;
 }
 
-export const TaskListSection: React.FC<TaskListSectionProps> = ({ tasks: initialTasks, loading, onNavigateToTasks }) => {
+export const TaskListSection: React.FC<TaskListSectionProps> = ({ tasks: initialTasks, loading, onNavigateToTasks, title = 'Minhas tarefas', emptyText = 'Nenhuma tarefa aberta.' }) => {
   const [localTasks, setLocalTasks] = useState<Task[]>(initialTasks);
 
   // Sync when props change
@@ -54,7 +57,7 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ tasks: initial
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
               <CheckSquare className="h-3.5 w-3.5" />
             </div>
-            <CardTitle className="font-heading text-base font-bold">Tarefas do Turno</CardTitle>
+            <CardTitle className="font-heading text-base font-bold">{title}</CardTitle>
             {!loading && (
               <Badge variant="secondary" className="ml-2 font-mono text-[10px] font-bold">
                 {localTasks.filter((t) => t.status !== 'concluida').length}
@@ -126,7 +129,7 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ tasks: initial
         ) : (
           <div className="flex flex-col items-center justify-center h-32 text-center text-muted-foreground">
             <AlertCircle className="h-6 w-6 mb-2 opacity-40" />
-            <p className="text-xs font-medium">Nenhuma tarefa pendente.</p>
+            <p className="text-xs font-medium">{emptyText}</p>
           </div>
         )}
       </CardContent>

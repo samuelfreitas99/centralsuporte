@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { formatDateTime } from '@/lib/format';
+import { formatRelative } from '@/lib/format';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Bell, Clock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
@@ -101,7 +101,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ reminders: i
                   {reminder.remind_at && (
                     <div className="flex items-center gap-1.5 text-[10px] font-medium text-muted-foreground mt-1">
                       <Clock className="h-3 w-3" />
-                      <span>{formatDateTime(reminder.remind_at)}</span>
+                      <span>{formatRelative(reminder.remind_at)}</span>
                     </div>
                   )}
                 </div>
