@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { pageOf } from './fixtures/pagination';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MaintenancePage } from '@/pages/MaintenancePage';
 import { AuthContext } from '@/context/AuthContextDef';
@@ -132,7 +133,7 @@ function renderMaintenancePage() {
 describe('MaintenancePage (Phase 9)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(maintenanceService.getMaintenances).mockResolvedValue(mockMaintenances);
+    vi.mocked(maintenanceService.getMaintenances).mockResolvedValue(pageOf(mockMaintenances));
     vi.mocked(maintenanceService.getMetrics).mockResolvedValue({
       total: 2,
       agendadas: 1,
@@ -230,12 +231,12 @@ describe('MaintenancePage (Phase 9)', () => {
 
   it('concludes maintenance from drawer', async () => {
     // Make first item em_andamento so conclude button appears
-    vi.mocked(maintenanceService.getMaintenances).mockResolvedValue([
+    vi.mocked(maintenanceService.getMaintenances).mockResolvedValue(pageOf([
       {
         ...mockMaintenances[0],
         status: 'em_andamento',
       },
-    ]);
+    ]));
 
     renderMaintenancePage();
 
@@ -297,7 +298,12 @@ describe('MaintenancePage (Phase 9)', () => {
     const eqTrigger = screen.getByText(/selecione um ou mais equipamentos.../i);
     fireEvent.click(eqTrigger);
 
-    const eqOption = screen.getAllByText(/PDV-01/i).pop()!;
+    // Equipamentos carregam em paralelo à lista: espera a opção aparecer no seletor do drawer
+    const eqOption = await waitFor(() => {
+      const option = screen.getAllByText(/PDV-01/i).find((el) => el.closest('[role=dialog]'));
+      expect(option).toBeTruthy();
+      return option!;
+    });
     fireEvent.click(eqOption);
 
     const submitBtn = screen.getByRole('button', { name: /salvar/i });

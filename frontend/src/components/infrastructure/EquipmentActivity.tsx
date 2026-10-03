@@ -54,7 +54,10 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({
         .getAttendances({ equipment_id: equipmentId, limit: 100 })
         .then((r) => r.items)
         .catch(() => [] as AttendanceItem[]),
-      maintenanceService.getMaintenances({ equipment_id: equipmentId }).catch(() => [] as MaintenanceRecord[]),
+      maintenanceService
+        .getMaintenances({ equipment_id: equipmentId, limit: 100 })
+        .then((r) => r.items)
+        .catch(() => [] as MaintenanceRecord[]),
     ]).then(([attendances, maintenances]) => {
       if (cancelled) return;
       const merged: ActivityRow[] = [

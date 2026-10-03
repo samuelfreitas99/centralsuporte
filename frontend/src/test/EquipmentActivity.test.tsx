@@ -18,9 +18,9 @@ describe('EquipmentActivity (ficha do equipamento)', () => {
     vi.mocked(attendanceService.getAttendances).mockResolvedValue(pageOf([
       { id: 11, title: 'PDV sem rede', status: 'resolvido', otrs_ticket: '2026100100001', created_at: '2026-10-01T10:00:00Z' } as AttendanceItem,
     ]));
-    vi.mocked(maintenanceService.getMaintenances).mockResolvedValue([
+    vi.mocked(maintenanceService.getMaintenances).mockResolvedValue(pageOf([
       { id: 21, title: 'Limpeza preventiva', status: 'concluida', created_at: '2026-09-01T10:00:00Z', performed_date: '2026-10-02T10:00:00Z' } as MaintenanceRecord,
-    ]);
+    ]));
   });
 
   it('lists attendances and maintenances of the equipment, newest first', async () => {
@@ -28,7 +28,7 @@ describe('EquipmentActivity (ficha do equipamento)', () => {
 
     expect(await screen.findByText('Limpeza preventiva')).toBeInTheDocument();
     expect(attendanceService.getAttendances).toHaveBeenCalledWith({ equipment_id: 7, limit: 100 });
-    expect(maintenanceService.getMaintenances).toHaveBeenCalledWith({ equipment_id: 7 });
+    expect(maintenanceService.getMaintenances).toHaveBeenCalledWith({ equipment_id: 7, limit: 100 });
 
     const titles = screen.getAllByRole('listitem').map((li) => li.textContent);
     expect(titles[0]).toContain('Limpeza preventiva');

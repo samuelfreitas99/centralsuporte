@@ -1,4 +1,5 @@
 import { request } from './api';
+import type { PaginatedResponse } from '@/types/pagination';
 import type {
   MaintenanceRecord,
   MaintenanceCreatePayload,
@@ -18,7 +19,11 @@ export const maintenanceService = {
     technician_id?: number;
     search?: string;
     project_id?: number;
-  }): Promise<MaintenanceRecord[]> => {
+    /** ISO: só agendadas a partir desta data, em ordem cronológica (visão Agenda). */
+    scheduled_from?: string;
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<MaintenanceRecord>> => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.append('status', params.status);
     if (params?.maintenance_type) searchParams.append('maintenance_type', params.maintenance_type);
@@ -28,10 +33,13 @@ export const maintenanceService = {
     if (params?.technician_id) searchParams.append('technician_id', String(params.technician_id));
     if (params?.search) searchParams.append('search', params.search);
     if (params?.project_id !== undefined) searchParams.append('project_id', String(params.project_id));
+    if (params?.scheduled_from) searchParams.append('scheduled_from', params.scheduled_from);
+    if (params?.page) searchParams.append('page', String(params.page));
+    if (params?.limit) searchParams.append('limit', String(params.limit));
 
     const queryString = searchParams.toString();
     const endpoint = `/maintenances${queryString ? `?${queryString}` : ''}`;
-    return request<MaintenanceRecord[]>(endpoint);
+    return request<PaginatedResponse<MaintenanceRecord>>(endpoint);
   },
 
   getMaintenance: (id: number): Promise<MaintenanceRecord> => {

@@ -54,7 +54,7 @@ def test_maintenance_single_equipment_backward_compatibility():
     # Query by equipment_id
     q_res = client.get(f"/maintenances?equipment_id={eq_id}", headers=headers)
     assert q_res.status_code == 200
-    m_list = q_res.json()
+    m_list = q_res.json()["items"]
     assert any(m["id"] == data["id"] for m in m_list)
 
 
@@ -94,7 +94,7 @@ def test_maintenance_multiple_equipments_outside_project():
     # Query by eq2
     q_res = client.get(f"/maintenances?equipment_id={eq2}", headers=headers)
     assert q_res.status_code == 200
-    assert any(m["id"] == data["id"] for m in q_res.json())
+    assert any(m["id"] == data["id"] for m in q_res.json()["items"])
 
     # Conclude maintenance and verify all revert to 'ativo'
     patch_res = client.patch(
@@ -143,7 +143,7 @@ def test_maintenance_multiple_equipments_inside_project():
     assert len(data["equipments"]) == 2
 
     # Query by project_id
-    p_maints = client.get(f"/maintenances?project_id={project_id}", headers=headers).json()
+    p_maints = client.get(f"/maintenances?project_id={project_id}", headers=headers).json()["items"]
     assert any(m["id"] == data["id"] for m in p_maints)
 
 

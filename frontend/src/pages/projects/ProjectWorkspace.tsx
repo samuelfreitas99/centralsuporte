@@ -64,14 +64,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
         infrastructureService.getEquipment(),
         projectService.getProjectTimeline(projectId).catch(() => []),
         organizationService.getTasks({ project_id: projectId, limit: 100 }),
-        maintenanceService.getMaintenances({ project_id: projectId }),
+        maintenanceService.getMaintenances({ project_id: projectId, limit: 100 }),
       ]);
       setProject(projData);
       setSummary(sumData);
       setAllEquipments(eqData);
       setTimeline(timeData);
       setTasks(tasksData.items as Task[]);
-      setMaintenances(maintData);
+      setMaintenances(maintData.items);
     } catch (err) {
       console.error('Failed to load project workspace', err);
     } finally {
@@ -108,7 +108,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
   };
 
   const handleMaintenanceCreated = async () => {
-    const data = await maintenanceService.getMaintenances({ project_id: projectId });
+    const data = (await maintenanceService.getMaintenances({ project_id: projectId, limit: 100 })).items;
     setMaintenances(data);
     const sum = await projectService.getProjectSummary(projectId);
     setSummary(sum);

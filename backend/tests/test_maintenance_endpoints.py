@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 import uuid
 import pytest
 from fastapi.testclient import TestClient
@@ -127,8 +128,8 @@ def test_maintenance_lifecycle_and_equipment_integration():
     # 7. List and filter maintenances
     list_res = client.get(f"/maintenances?equipment_id={equipment_id}", headers=headers)
     assert list_res.status_code == 200
-    assert len(list_res.json()) >= 1
-    assert list_res.json()[0]["id"] == maint_id
+    assert list_res.json()["total"] >= 1
+    assert list_res.json()["items"][0]["id"] == maint_id
 
     # 8. Delete maintenance
     del_res = client.delete(f"/maintenances/{maint_id}", headers=headers)
@@ -232,3 +233,30 @@ def test_maintenance_phase9_features():
     assert m1_edit_data["otrs_ticket"] == edit_payload["otrs_ticket"]
     assert m1_edit_data["department_id"] == dep_id # Snapshot is preserved
 
+
+
+def test_maintenance_agenda_lists_upcoming_in_chronological_order():
+    token = client.post("/auth/login", json={"username": "admin", "password": "admin123"}).json()["access_token"]
+    h = {"Authorization": f"Bearer {token}"}
+    eq = client.post("/infrastructure/equipment", json={"equipment_type": "computador", "hostname": "AGENDA-01"}, headers=h).json()
+    now = datetime.now(timezone.utc)
+    ids = {}
+    for label, delta in (("passada", -30), ("depois", 10), ("antes", 2)):
+        res = client.post(
+            "/maintenances",
+            json={
+                "title": f"Agenda {label}",
+                "equipment_ids": [eq["id"]],
+                "maintenance_type": "preventiva",
+                "status": "agendada",
+                "scheduled_date": (now + timedelta(days=delta)).isoformat(),
+            },
+            headers=h,
+        )
+        assert res.status_code == 201, res.text
+        ids[label] = res.json()["id"]
+
+    since = (now - timedelta(days=7)).isoformat().replace("+00:00", "Z")
+    page = client.get(f"/maintenances?equipment_id={eq['id']}&scheduled_from={since}", headers=h).json()
+    got = [m["id"] for m in page["items"]]
+    assert got == [ids["antes"], ids["depois"]]

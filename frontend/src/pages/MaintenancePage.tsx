@@ -33,7 +33,10 @@ import type { CalendarEvent } from '@/types/tasks';
 import { ChecklistTemplatesDialog } from '@/components/maintenance/ChecklistTemplatesDialog';
 import { MaintenanceDrawer } from '@/components/maintenance/MaintenanceDrawer';
 import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
+import { Pagination } from '@/components/ui/Pagination';
 import { MaintenanceCreateDrawer } from '@/components/maintenance/MaintenanceCreateDrawer';
+
+const PAGE_SIZE = 30;
 
 export const MaintenancePage: React.FC = () => {
   const { error: toastError } = useToast();
@@ -48,6 +51,8 @@ export const MaintenancePage: React.FC = () => {
 
   // Data
   const [maintenances, setMaintenances] = useState<MaintenanceRecord[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [metrics, setMetrics] = useState<MaintenanceMetrics | null>(null);
   const [equipmentList, setEquipmentList] = useState<EquipmentItem[]>([]);
@@ -63,31 +68,49 @@ export const MaintenancePage: React.FC = () => {
   const [selectedMaintenance, setSelectedMaintenance] = useState<MaintenanceRecord | null>(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
+  // Dados de apoio (equipamentos, modelos de checklist, eventos da agenda): uma vez só.
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([
+      infrastructureService.getEquipment().catch(() => []),
+      checklistTemplateService.getTemplates().catch(() => []),
+      organizationService.getCalendarEvents().catch(() => []),
+    ]).then(([eqData, tplData, calData]) => {
+      if (cancelled) return;
+      setEquipmentList(eqData);
+      setChecklistTemplates(tplData);
+      setCalendarEvents(calData);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Lista (paginada) ou Agenda (agendadas a partir de 7 dias atrás, em ordem cronológica).
   const loadData = useCallback(async () => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const [maintData, metricsData, eqData, tplData, calData] = await Promise.all([
+      const agendaFrom = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      const [maintData, metricsData] = await Promise.all([
         maintenanceService.getMaintenances({
           status: selectedStatus !== 'all' ? selectedStatus : undefined,
           maintenance_type: selectedType !== 'all' ? selectedType : undefined,
           search: searchQuery || undefined,
+          ...(viewMode === 'calendar'
+            ? { scheduled_from: agendaFrom, limit: 100 }
+            : { page, limit: PAGE_SIZE }),
         }),
         maintenanceService.getMetrics().catch(() => null),
-        infrastructureService.getEquipment().catch(() => []),
-        checklistTemplateService.getTemplates().catch(() => []),
-        organizationService.getCalendarEvents().catch(() => [])
       ]);
-      setMaintenances(maintData);
+      setMaintenances(maintData.items);
+      setTotalPages(maintData.total_pages);
       if (metricsData) setMetrics(metricsData);
-      setEquipmentList(eqData);
-      setChecklistTemplates(tplData);
-      setCalendarEvents(calData);
 
-      // Refresh selected maintenance if it's open
+      // Atualiza a manutenção aberta no drawer, se ela estiver na página carregada
       setSelectedMaintenance((prev) => {
         if (!prev) return prev;
-        const updated = maintData.find((m) => m.id === prev.id);
+        const updated = maintData.items.find((m) => m.id === prev.id);
         return updated ?? prev;
       });
     } catch (err: unknown) {
@@ -96,7 +119,15 @@ export const MaintenancePage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedStatus, selectedType, searchQuery]);
+  }, [selectedStatus, selectedType, searchQuery, viewMode, page]);
+
+  // Volta para a página 1 quando um filtro ou o modo de visualização muda.
+  const filterKey = `${selectedStatus}|${selectedType}|${searchQuery}|${viewMode}`;
+  const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+  if (filterKey !== lastFilterKey) {
+    setLastFilterKey(filterKey);
+    setPage(1);
+  }
 
   useEffect(() => {
     loadData();
@@ -363,6 +394,9 @@ export const MaintenancePage: React.FC = () => {
                   </table>
                 </div>
               )}
+              <div className="p-3">
+                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+              </div>
             </div>
           )}
 

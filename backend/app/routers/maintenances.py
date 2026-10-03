@@ -15,7 +15,9 @@ from app.models import (
     ChecklistItem,
 )
 from app.auth import get_current_active_user, require_permission
+from app.utils.pagination import PaginationParams, paginate
 from app.schemas import (
+    PaginatedResponse,
     MaintenanceRecordCreate,
     MaintenanceRecordUpdate,
     MaintenanceRecordStatusUpdate,
@@ -54,7 +56,7 @@ def get_maintenance_metrics(
     )
 
 
-@router.get("", response_model=List[MaintenanceRecordResponse])
+@router.get("", response_model=PaginatedResponse[MaintenanceRecordResponse])
 def list_maintenances(
     status: Optional[str] = None,
     maintenance_type: Optional[str] = None,
@@ -64,10 +66,17 @@ def list_maintenances(
     technician_id: Optional[int] = None,
     project_id: Optional[int] = None,
     search: Optional[str] = None,
+    scheduled_from: Optional[datetime] = Query(
+        None, description="Só manutenções agendadas a partir desta data, em ordem cronológica (visão Agenda)"
+    ),
+    pagination: PaginationParams = Depends(PaginationParams),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("maintenance:read")),
 ):
     query = db.query(MaintenanceRecord)
+
+    if scheduled_from is not None:
+        query = query.filter(MaintenanceRecord.scheduled_date >= scheduled_from)
 
     if status:
         query = query.filter(MaintenanceRecord.status == status)
@@ -115,7 +124,14 @@ def list_maintenances(
         joinedload(MaintenanceRecord.technician),
         selectinload(MaintenanceRecord.checklists).selectinload(Checklist.items),
     )
-    return query.order_by(MaintenanceRecord.created_at.desc()).all()
+    order = (
+        MaintenanceRecord.scheduled_date.asc()
+        if scheduled_from is not None
+        else MaintenanceRecord.created_at.desc()
+    )
+    total = query.order_by(None).count()
+    items = query.order_by(order).offset(pagination.offset).limit(pagination.limit).all()
+    return paginate(items, pagination.page, pagination.limit, total)
 
 
 @router.get("/{id}", response_model=MaintenanceRecordResponse)
