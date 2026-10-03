@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import or_, func
 
 from app.database import get_db
@@ -105,6 +105,16 @@ def list_maintenances(
         )
         query = query.filter(search_filter)
 
+    # Evita N+1: a resposta serializa equipamentos, loja, técnico e checklists de cada manutenção.
+    query = query.options(
+        selectinload(MaintenanceRecord.equipments).joinedload(Equipment.store),
+        joinedload(MaintenanceRecord.equipment).joinedload(Equipment.store),
+        joinedload(MaintenanceRecord.store),
+        joinedload(MaintenanceRecord.department),
+        joinedload(MaintenanceRecord.technical_location),
+        joinedload(MaintenanceRecord.technician),
+        selectinload(MaintenanceRecord.checklists).selectinload(Checklist.items),
+    )
     return query.order_by(MaintenanceRecord.created_at.desc()).all()
 
 

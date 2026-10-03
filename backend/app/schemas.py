@@ -995,8 +995,8 @@ class MaintenanceRecordStatusUpdate(BaseModel):
 
 class MaintenanceRecordResponse(MaintenanceRecordBase):
     id: int
-    equipment: Optional[EquipmentResponse] = None
-    equipments: List[EquipmentResponse] = []
+    equipment: Optional[EquipmentListResponse] = None
+    equipments: List[EquipmentListResponse] = []
     store: Optional[StoreResponse] = None
     department: Optional[DepartmentResponse] = None
     technical_location: Optional[TechnicalLocationResponse] = None
