@@ -25,6 +25,21 @@ Login padrão criado no primeiro start: `admin` / `admin123` (ou `DEFAULT_ADMIN_
 O `.env` (não versionado) define as credenciais do Postgres e a `SECRET_KEY` dos tokens JWT; modelo em `.env.example`.
 Depois de alterar o `.env`, recrie só o backend: `docker compose up -d --no-deps backend`.
 
+### Modo produção
+
+Quando o sistema sair do desenvolvimento:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+O override (`docker-compose.prod.yml`) roda o backend sem `--reload`, com o código da imagem, e aplica as
+migrações ao iniciar (`alembic upgrade head`). O frontend é compilado (`frontend/Dockerfile.prod`) e servido por
+nginx na mesma porta 5173. Os anexos continuam em `./backend/uploads`. Para voltar ao desenvolvimento:
+`docker compose up -d --build`.
+
+Antes de usar em produção: troque a senha do `admin` em **Meu Perfil → Alterar senha**.
+
 ---
 
 ## 2. Testes — leia antes de rodar
