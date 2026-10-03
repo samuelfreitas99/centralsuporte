@@ -118,8 +118,8 @@ describe('KnowledgePage', () => {
     render(<KnowledgePage />);
 
     expect(screen.getByRole('heading', { name: 'Base de Conhecimento' })).toBeInTheDocument();
-    expect(screen.getByText('Novo Artigo Técnico')).toBeInTheDocument();
-    expect(screen.getByText('Gerenciar Categorias')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Novo artigo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Categorias' })).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Procedimento de Backup e Restauração de Switch HP')).toBeInTheDocument();
@@ -134,10 +134,10 @@ describe('KnowledgePage', () => {
     render(<KnowledgePage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Novo Artigo Técnico')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Novo artigo' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Novo Artigo Técnico'));
+    fireEvent.click(screen.getByRole('button', { name: 'Novo artigo' }));
 
     expect(screen.getByPlaceholderText('Ex: Resolução de Queda de Link e Roteamento de Backup')).toBeInTheDocument();
 
@@ -189,10 +189,10 @@ describe('KnowledgePage', () => {
     render(<KnowledgePage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Gerenciar Categorias')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Categorias' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Gerenciar Categorias'));
+    fireEvent.click(screen.getByRole('button', { name: 'Categorias' }));
 
     await waitFor(() => {
       expect(screen.getByText('Gerenciar Categorias da Base de Conhecimento')).toBeInTheDocument();

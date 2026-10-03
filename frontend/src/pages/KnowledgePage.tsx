@@ -1,14 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { FilterBar } from '@/components/ui/FilterBar';
 import { formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   BookOpen,
   Plus,
-  Search,
   Star,
   Clock,
   Eye,
@@ -166,7 +165,6 @@ export const KnowledgePage: React.FC = () => {
     }
   };
 
-  const totalFavorites = articles.filter((a) => a.is_favorite).length;
 
   return (
     <div className="space-y-6">
@@ -178,12 +176,12 @@ export const KnowledgePage: React.FC = () => {
             className="flex items-center gap-1.5 h-9 text-xs"
           >
             <FolderTree className="h-4 w-4 text-primary" />
-            <span>Gerenciar Categorias</span>
+            <span>Categorias</span>
           </Button>
 
           <Button onClick={handleOpenCreate} className="flex items-center gap-1.5 h-9 text-xs">
             <Plus className="h-4 w-4" />
-            <span>Novo Artigo Técnico</span>
+            <span>Novo artigo</span>
           </Button>
         </div>
       </PageHeader>
@@ -191,57 +189,16 @@ export const KnowledgePage: React.FC = () => {
       {/* Barra de Filtros e Busca */}
       <Card>
         <CardHeader className="p-4 pb-3 space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex flex-1 items-center gap-2">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Pesquisar por título, sintomas, comandos ou palavras-chave..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 h-9 text-xs"
-                />
-              </div>
-
-              <select
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value ? Number(e.target.value) : '');
-                  setOnlyFavorites(false);
-                }}
-                className="h-9 rounded-md border border-input bg-background px-2.5 text-xs text-foreground font-medium"
-              >
-                <option value="">Todas as Categorias</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} {c.articles_count !== undefined ? `(${c.articles_count})` : ''}
-                  </option>
-                ))}
-              </select>
-
-              <Button
-                variant={onlyFavorites ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => {
-                  setOnlyFavorites(!onlyFavorites);
-                  if (!onlyFavorites) setSelectedCategory('');
-                }}
-                className="h-9 text-xs flex items-center gap-1.5"
-              >
-                <Star className={`h-3.5 w-3.5 ${onlyFavorites ? 'fill-current' : ''}`} />
-                <span>Favoritos</span>
-                {totalFavorites > 0 && (
-                  <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] bg-background/20 font-bold">
-                    {totalFavorites}
-                  </span>
-                )}
-              </Button>
-            </div>
-
-            <div className="text-xs font-semibold text-muted-foreground">
-              {totalArticles} artigo{totalArticles !== 1 ? 's' : ''} encontrado{totalArticles !== 1 ? 's' : ''}
-            </div>
-          </div>
+          <FilterBar
+            bare
+            search={searchTerm}
+            onSearch={setSearchTerm}
+            placeholder="Buscar por título, sintoma, comando ou palavra-chave..."
+          >
+            <span className="text-xs font-semibold text-muted-foreground">
+              {totalArticles} artigo{totalArticles !== 1 ? 's' : ''}
+            </span>
+          </FilterBar>
 
           {/* Category Quick Filter Pills */}
           <div className="flex flex-wrap items-center gap-1.5 pt-1">
