@@ -31,6 +31,7 @@ export interface AttendanceItem {
   } | null;
   status: 'em_andamento' | 'resolvido' | 'cancelado' | string;
   equipment_name?: string | null;
+  equipment_id?: number | null;
   store_department?: string | null;
   problem_description?: string | null;
   symptoms?: string | null;
@@ -54,6 +55,7 @@ export interface AttendanceCreateInput {
   technician_id?: number;
   status?: string;
   equipment_name?: string;
+  equipment_id?: number | null;
   store_department?: string;
   problem_description?: string;
   symptoms?: string;
@@ -73,6 +75,7 @@ export interface AttendanceUpdateInput {
   technician_id?: number;
   status?: string;
   equipment_name?: string;
+  equipment_id?: number | null;
   store_department?: string;
   problem_description?: string;
   symptoms?: string;

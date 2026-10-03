@@ -41,8 +41,8 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [ ] S1.5 Unificar "Usuários" e "Perfis e Permissões" em uma tela com abas — P-13
 
 ### S2 — Atendimento conectado ao equipamento (fluxo central)
-- [ ] S2.1 Formulário completo: problema, sintomas, URL OTRS, notas internas — P-20
-- [ ] S2.2 Equipamento e loja escolhidos de listas (vínculo real `equipment_id`), texto livre como alternativa — P-21
+- [x] S2.1 Formulário completo: problema, sintomas, URL OTRS, notas internas — P-20
+- [x] S2.2 Equipamento e loja escolhidos de listas (vínculo real `equipment_id`), texto livre como alternativa — P-21
 - [ ] S2.3 Ficha do equipamento mostra atendimentos e manutenções do equipamento — P-22
 - [ ] S2.4 Ações a partir do equipamento: "Registrar atendimento" e "Agendar manutenção" já preenchidos — P-23
 

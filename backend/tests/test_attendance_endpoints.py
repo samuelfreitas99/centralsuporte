@@ -158,3 +158,39 @@ def test_attendance_project_association():
     get_res = client.get(f"/attendances/{att_id}", headers=headers)
     assert get_res.status_code == 200
     assert get_res.json()["project_id"] == project_id
+
+
+def test_attendance_links_to_equipment_and_filters_by_it():
+    token = client.post("/auth/login", json={"username": "admin", "password": "admin123"}).json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    eq = client.post(
+        "/infrastructure/equipment",
+        json={"equipment_type": "computador", "hostname": "PDV-LINK-01", "patrimony": "PAT-LINK-01"},
+        headers=headers,
+    )
+    assert eq.status_code == 201, eq.text
+    eq_id = eq.json()["id"]
+
+    created = client.post(
+        "/attendances",
+        json={"title": "PDV não liga", "equipment_id": eq_id, "problem_description": "Sem vídeo"},
+        headers=headers,
+    )
+    assert created.status_code == 201, created.text
+    att = created.json()
+    assert att["equipment_id"] == eq_id
+    assert att["equipment_name"] == "PDV-LINK-01 · PAT-LINK-01"
+    assert att["problem_description"] == "Sem vídeo"
+
+    listed = client.get(f"/attendances?equipment_id={eq_id}", headers=headers).json()
+    assert [a["id"] for a in listed] == [att["id"]]
+
+    # equipamento inexistente é rejeitado
+    bad = client.post("/attendances", json={"title": "x", "equipment_id": 999999}, headers=headers)
+    assert bad.status_code == 400
+
+    # desvincular mantém o nome digitado
+    upd = client.put(f"/attendances/{att['id']}", json={"equipment_id": None}, headers=headers)
+    assert upd.status_code == 200
+    assert upd.json()["equipment_id"] is None

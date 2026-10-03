@@ -13,6 +13,7 @@ export const attendanceService = {
     has_otrs?: boolean;
     search?: string;
     project_id?: number;
+    equipment_id?: number;
   }): Promise<AttendanceItem[]> => {
     const searchParams = new URLSearchParams();
     if (params?.status) searchParams.append('status', params.status);
@@ -20,6 +21,7 @@ export const attendanceService = {
     if (params?.has_otrs !== undefined) searchParams.append('has_otrs', String(params.has_otrs));
     if (params?.search) searchParams.append('search', params.search);
     if (params?.project_id !== undefined) searchParams.append('project_id', String(params.project_id));
+    if (params?.equipment_id !== undefined) searchParams.append('equipment_id', String(params.equipment_id));
 
     const queryString = searchParams.toString();
     const endpoint = `/attendances${queryString ? `?${queryString}` : ''}`;

@@ -43,10 +43,90 @@ import { projectService } from '@/services/projectService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
+import { EquipmentPicker } from '@/components/infrastructure/EquipmentPicker';
+import { equipmentLabel } from '@/lib/equipment';
+import { infrastructureService } from '@/services/infrastructureService';
 import type {
   AttendanceItem,
   AttendanceCreateInput,
 } from '@/types/attendance';
+
+const EMPTY_FORM: AttendanceCreateInput = {
+  title: '',
+  otrs_ticket: '',
+  otrs_url: '',
+  requester_name: '',
+  status: 'em_andamento',
+  equipment_id: null,
+  equipment_name: '',
+  store_department: '',
+  problem_description: '',
+  symptoms: '',
+  diagnosis: '',
+  cause: '',
+  solution: '',
+  commands_used: '',
+  internal_notes: '',
+  project_id: undefined,
+};
+
+const attendanceToForm = (att: AttendanceItem): AttendanceCreateInput => ({
+  title: att.title,
+  otrs_ticket: att.otrs_ticket || '',
+  otrs_url: att.otrs_url || '',
+  requester_name: att.requester_name || '',
+  status: att.status || 'em_andamento',
+  equipment_id: att.equipment_id ?? null,
+  equipment_name: att.equipment_name || '',
+  store_department: att.store_department || '',
+  problem_description: att.problem_description || '',
+  symptoms: att.symptoms || '',
+  diagnosis: att.diagnosis || '',
+  cause: att.cause || '',
+  solution: att.solution || '',
+  commands_used: att.commands_used || '',
+  internal_notes: att.internal_notes || '',
+  project_id: att.project_id || undefined,
+});
+
+const DetailBlock: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({
+  icon,
+  title,
+  children,
+}) => (
+  <div className="space-y-2">
+    <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+      {icon}
+      {title}
+    </h4>
+    <div className="rounded-xl border border-border/60 bg-card p-4 text-sm text-muted-foreground leading-relaxed shadow-sm whitespace-pre-wrap">
+      {children}
+    </div>
+  </div>
+);
+
+const TEXTAREA_CLASS =
+  'w-full rounded-xl border border-border/60 bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y';
+
+const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
+  <section className="space-y-4">
+    <h4 className="text-sm font-bold text-foreground border-b border-border/40 pb-2">{title}</h4>
+    {children}
+  </section>
+);
+
+const FormField: React.FC<{ label: string; hint?: string; className?: string; children: React.ReactNode }> = ({
+  label,
+  hint,
+  className,
+  children,
+}) => (
+  <div className={className}>
+    <label className="text-xs font-bold text-foreground mb-1.5 block">{label}</label>
+    {children}
+    {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+  </div>
+);
 
 export const AttendancePage: React.FC = () => {
   const { user, hasRole } = useAuth();
@@ -66,23 +146,9 @@ export const AttendancePage: React.FC = () => {
   // Drawer state: Create / Edit Attendance
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState<AttendanceItem | null>(null);
-  const [attendanceForm, setAttendanceForm] = useState<AttendanceCreateInput>({
-    title: '',
-    otrs_ticket: '',
-    otrs_url: '',
-    requester_name: '',
-    status: 'em_andamento',
-    equipment_name: '',
-    store_department: '',
-    problem_description: '',
-    symptoms: '',
-    diagnosis: '',
-    cause: '',
-    solution: '',
-    commands_used: '',
-    internal_notes: '',
-    project_id: undefined,
-  });
+  const [attendanceForm, setAttendanceForm] = useState<AttendanceCreateInput>(EMPTY_FORM);
+  const setField = <K extends keyof AttendanceCreateInput>(key: K, value: AttendanceCreateInput[K]) =>
+    setAttendanceForm((prev) => ({ ...prev, [key]: value }));
 
   const [lockedProjectName, setLockedProjectName] = useState<string | undefined>();
 
@@ -142,23 +208,22 @@ export const AttendancePage: React.FC = () => {
         }
 
         setEditingAttendance(null);
-        setAttendanceForm({
-          title: '',
-          otrs_ticket: '',
-          otrs_url: '',
-          requester_name: '',
-          status: 'em_andamento',
-          equipment_name: '',
-          store_department: '',
-          problem_description: '',
-          symptoms: '',
-          diagnosis: '',
-          cause: '',
-          solution: '',
-          commands_used: '',
-          internal_notes: '',
-          project_id: pId,
-        });
+        setAttendanceForm({ ...EMPTY_FORM, project_id: pId });
+        // #attendance?new=true&equipment_id=N: atendimento aberto a partir da ficha do equipamento
+        const equipmentId = Number(hashParams.get('equipment_id'));
+        if (equipmentId) {
+          infrastructureService
+            .getEquipmentById(equipmentId)
+            .then((eq) =>
+              setAttendanceForm((prev) => ({
+                ...prev,
+                equipment_id: eq.id,
+                equipment_name: equipmentLabel(eq),
+                store_department: [eq.store?.name, eq.department?.name].filter(Boolean).join(' / '),
+              }))
+            )
+            .catch(() => {});
+        }
         setIsFormOpen(true);
         // Clear query parameters while keeping #attendance tab intact
         window.history.replaceState(null, '', '#attendance');
@@ -230,44 +295,12 @@ export const AttendancePage: React.FC = () => {
   const handleOpenForm = (att?: AttendanceItem) => {
     if (att) {
       setEditingAttendance(att);
-      setAttendanceForm({
-        title: att.title,
-        otrs_ticket: att.otrs_ticket || '',
-        otrs_url: att.otrs_url || '',
-        requester_name: att.requester_name || '',
-        status: att.status || 'em_andamento',
-        equipment_name: att.equipment_name || '',
-        store_department: att.store_department || '',
-        problem_description: att.problem_description || '',
-        symptoms: att.symptoms || '',
-        diagnosis: att.diagnosis || '',
-        cause: att.cause || '',
-        solution: att.solution || '',
-        commands_used: att.commands_used || '',
-        internal_notes: att.internal_notes || '',
-        project_id: att.project_id || undefined,
-      });
+      setAttendanceForm(attendanceToForm(att));
       setSelectedAttendanceDetails(null); // Close details if open
     } else {
       setEditingAttendance(null);
       setLockedProjectName(undefined);
-      setAttendanceForm({
-        title: '',
-        otrs_ticket: '',
-        otrs_url: '',
-        requester_name: '',
-        status: 'em_andamento',
-        equipment_name: '',
-        store_department: '',
-        problem_description: '',
-        symptoms: '',
-        diagnosis: '',
-        cause: '',
-        solution: '',
-        commands_used: '',
-        internal_notes: '',
-        project_id: undefined,
-      });
+      setAttendanceForm(EMPTY_FORM);
     }
     setIsFormOpen(true);
   };
@@ -610,9 +643,18 @@ export const AttendancePage: React.FC = () => {
                 </DrawerTitle>
                 <DrawerDescription className="flex items-center gap-3 mt-2 text-xs font-medium">
                   <span className="flex items-center gap-1 text-foreground/80"><User className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.technician?.username}</span>
-                  {selectedAttendanceDetails.equipment_name && (
-                    <span className="flex items-center gap-1 text-foreground/80"><HardDrive className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.equipment_name}</span>
-                  )}
+                  {selectedAttendanceDetails.equipment_name &&
+                    (selectedAttendanceDetails.equipment_id ? (
+                      <a
+                        href={`#equipment?id=${selectedAttendanceDetails.equipment_id}`}
+                        className="flex items-center gap-1 text-primary hover:underline"
+                        title="Abrir ficha do equipamento"
+                      >
+                        <HardDrive className="h-3.5 w-3.5" /> {selectedAttendanceDetails.equipment_name}
+                      </a>
+                    ) : (
+                      <span className="flex items-center gap-1 text-foreground/80"><HardDrive className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.equipment_name}</span>
+                    ))}
                   {selectedAttendanceDetails.store_department && (
                     <span className="flex items-center gap-1 text-foreground/80"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.store_department}</span>
                   )}
@@ -623,7 +665,7 @@ export const AttendancePage: React.FC = () => {
                 <Tabs value={detailsTab} onValueChange={setDetailsTab} className="w-full h-full flex flex-col">
                   <TabsList className="mb-6 w-full justify-start border-b border-border/40 rounded-none h-auto p-0 bg-transparent gap-6">
                     <TabsTrigger value="info" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 py-2 text-sm">
-                      Detalhes Técnicos
+                      Detalhes
                     </TabsTrigger>
                     <TabsTrigger value="notes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 py-2 text-sm flex items-center gap-2">
                       Notas & Anexos
@@ -635,23 +677,25 @@ export const AttendancePage: React.FC = () => {
 
                   <TabsContent value="info" className="space-y-6 flex-1 outline-none mt-0">
                     <div className="grid gap-6">
-                      {/* Diagnóstico */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                          <Clock className="h-4 w-4 text-primary" />
-                          Diagnóstico & Relato
-                        </h4>
-                        <div className="rounded-xl border border-border/60 bg-card p-4 text-sm text-muted-foreground leading-relaxed shadow-sm">
-                          {selectedAttendanceDetails.diagnosis || selectedAttendanceDetails.problem_description || 'Nenhum detalhe informado.'}
-                        </div>
-                      </div>
+                      {(selectedAttendanceDetails.problem_description || selectedAttendanceDetails.symptoms) && (
+                        <DetailBlock icon={<MessageSquare className="h-4 w-4 text-sky-500" />} title="Problema relatado">
+                          {selectedAttendanceDetails.problem_description}
+                          {selectedAttendanceDetails.symptoms && (
+                            <p className="mt-2 text-xs"><span className="font-semibold">Sintomas:</span> {selectedAttendanceDetails.symptoms}</p>
+                          )}
+                        </DetailBlock>
+                      )}
+
+                      <DetailBlock icon={<Clock className="h-4 w-4 text-primary" />} title="Diagnóstico">
+                        {selectedAttendanceDetails.diagnosis || 'Ainda não informado.'}
+                      </DetailBlock>
 
                       {/* Causa */}
                       {selectedAttendanceDetails.cause && (
                         <div className="space-y-2">
                           <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                             <AlertTriangle className="h-4 w-4 text-warning" />
-                            Causa Raiz
+                            Causa
                           </h4>
                           <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 text-sm text-foreground/80 leading-relaxed shadow-sm">
                             {selectedAttendanceDetails.cause}
@@ -663,7 +707,7 @@ export const AttendancePage: React.FC = () => {
                       <div className="space-y-2">
                         <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
                           <CheckCircle2 className="h-4 w-4 text-success" />
-                          Procedimento de Solução
+                          Solução aplicada
                         </h4>
                         <div className="rounded-xl border border-success/20 bg-success/5 p-4 text-sm text-foreground/80 leading-relaxed shadow-sm">
                           {selectedAttendanceDetails.solution || 'Procedimento ainda não finalizado.'}
@@ -697,6 +741,12 @@ export const AttendancePage: React.FC = () => {
                             </pre>
                           </div>
                         </div>
+                      )}
+
+                      {selectedAttendanceDetails.internal_notes && (
+                        <DetailBlock icon={<AlertTriangle className="h-4 w-4 text-muted-foreground" />} title="Notas internas">
+                          {selectedAttendanceDetails.internal_notes}
+                        </DetailBlock>
                       )}
                     </div>
                   </TabsContent>
@@ -824,144 +874,171 @@ export const AttendancePage: React.FC = () => {
           <DrawerHeader className="px-6 py-5 bg-card border-b border-border/60">
             <DrawerTitle className="flex items-center gap-2 text-xl">
               <Headset className="h-5 w-5 text-primary" />
-              {editingAttendance ? 'Editar Atendimento' : 'Novo Atendimento Técnico'}
+              {editingAttendance ? 'Editar atendimento' : 'Novo atendimento'}
             </DrawerTitle>
             <DrawerDescription className="mt-1">
-              Documente os procedimentos operacionais para histórico interno.
+              Registro técnico interno. O chamado oficial continua no OTRS.
             </DrawerDescription>
           </DrawerHeader>
 
           <form onSubmit={handleSaveAttendance} className="flex-1 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto bg-muted/10 p-6 space-y-6">
               
-              {/* Section 1 */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-foreground border-b border-border/40 pb-2">Identificação Principal</h4>
-                <div className="grid gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Título / Assunto *</label>
+              <FormSection title="Chamado">
+                <FormField label="Título *">
+                  <Input
+                    value={attendanceForm.title}
+                    onChange={(e) => setField('title', e.target.value)}
+                    placeholder="Ex.: PDV 03 não imprime cupom"
+                    className="bg-card border-border/60 h-10"
+                    required
+                  />
+                </FormField>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <FormField label="Nº do chamado OTRS">
                     <Input
-                      value={attendanceForm.title}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, title: e.target.value })}
-                      placeholder="Ex: Instalação de Impressora Fiscal"
-                      className="bg-card border-border/60 h-10"
-                      required
+                      value={attendanceForm.otrs_ticket || ''}
+                      onChange={(e) => setField('otrs_ticket', e.target.value)}
+                      placeholder="Ex.: 2026092410001"
+                      className="bg-card border-border/60 h-10 font-mono"
                     />
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-bold text-foreground mb-1.5 block">Ticket OTRS (Referência)</label>
-                      <Input
-                        value={attendanceForm.otrs_ticket || ''}
-                        onChange={(e) => setAttendanceForm({ ...attendanceForm, otrs_ticket: e.target.value })}
-                        placeholder="Ex: 20260924001"
-                        className="bg-card border-border/60 h-10 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-foreground mb-1.5 block">Status</label>
-                      <select
-                        value={attendanceForm.status || 'em_andamento'}
-                        onChange={(e) => setAttendanceForm({ ...attendanceForm, status: e.target.value })}
-                        className="w-full h-10 rounded-xl border border-border/60 bg-card px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                      >
-                        <option value="em_andamento">Em Andamento</option>
-                        <option value="resolvido">Resolvido</option>
-                        <option value="cancelado">Cancelado</option>
-                      </select>
-                    </div>
-                  </div>
+                  </FormField>
+                  <FormField label="Link do chamado" className="sm:col-span-2">
+                    <Input
+                      type="url"
+                      value={attendanceForm.otrs_url || ''}
+                      onChange={(e) => setField('otrs_url', e.target.value)}
+                      placeholder="https://otrs.../TicketZoom;TicketID=..."
+                      className="bg-card border-border/60 h-10"
+                    />
+                  </FormField>
                 </div>
-              </div>
+                <FormField label="Status">
+                  <select
+                    value={attendanceForm.status || 'em_andamento'}
+                    onChange={(e) => setField('status', e.target.value)}
+                    className="w-full sm:w-1/2 h-10 rounded-xl border border-border/60 bg-card px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
+                  >
+                    <option value="em_andamento">Em andamento</option>
+                    <option value="resolvido">Resolvido</option>
+                    <option value="cancelado">Cancelado</option>
+                  </select>
+                </FormField>
+              </FormSection>
 
-              {/* Section 2 */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-foreground border-b border-border/40 pb-2">Contexto & Origem</h4>
+              <FormSection title="Onde e quem">
+                <FormField label="Equipamento" hint="Vincule ao inventário para o atendimento aparecer na ficha do equipamento.">
+                  <EquipmentPicker
+                    value={{ id: attendanceForm.equipment_id ?? null, name: attendanceForm.equipment_name || '' }}
+                    onChange={(val, eq) =>
+                      setAttendanceForm((prev) => ({
+                        ...prev,
+                        equipment_id: val.id,
+                        equipment_name: val.name,
+                        store_department:
+                          prev.store_department ||
+                          [eq?.store?.name, eq?.department?.name].filter(Boolean).join(' / '),
+                      }))
+                    }
+                  />
+                </FormField>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Solicitante</label>
-                    <Input
-                      value={attendanceForm.requester_name || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, requester_name: e.target.value })}
-                      placeholder="Nome do usuário"
-                      className="bg-card border-border/60 h-10"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Loja / Depto</label>
+                  <FormField label="Loja / Departamento">
                     <Input
                       value={attendanceForm.store_department || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, store_department: e.target.value })}
-                      placeholder="Localização"
+                      onChange={(e) => setField('store_department', e.target.value)}
+                      placeholder="Ex.: Loja 03 / Frente de caixa"
                       className="bg-card border-border/60 h-10"
                     />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Equipamento Afetado</label>
+                  </FormField>
+                  <FormField label="Solicitante">
                     <Input
-                      value={attendanceForm.equipment_name || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, equipment_name: e.target.value })}
-                      placeholder="Nome ou patrimônio (Ex: PDV01)"
+                      value={attendanceForm.requester_name || ''}
+                      onChange={(e) => setField('requester_name', e.target.value)}
+                      placeholder="Quem pediu o atendimento"
                       className="bg-card border-border/60 h-10"
                     />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Projeto Operacional</label>
-                    <ProjectSelect
-                      value={attendanceForm.project_id || null}
-                      onChange={(projectId) => setAttendanceForm({ ...attendanceForm, project_id: projectId || null })}
-                      lockedContextName={lockedProjectName}
-                    />
-                  </div>
+                  </FormField>
                 </div>
-              </div>
+                <FormField label="Projeto (opcional)">
+                  <ProjectSelect
+                    value={attendanceForm.project_id || null}
+                    onChange={(projectId) => setField('project_id', projectId || null)}
+                    lockedContextName={lockedProjectName}
+                  />
+                </FormField>
+              </FormSection>
 
-              {/* Section 3 */}
-              <div className="space-y-4">
-                <h4 className="text-sm font-bold text-foreground border-b border-border/40 pb-2">Relato Técnico</h4>
-                <div className="grid gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Diagnóstico</label>
-                    <textarea
-                      value={attendanceForm.diagnosis || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, diagnosis: e.target.value })}
-                      rows={3}
-                      placeholder="Análise do problema constatado..."
-                      className="w-full rounded-xl border border-border/60 bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Causa Raiz</label>
-                    <textarea
-                      value={attendanceForm.cause || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, cause: e.target.value })}
-                      rows={2}
-                      placeholder="O que originou a falha..."
-                      className="w-full rounded-xl border border-border/60 bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Solução Aplicada</label>
-                    <textarea
-                      value={attendanceForm.solution || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, solution: e.target.value })}
-                      rows={3}
-                      placeholder="Procedimentos executados para resolver..."
-                      className="w-full rounded-xl border border-border/60 bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-foreground mb-1.5 block">Comandos (Terminal)</label>
-                    <textarea
-                      value={attendanceForm.commands_used || ''}
-                      onChange={(e) => setAttendanceForm({ ...attendanceForm, commands_used: e.target.value })}
-                      rows={3}
-                      placeholder="Scripts ou comandos utilizados..."
-                      className="w-full rounded-xl border border-border/60 bg-card p-3 font-mono text-xs focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y"
-                    />
-                  </div>
-                </div>
-              </div>
+              <FormSection title="O que aconteceu">
+                <FormField label="Problema relatado">
+                  <textarea
+                    value={attendanceForm.problem_description || ''}
+                    onChange={(e) => setField('problem_description', e.target.value)}
+                    rows={3}
+                    placeholder="O que o usuário relatou..."
+                    className={TEXTAREA_CLASS}
+                  />
+                </FormField>
+                <FormField label="Sintomas observados">
+                  <textarea
+                    value={attendanceForm.symptoms || ''}
+                    onChange={(e) => setField('symptoms', e.target.value)}
+                    rows={2}
+                    placeholder="Mensagens de erro, luzes, comportamento..."
+                    className={TEXTAREA_CLASS}
+                  />
+                </FormField>
+              </FormSection>
+
+              <FormSection title="Diagnóstico e solução">
+                <FormField label="Diagnóstico">
+                  <textarea
+                    value={attendanceForm.diagnosis || ''}
+                    onChange={(e) => setField('diagnosis', e.target.value)}
+                    rows={3}
+                    placeholder="O que foi verificado e constatado..."
+                    className={TEXTAREA_CLASS}
+                  />
+                </FormField>
+                <FormField label="Causa">
+                  <textarea
+                    value={attendanceForm.cause || ''}
+                    onChange={(e) => setField('cause', e.target.value)}
+                    rows={2}
+                    placeholder="O que originou o problema..."
+                    className={TEXTAREA_CLASS}
+                  />
+                </FormField>
+                <FormField label="Solução aplicada">
+                  <textarea
+                    value={attendanceForm.solution || ''}
+                    onChange={(e) => setField('solution', e.target.value)}
+                    rows={3}
+                    placeholder="O que foi feito para resolver..."
+                    className={TEXTAREA_CLASS}
+                  />
+                </FormField>
+                <FormField label="Comandos utilizados">
+                  <textarea
+                    value={attendanceForm.commands_used || ''}
+                    onChange={(e) => setField('commands_used', e.target.value)}
+                    rows={3}
+                    placeholder="Um comando por linha..."
+                    className={`${TEXTAREA_CLASS} font-mono text-xs`}
+                  />
+                </FormField>
+              </FormSection>
+
+              <FormSection title="Notas internas">
+                <FormField label="Observações só para a equipe" hint="Não aparecem no OTRS. Para o andamento do dia a dia, use as notas no detalhe do atendimento.">
+                  <textarea
+                    value={attendanceForm.internal_notes || ''}
+                    onChange={(e) => setField('internal_notes', e.target.value)}
+                    rows={2}
+                    className={TEXTAREA_CLASS}
+                  />
+                </FormField>
+              </FormSection>
             </div>
 
             <DrawerFooter className="flex flex-row items-center justify-end gap-3 border-t border-border/60 bg-card p-4">
@@ -975,7 +1052,7 @@ export const AttendancePage: React.FC = () => {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isSubmitting} className="shadow-sm cursor-pointer min-w-[120px]">
-                {isSubmitting ? 'Salvando...' : editingAttendance ? 'Salvar Edição' : 'Criar Registro'}
+                {isSubmitting ? 'Salvando...' : editingAttendance ? 'Salvar alterações' : 'Registrar atendimento'}
               </Button>
             </DrawerFooter>
           </form>

@@ -218,14 +218,20 @@ describe('AttendancePage (Phase 7)', () => {
     const newBtn = screen.getByRole('button', { name: /novo atendimento/i });
     fireEvent.click(newBtn);
 
-    expect(await screen.findByText('Novo Atendimento Técnico')).toBeInTheDocument();
-    expect(screen.getByText(/Título \/ Assunto \*/i)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Novo atendimento' })).toBeInTheDocument();
+    expect(screen.getByText('Título *')).toBeInTheDocument();
+    // Campos que existiam no banco mas não podiam ser preenchidos (P-20)
+    expect(screen.getByText('Link do chamado')).toBeInTheDocument();
+    expect(screen.getByText('Problema relatado')).toBeInTheDocument();
+    expect(screen.getByText('Sintomas observados')).toBeInTheDocument();
+    expect(screen.getByText('Observações só para a equipe')).toBeInTheDocument();
+    expect(screen.getByLabelText('Equipamento')).toBeInTheDocument();
 
     const cancelBtn = screen.getByRole('button', { name: /cancelar/i });
     fireEvent.click(cancelBtn);
 
     await waitFor(() => {
-      expect(screen.queryByText('Novo Atendimento Técnico')).not.toBeInTheDocument();
+      expect(screen.queryByRole('heading', { name: 'Novo atendimento' })).not.toBeInTheDocument();
     });
   });
 
@@ -236,7 +242,7 @@ describe('AttendancePage (Phase 7)', () => {
     renderAttendancePage();
 
     await waitFor(() => {
-      expect(screen.getByText('Novo Atendimento Técnico')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Novo atendimento' })).toBeInTheDocument();
     });
 
     // Check project read-only display

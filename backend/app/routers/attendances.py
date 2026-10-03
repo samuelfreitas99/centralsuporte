@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from app.database import get_db
-from app.models import Attendance, AttendanceNote, KnowledgeArticle, KnowledgeCategory, User
+from app.models import Attendance, AttendanceNote, Equipment, KnowledgeArticle, KnowledgeCategory, User
 from app.auth import get_current_active_user, require_permission
 from app.schemas import (
     AttendanceCreate,
@@ -26,11 +26,15 @@ def list_attendances(
     technician_id: Optional[int] = None,
     has_otrs: Optional[bool] = None,
     project_id: Optional[int] = None,
+    equipment_id: Optional[int] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("attendance:read")),
 ):
     query = db.query(Attendance)
+
+    if equipment_id is not None:
+        query = query.filter(Attendance.equipment_id == equipment_id)
 
     if status:
         query = query.filter(Attendance.status == status)
@@ -62,6 +66,27 @@ def list_attendances(
 
     return query.order_by(Attendance.created_at.desc()).all()
 
+def _equipment_label(equipment: Equipment) -> str:
+    parts = [p for p in (equipment.hostname, equipment.patrimony) if p]
+    return " · ".join(parts) or f"Equipamento #{equipment.id}"
+
+
+def _apply_equipment_link(db: Session, attendance_obj: Attendance, data: dict) -> None:
+    """Valida `equipment_id` e mantém `equipment_name` coerente com o equipamento vinculado."""
+    if "equipment_id" not in data:
+        return
+    equipment_id = data["equipment_id"]
+    if equipment_id is None:
+        attendance_obj.equipment_id = None
+        return
+    equipment = db.query(Equipment).filter(Equipment.id == equipment_id).first()
+    if not equipment:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Equipamento informado não existe")
+    attendance_obj.equipment_id = equipment.id
+    if not data.get("equipment_name"):
+        attendance_obj.equipment_name = _equipment_label(equipment)
+
+
 @router.post("", response_model=AttendanceResponse, status_code=status.HTTP_201_CREATED)
 def create_attendance(
     payload: AttendanceCreate,
@@ -88,6 +113,7 @@ def create_attendance(
         internal_notes=payload.internal_notes,
         project_id=payload.project_id,
     )
+    _apply_equipment_link(db, attendance_obj, payload.model_dump(include={"equipment_id", "equipment_name"}))
     db.add(attendance_obj)
     db.commit()
     db.refresh(attendance_obj)
@@ -120,7 +146,9 @@ def update_attendance(
 
     update_data = payload.model_dump(exclude_unset=True)
     for key, value in update_data.items():
-        setattr(attendance_obj, key, value)
+        if key != "equipment_id":
+            setattr(attendance_obj, key, value)
+    _apply_equipment_link(db, attendance_obj, update_data)
 
     db.commit()
     db.refresh(attendance_obj)
