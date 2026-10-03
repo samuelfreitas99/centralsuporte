@@ -155,10 +155,8 @@ describe('CommandsPage (Phase 6)', () => {
       expect(screen.getByText('Reiniciar Placa de Rede DHCP')).toBeInTheDocument();
     });
 
-    const copyButtons = screen.getAllByRole('button', { name: /copiar todos/i });
-    expect(copyButtons.length).toBeGreaterThan(0);
-
-    fireEvent.click(copyButtons[0]);
+    // Comando de um passo: clicar na linha do código copia o comando inteiro
+    fireEvent.click(screen.getByText('ipconfig /release && ipconfig /renew'));
 
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith('ipconfig /release && ipconfig /renew');
