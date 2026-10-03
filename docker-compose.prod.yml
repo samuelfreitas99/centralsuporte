@@ -10,6 +10,9 @@ services:
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*'"
     volumes: !override
       - ./backend/uploads:/app/uploads
+    environment:
+      - ENABLE_API_DOCS=0
+      - CORS_ORIGINS=
 
   frontend:
     build:

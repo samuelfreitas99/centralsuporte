@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,15 +23,22 @@ async def lifespan(app: FastAPI):
     # Shutdown logic
     stop_automation_scheduler()
 
+# Em produção a documentação interativa da API fica desligada (ENABLE_API_DOCS=0).
+_docs_enabled = os.environ.get("ENABLE_API_DOCS", "1") == "1"
+
 app = FastAPI(
-    title="Central Operacional do Suporte Técnico API",
-    version="0.1.0",
-    lifespan=lifespan
+    title="Central de Suporte API",
+    version="1.0.0",
+    lifespan=lifespan,
+    docs_url="/docs" if _docs_enabled else None,
+    redoc_url="/redoc" if _docs_enabled else None,
+    openapi_url="/openapi.json" if _docs_enabled else None,
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    # Produção usa a mesma origem (nginx /api); CORS_ORIGINS="" desliga o acesso de outras origens.
+    allow_origins=[o for o in os.environ.get("CORS_ORIGINS", "*").split(",") if o],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
