@@ -84,7 +84,7 @@ describe('TasksPage', () => {
     expect(screen.getByRole('heading', { name: 'Tarefas e Agenda' })).toBeInTheDocument();
     
     // Reminders and Calendar should be in the document right away
-    expect(screen.getByText('Lembretes de Turno')).toBeInTheDocument();
+    expect(screen.getByText('Meus lembretes')).toBeInTheDocument();
     expect(screen.getByText('Eventos e Manutenções Programadas')).toBeInTheDocument();
 
     await waitFor(() => {

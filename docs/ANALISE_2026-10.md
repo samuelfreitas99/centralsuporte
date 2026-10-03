@@ -98,6 +98,7 @@ O produto existe para guardar "como resolvi" e "em qual máquina" (PRODUCT_SPEC 
 |---|---|
 | P-30 | Lembretes aparecem em três lugares (sino de notificações, dashboard, painel lateral de Tarefas) com dois componentes diferentes de mesmo nome (`components/dashboard/RemindersSection.tsx` e `components/tasks/RemindersSection.tsx`). |
 | P-31 | A automação cria "alertas" como registros de `Reminder`. Não está errado, mas o técnico não distingue lembrete próprio de alerta automático. |
+| P-33 | A regra "Ativo Crítico" avisava todos os Administradores/Gestores (inclusive centenas de usuários de teste) e não reconhecia o alerta anterior quando a contagem mudava; o admin via lembretes de todos os usuários. Resultado: ~8.300 "lembretes", todos automáticos. **Corrigido** em S3.2. |
 | P-32 | Agenda (`CalendarEvent`) fica escondida no painel lateral de Tarefas, enquanto Manutenções tem a sua própria visão de calendário. |
 
 ### 4.3 Dashboard (Início)

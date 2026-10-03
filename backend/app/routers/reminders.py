@@ -21,12 +21,17 @@ def is_admin(user: User) -> bool:
 def list_reminders(
     status_filter: Optional[str] = Query(None, alias="status"),
     task_id: Optional[int] = None,
+    source: Optional[str] = Query(None, description="manual (lembretes do usuário) ou automacao (alertas automáticos)"),
+    all_users: bool = Query(False, description="Somente administradores: incluir lembretes de todos os usuários"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
     query = db.query(Reminder)
-    if not is_admin(current_user):
+    # Lembretes são pessoais: mesmo o admin vê só os seus, a menos que peça explicitamente.
+    if not (all_users and is_admin(current_user)):
         query = query.filter(Reminder.user_id == current_user.id)
+    if source:
+        query = query.filter(Reminder.source == source)
 
     if status_filter:
         query = query.filter(Reminder.status == status_filter)

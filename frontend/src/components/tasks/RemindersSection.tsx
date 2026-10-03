@@ -19,7 +19,7 @@ export const RemindersSection: React.FC = () => {
   const loadReminders = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await organizationService.getReminders();
+      const data = await organizationService.getReminders(undefined, 'manual');
       setReminders(data);
     } catch (err) {
       console.error('Falha ao carregar lembretes:', err);
@@ -77,7 +77,7 @@ export const RemindersSection: React.FC = () => {
         <div>
           <CardTitle className="text-base font-bold flex items-center gap-2">
             <Bell className="h-4 w-4 text-amber-500" />
-            <span>Lembretes de Turno</span>
+            <span>Meus lembretes</span>
           </CardTitle>
           <CardDescription className="text-xs">
             Avisos pontuais para retorno de contato, conferência e rotinas

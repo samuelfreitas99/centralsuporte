@@ -121,9 +121,13 @@ export const organizationService = {
   },
 
   // --- Reminders ---
-  getReminders: async (status?: string): Promise<Reminder[]> => {
-    const qs = status ? `?status=${status}` : '';
-    return request<Reminder[]>(`/reminders${qs}`);
+  /** Lembretes do usuário logado. `source`: 'manual' (pessoais) ou 'automacao' (alertas das regras). */
+  getReminders: async (status?: string, source?: 'manual' | 'automacao'): Promise<Reminder[]> => {
+    const query = new URLSearchParams();
+    if (status) query.append('status', status);
+    if (source) query.append('source', source);
+    const qs = query.toString();
+    return request<Reminder[]>(`/reminders${qs ? `?${qs}` : ''}`);
   },
 
   createReminder: async (payload: ReminderCreatePayload): Promise<Reminder> => {

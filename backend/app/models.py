@@ -254,6 +254,8 @@ class Reminder(Base):
     user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
     priority = Column(String(20), default="media", nullable=False)  # baixa, media, alta, urgente
     status = Column(String(20), default="pendente", nullable=False)  # pendente, concluido, dispensado
+    # manual = lembrete criado pelo usuário; automacao = alerta gerado pelas regras de automação
+    source = Column(String(20), default="manual", server_default="manual", nullable=False, index=True)
     task_id = Column(Integer, ForeignKey('tasks.id', ondelete="CASCADE"), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     

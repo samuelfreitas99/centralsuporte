@@ -132,6 +132,8 @@ describe('DashboardPage', () => {
     expect(screen.getByText('3 atrasadas')).toBeInTheDocument();
     expect(screen.getByText('em andamento · 4 hoje')).toBeInTheDocument();
     expect(organizationService.getTasks).toHaveBeenCalledWith(expect.objectContaining({ assigned_to_me: true }));
+    // Início mostra só lembretes pessoais; alertas automáticos ficam no sino e nos alertas do turno
+    expect(organizationService.getReminders).toHaveBeenCalledWith('pendente', 'manual');
   });
 
   it('renders task list and allows toggling task completion status', async () => {

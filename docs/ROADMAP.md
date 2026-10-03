@@ -48,7 +48,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 
 ### S3 — Início (Dashboard) útil
 - [x] S3.1 Endpoint `GET /dashboard/summary` com contagens reais e alertas de início de turno — P-40, P-41, P-42
-- [ ] S3.2 Lembretes em um lugar só (sino + bloco no Início); distinguir alerta automático de lembrete pessoal — P-30, P-31
+- [x] S3.2 Lembretes pessoais x alertas automáticos (`reminders.source`); listagem só do próprio usuário; sino mostra avisos com selo "Automático", Início e Tarefas mostram "Meus lembretes" — P-30, P-31, P-33
 
 ### S4 — Código compartilhado e manutenção
 - [ ] S4.1 Componentes comuns: `PageHeader`, `FilterBar`, `StatusBadge`, `ConfirmDialog` (substituir `window.confirm`) — P-60, P-61

@@ -83,7 +83,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
       const [summaryData, tasksData, remindersData, attendancesData, articlesData] = await Promise.all([
         dashboardService.getSummary().catch(() => null),
         organizationService.getTasks({ assigned_to_me: true, limit: 20 }).catch(() => null),
-        organizationService.getReminders().catch(() => [] as Reminder[]),
+        organizationService.getReminders('pendente', 'manual').catch(() => [] as Reminder[]),
         attendanceService.getAttendances().catch(() => [] as AttendanceItem[]),
         knowledgeService.getArticles().catch(() => [] as KnowledgeArticle[]),
       ]);

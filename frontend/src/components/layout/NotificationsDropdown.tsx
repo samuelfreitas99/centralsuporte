@@ -192,6 +192,11 @@ export const NotificationsDropdown: React.FC = () => {
                           <span className="text-xs font-medium text-foreground truncate">
                             {rem.title}
                           </span>
+                          {rem.source === 'automacao' && (
+                            <span className="text-[9px] font-medium text-muted-foreground shrink-0" title="Gerado pelas regras automáticas">
+                              Automático
+                            </span>
+                          )}
                           <span
                             className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded border shrink-0 ${
                               isUrgent

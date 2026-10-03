@@ -132,6 +132,7 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
                         user_id=user.id,
                         priority=target_priority,
                         status="pendente",
+                        source="automacao",
                         task_id=task.id,
                     )
                     db.add(new_reminder)
@@ -187,6 +188,7 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
                         user_id=maint.technician_id,
                         priority="alta",
                         status="pendente",
+                        source="automacao",
                     )
                     db.add(new_reminder)
                     stats["maintenance_reminders_created"] += 1
@@ -209,13 +211,15 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
             admin_users = (
                 db.query(User)
                 .join(User.roles)
-                .filter(Role.name.in_(["Administrador", "Gestor"]))
+                .filter(Role.name.in_(["Administrador", "Gestor"]), User.is_active.is_(True))
+                .distinct()
                 .all()
             )
             for eq_id, count in recurrent_equipment:
                 eq = db.query(Equipment).filter(Equipment.id == eq_id).first()
                 hostname = eq.hostname if eq else f"ID #{eq_id}"
-                alert_title = f"⚠️ Ativo Crítico: {hostname} ({count} intervenções)"
+                alert_prefix = f"⚠️ Ativo Crítico: {hostname} ("
+                alert_title = f"{alert_prefix}{count} intervenções)"
 
                 for admin in admin_users:
                     existing_alert = (
@@ -223,7 +227,8 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
                         .filter(
                             and_(
                                 Reminder.user_id == admin.id,
-                                Reminder.title == alert_title,
+                                # a contagem muda a cada nova intervenção; compara só o equipamento
+                                Reminder.title.startswith(alert_prefix),
                                 Reminder.created_at >= now - timedelta(days=7),
                             )
                         )
@@ -237,6 +242,7 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
                             user_id=admin.id,
                             priority="urgente",
                             status="pendente",
+                            source="automacao",
                         )
                         db.add(alert_rem)
                         stats["equipment_alerts_created"] += 1

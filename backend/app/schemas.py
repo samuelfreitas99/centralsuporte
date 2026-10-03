@@ -237,6 +237,7 @@ class ReminderStatusUpdate(BaseModel):
 class ReminderResponse(ReminderBase):
     id: int
     user_id: int
+    source: str = "manual"  # manual | automacao
     created_at: datetime
     model_config = ConfigDict(from_attributes=True)
 

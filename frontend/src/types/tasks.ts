@@ -88,6 +88,8 @@ export interface Reminder {
   user_id: number;
   priority: string;
   status: 'pendente' | 'concluido' | 'dispensado';
+  /** manual = criado pelo usuário; automacao = alerta das regras automáticas */
+  source?: 'manual' | 'automacao';
   task_id?: number | null;
   created_at: string;
 }
