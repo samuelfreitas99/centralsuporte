@@ -6,6 +6,8 @@ import { maintenanceService } from '@/services/maintenanceService';
 import type { AttendanceItem } from '@/types/attendance';
 import type { MaintenanceRecord } from '@/types/maintenance';
 
+import { pageOf } from './fixtures/pagination';
+
 vi.mock('@/services/attendanceService');
 vi.mock('@/services/maintenanceService');
 
@@ -13,9 +15,9 @@ describe('EquipmentActivity (ficha do equipamento)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.location.hash = '#equipment?id=7';
-    vi.mocked(attendanceService.getAttendances).mockResolvedValue([
+    vi.mocked(attendanceService.getAttendances).mockResolvedValue(pageOf([
       { id: 11, title: 'PDV sem rede', status: 'resolvido', otrs_ticket: '2026100100001', created_at: '2026-10-01T10:00:00Z' } as AttendanceItem,
-    ]);
+    ]));
     vi.mocked(maintenanceService.getMaintenances).mockResolvedValue([
       { id: 21, title: 'Limpeza preventiva', status: 'concluida', created_at: '2026-09-01T10:00:00Z', performed_date: '2026-10-02T10:00:00Z' } as MaintenanceRecord,
     ]);
@@ -25,7 +27,7 @@ describe('EquipmentActivity (ficha do equipamento)', () => {
     render(<EquipmentActivity equipmentId={7} canRegisterAttendance />);
 
     expect(await screen.findByText('Limpeza preventiva')).toBeInTheDocument();
-    expect(attendanceService.getAttendances).toHaveBeenCalledWith({ equipment_id: 7 });
+    expect(attendanceService.getAttendances).toHaveBeenCalledWith({ equipment_id: 7, limit: 100 });
     expect(maintenanceService.getMaintenances).toHaveBeenCalledWith({ equipment_id: 7 });
 
     const titles = screen.getAllByRole('listitem').map((li) => li.textContent);

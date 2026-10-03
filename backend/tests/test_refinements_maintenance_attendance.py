@@ -222,7 +222,7 @@ def test_project_new_attendance_preserves_project_id_and_cascade():
     # 3. Query attendances by project_id
     list_res = client.get(f"/attendances?project_id={project_id}", headers=headers)
     assert list_res.status_code == 200
-    assert any(a["id"] == att["id"] for a in list_res.json())
+    assert any(a["id"] == att["id"] for a in list_res.json()["items"])
 
     # 4. Delete Project and verify attendance is preserved with project_id = NULL
     del_res = client.delete(f"/projects/{project_id}", headers=headers)

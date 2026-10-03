@@ -1,12 +1,15 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
 from app.database import get_db
 from app.models import Attendance, AttendanceNote, Equipment, KnowledgeArticle, KnowledgeCategory, User
 from app.auth import get_current_active_user, require_permission
+from app.utils.pagination import PaginationParams, paginate
 from app.schemas import (
+    AttendanceListResponse,
+    PaginatedResponse,
     AttendanceCreate,
     AttendanceUpdate,
     AttendanceResponse,
@@ -20,7 +23,7 @@ router = APIRouter(prefix="/attendances", tags=["Attendances"])
 def is_admin(user: User) -> bool:
     return user.has_role("Administrador")
 
-@router.get("", response_model=List[AttendanceResponse])
+@router.get("", response_model=PaginatedResponse[AttendanceListResponse])
 def list_attendances(
     status: Optional[str] = None,
     technician_id: Optional[int] = None,
@@ -28,6 +31,7 @@ def list_attendances(
     project_id: Optional[int] = None,
     equipment_id: Optional[int] = None,
     search: Optional[str] = None,
+    pagination: PaginationParams = Depends(PaginationParams),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("attendance:read")),
 ):
@@ -64,7 +68,15 @@ def list_attendances(
         )
         query = query.filter(search_filter)
 
-    return query.order_by(Attendance.created_at.desc()).all()
+    total = query.count()
+    items = (
+        query.options(joinedload(Attendance.technician))
+        .order_by(Attendance.created_at.desc())
+        .offset(pagination.offset)
+        .limit(pagination.limit)
+        .all()
+    )
+    return paginate(items, pagination.page, pagination.limit, total)
 
 def _equipment_label(equipment: Equipment) -> str:
     parts = [p for p in (equipment.hostname, equipment.patrimony) if p]

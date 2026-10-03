@@ -7,6 +7,8 @@ import { attendanceService } from '@/services/attendanceService';
 import type { AuthContextType } from '@/types/auth';
 import type { AttendanceItem } from '@/types/attendance';
 
+import { pageOf } from './fixtures/pagination';
+
 vi.mock('@/services/attendanceService');
 
 const mockUserAuth: AuthContextType = {
@@ -106,7 +108,8 @@ describe('AttendancePage (Phase 7)', () => {
       configurable: true,
     });
 
-    vi.mocked(attendanceService.getAttendances).mockResolvedValue(mockAttendances);
+    vi.mocked(attendanceService.getAttendances).mockResolvedValue(pageOf(mockAttendances));
+    vi.mocked(attendanceService.getAttendance).mockImplementation(async (id: number) => mockAttendances.find((a) => a.id === id)!);
     vi.mocked(attendanceService.convertToKnowledge).mockResolvedValue({
       id: 20,
       title: 'Procedimento: Falha Spooler de Impressão PDV 02',

@@ -86,8 +86,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
   useEffect(() => {
     if (activeTab === 'attendance' && attendances.length === 0) {
       setLoadingAttendances(true);
-      attendanceService.getAttendances({ project_id: projectId })
-        .then(data => setAttendances(data))
+      attendanceService.getAttendances({ project_id: projectId, limit: 100 })
+        .then(data => setAttendances(data.items))
         .catch(err => console.error('Error fetching attendances', err))
         .finally(() => setLoadingAttendances(false));
     } else if (activeTab === 'equipment' && equipments.length === 0) {

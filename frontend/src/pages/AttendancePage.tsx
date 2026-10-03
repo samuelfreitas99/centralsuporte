@@ -44,6 +44,7 @@ import { projectService } from '@/services/projectService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
+import { Pagination } from '@/components/ui/Pagination';
 import { EquipmentPicker } from '@/components/infrastructure/EquipmentPicker';
 import { equipmentLabel } from '@/lib/equipment';
 import { infrastructureService } from '@/services/infrastructureService';
@@ -51,6 +52,8 @@ import type {
   AttendanceItem,
   AttendanceCreateInput,
 } from '@/types/attendance';
+
+const PAGE_SIZE = 30;
 
 const EMPTY_FORM: AttendanceCreateInput = {
   title: '',
@@ -140,6 +143,9 @@ export const AttendancePage: React.FC = () => {
 
   // Data state
   const [attendances, setAttendances] = useState<AttendanceItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalAttendances, setTotalAttendances] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copiedCmdId, setCopiedCmdId] = useState<number | null>(null);
@@ -172,15 +178,19 @@ export const AttendancePage: React.FC = () => {
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         has_otrs: onlyOtrs ? true : undefined,
         search: searchQuery || undefined,
+        page,
+        limit: PAGE_SIZE,
       });
-      setAttendances(data);
+      setAttendances(data.items);
+      setTotalPages(data.total_pages);
+      setTotalAttendances(data.total);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Falha ao carregar atendimentos';
       setErrorMessage(msg);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedStatus, onlyOtrs, searchQuery]);
+  }, [selectedStatus, onlyOtrs, searchQuery, page]);
 
   useEffect(() => {
     loadAttendances();
@@ -244,15 +254,18 @@ export const AttendancePage: React.FC = () => {
     };
   }, []);
 
-  // #attendance?id=N: abre o detalhe (busca global, Início, ficha do equipamento)
-  useDeepLinkId('attendance', async (id) => {
+  // Detalhe sempre vem do servidor: a listagem não traz as notas.
+  const openAttendanceDetails = async (id: number) => {
     try {
       setSelectedAttendanceDetails(await attendanceService.getAttendance(id));
       setDetailsTab('info');
     } catch {
       clearDeepLinkId();
     }
-  });
+  };
+
+  // #attendance?id=N: abre o detalhe (busca global, Início, ficha do equipamento)
+  useDeepLinkId('attendance', openAttendanceDetails);
 
   // One-click copy commands used
   const handleCopyCommands = async (commands: string, id: number) => {
@@ -436,7 +449,10 @@ export const AttendancePage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
             placeholder="Buscar por chamado OTRS, título, diagnóstico, equipamento..."
             className="pl-9 h-9 bg-background/50 border-border/60 text-sm"
           />
@@ -445,7 +461,10 @@ export const AttendancePage: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <select
             value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
+            onChange={(e) => {
+              setSelectedStatus(e.target.value);
+              setPage(1);
+            }}
             className="rounded-md border border-border/60 bg-background/50 px-3 py-1.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer h-9"
           >
             <option value="all">Todos os Status</option>
@@ -457,7 +476,10 @@ export const AttendancePage: React.FC = () => {
           <Button
             variant={onlyOtrs ? "default" : "outline"}
             size="sm"
-            onClick={() => setOnlyOtrs(!onlyOtrs)}
+            onClick={() => {
+              setOnlyOtrs(!onlyOtrs);
+              setPage(1);
+            }}
             className={`h-9 text-xs font-medium gap-1.5 cursor-pointer ${onlyOtrs ? 'shadow-sm' : 'border-border/60'}`}
           >
             <ExternalLink className="h-3.5 w-3.5" />
@@ -554,9 +576,8 @@ export const AttendancePage: React.FC = () => {
                 <Card 
                   className="border-border/60 bg-card hover:border-primary/40 hover:shadow-md transition-all duration-200 cursor-pointer group"
                   onClick={() => {
-                    setSelectedAttendanceDetails(att);
-                    setDetailsTab('info');
                     window.history.pushState(null, '', `#attendance?id=${att.id}`);
+                    openAttendanceDetails(att.id);
                   }}
                 >
                   <CardContent className="p-4">
@@ -608,6 +629,10 @@ export const AttendancePage: React.FC = () => {
               </motion.div>
             ))}
           </AnimatePresence>
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <p className="text-[11px] text-muted-foreground">{totalAttendances} atendimento(s)</p>
+          </div>
         </div>
       )}
 

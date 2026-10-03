@@ -176,7 +176,7 @@ def test_integration_phase10_2(setup_db, auth_headers):
     assert len(res.json()) >= 1
 
     res = client.get(f"/attendances?project_id={p1_id}", headers=auth_headers)
-    assert len(res.json()) >= 1
+    assert res.json()["total"] >= 1
 
     res = client.get(f"/calendar/events?project_id={p1_id}", headers=auth_headers)
     assert len(res.json()) >= 1

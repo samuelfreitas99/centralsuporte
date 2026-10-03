@@ -67,7 +67,7 @@ def test_attendance_lifecycle_and_otrs_association():
     # 5. List attendances with search and filter
     list_res = client.get(f"/attendances?search={uid}&has_otrs=true", headers=headers)
     assert list_res.status_code == 200
-    assert any(a["id"] == att_id for a in list_res.json())
+    assert any(a["id"] == att_id for a in list_res.json()["items"])
 
 def test_convert_attendance_to_knowledge_draft():
     token = get_auth_token()
@@ -184,7 +184,8 @@ def test_attendance_links_to_equipment_and_filters_by_it():
     assert att["problem_description"] == "Sem vídeo"
 
     listed = client.get(f"/attendances?equipment_id={eq_id}", headers=headers).json()
-    assert [a["id"] for a in listed] == [att["id"]]
+    assert [a["id"] for a in listed["items"]] == [att["id"]]
+    assert "notes" not in listed["items"][0]  # notas só no detalhe
 
     # equipamento inexistente é rejeitado
     bad = client.post("/attendances", json={"title": "x", "equipment_id": 999999}, headers=headers)

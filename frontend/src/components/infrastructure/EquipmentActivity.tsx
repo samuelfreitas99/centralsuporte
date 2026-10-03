@@ -50,7 +50,10 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({
   useEffect(() => {
     let cancelled = false;
     Promise.all([
-      attendanceService.getAttendances({ equipment_id: equipmentId }).catch(() => [] as AttendanceItem[]),
+      attendanceService
+        .getAttendances({ equipment_id: equipmentId, limit: 100 })
+        .then((r) => r.items)
+        .catch(() => [] as AttendanceItem[]),
       maintenanceService.getMaintenances({ equipment_id: equipmentId }).catch(() => [] as MaintenanceRecord[]),
     ]).then(([attendances, maintenances]) => {
       if (cancelled) return;

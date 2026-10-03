@@ -28,6 +28,7 @@ const defaultAuth: AuthContextType = {
 };
 
 import { mockTasks, mockReminders, mockAttendances, mockKnowledge } from './fixtures/dashboardMock';
+import { pageOf } from './fixtures/pagination';
 import { organizationService } from '@/services/organizationService';
 import { attendanceService } from '@/services/attendanceService';
 import { knowledgeService } from '@/services/knowledgeService';
@@ -97,7 +98,7 @@ describe('DashboardPage', () => {
       mockReminders.map(r => ({ ...r, title: r.text, due_time: r.time }))
     );
     // Transform mockAttendances to match API type (otrsTicket -> otrs_ticket, updatedAt -> updated_at)
-    (attendanceService.getAttendances as any).mockResolvedValue(
+    (attendanceService.getAttendances as any).mockResolvedValue(pageOf(
       mockAttendances.map(a => ({
         ...a,
         otrs_ticket: a.otrsTicket,
@@ -105,7 +106,7 @@ describe('DashboardPage', () => {
         technician: { username: a.technician },
         equipment: { name: a.equipment }
       }))
-    );
+    ));
     (knowledgeService.getArticles as any).mockResolvedValue(
       mockKnowledge.map(k => ({
         ...k,

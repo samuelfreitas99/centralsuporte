@@ -580,6 +580,16 @@ class AttendanceUpdate(BaseModel):
     internal_notes: Optional[str] = None
     project_id: Optional[int] = None
 
+class AttendanceListResponse(AttendanceBase):
+    """Item de listagem: sem as notas de andamento (carregadas no detalhe)."""
+    id: int
+    technician_id: int
+    technician: Optional[UserSimpleResponse] = None
+    knowledge_article_id: Optional[int] = None
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
 class AttendanceResponse(AttendanceBase):
     id: int
     technician_id: int
