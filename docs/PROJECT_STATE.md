@@ -10,8 +10,8 @@
 ## Situação
 
 * Todos os módulos do MVP e pós-MVP (fases 0–12) estão funcionando.
-* Testes: backend 178 ✓ (banco isolado `centralsuporte_test`), frontend 144 ✓, `tsc -b` limpo, lint sem avisos novos (57 antigos).
-* Paginação: tarefas, atendimentos e arquivos. Equipamentos, manutenções e artigos ainda carregam tudo, mas sem histórico embutido (S4.3).
+* Testes: backend 179 ✓ (banco isolado `centralsuporte_test`), frontend 148 ✓, `tsc -b` limpo, lint sem avisos novos (57 antigos).
+* Paginação: tarefas, atendimentos, artigos e arquivos. Equipamentos e manutenções ainda carregam tudo, mas sem histórico embutido (S4.3).
 * Migração mais recente: `a7c1e2d3f4b5` (`reminders.source`).
 * **Banco principal zerado em 2026-10-03** (era experimental, autorizado pelo responsável): recriado pelas
   migrações (`alembic upgrade head`) + seed; só existe o usuário `admin` (senha padrão `admin123`).
@@ -25,12 +25,14 @@
 * S2.1–S2.4: atendimento com formulário completo e vínculo real ao equipamento; ficha do equipamento com aba "Ocorrências" e ações de registrar atendimento / agendar manutenção.
 * S1.5: "Usuários e Permissões" em uma tela com abas.
 * S3.1–S3.2: Início com `/dashboard/summary` (contagens reais + alertas de turno); lembretes pessoais x alertas automáticos (`reminders.source`), fim da enxurrada de alertas duplicados.
-* S4.1 (parcial): `ConfirmDialog`/`useConfirm` no lugar de `window.confirm`.
-* S4.3 (parcial): listas de equipamentos (4 MB → 375 KB) e manutenções (17 MB → 2,3 MB) sem histórico embutido; atendimentos paginados.
+* S4.1 (parcial): `ConfirmDialog`/`useConfirm`, `PageHeader` em todas as telas, `StatusBadge`/`PriorityBadge` (`lib/status.ts`).
+* S4.2: `AttendancePage` e `CommandsPage` divididas em componentes (`components/attendance/`, `components/commands/`).
+* S0.5: banco principal recriado do zero. S0.6 (parcial): `.env` fora do Git, `SECRET_KEY` própria.
+* S4.3 (parcial): listas de equipamentos (4 MB → 375 KB) e manutenções (17 MB → 2,3 MB) sem histórico embutido; atendimentos e artigos paginados.
 
 ## Próximo passo
 
-Itens pendentes do `ROADMAP.md`: S4.1 (resto: `PageHeader`, `FilterBar`, `StatusBadge`), S4.2 (quebrar `CommandsPage`/`AttendancePage`), S4.3 (paginar equipamentos, manutenções e artigos).
+Itens pendentes do `ROADMAP.md`: S4.1 (`FilterBar` comum), S4.3 (paginar equipamentos e manutenções), S0.6 (senha do `admin`; modo produção).
 
 ## Pendências que dependem do responsável
 
