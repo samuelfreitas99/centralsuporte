@@ -158,14 +158,15 @@ export const CommandsPage: React.FC = () => {
     }
   }, [selectedAudience, selectedCategory, searchQuery]);
 
-  // Initial and reactive load
+  // As duas listas carregam desde o início (os contadores das abas ficam corretos)
+  // e cada uma recarrega quando os próprios filtros mudam.
   useEffect(() => {
-    if (activeTab === 'commands') {
-      loadCommands();
-    } else {
-      loadResponses();
-    }
-  }, [activeTab, loadCommands, loadResponses]);
+    loadCommands();
+  }, [loadCommands]);
+
+  useEffect(() => {
+    loadResponses();
+  }, [loadResponses]);
 
   // One-click Copy Handler for Commands
   const handleCopyCommand = async (cmd: CommandItem) => {
