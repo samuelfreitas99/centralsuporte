@@ -21,6 +21,7 @@ import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import { RemindersSection } from '@/components/tasks/RemindersSection';
 import { CalendarSection } from '@/components/tasks/CalendarSection';
 import { usePagination } from '@/hooks/usePagination';
+import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
 import { Pagination } from '@/components/ui/Pagination';
 
 export const TasksPage: React.FC = () => {
@@ -139,6 +140,14 @@ export const TasksPage: React.FC = () => {
     setDetailDrawerOpen(true);
   };
 
+  // #tasks?id=N (busca global, Início, links de outras telas)
+  useDeepLinkId('tasks', openDetailDrawer);
+
+  const handleDetailDrawerChange = (open: boolean) => {
+    setDetailDrawerOpen(open);
+    if (!open) clearDeepLinkId();
+  };
+
   const getTaskPriorityVariant = (priority: string): BadgeProps['variant'] => {
     if (priority === 'urgente') return 'destructive';
     if (priority === 'alta') return 'warning';
@@ -152,7 +161,7 @@ export const TasksPage: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <CheckSquare className="h-6 w-6 text-primary" />
-            <span>Organização Operacional</span>
+            <span>Tarefas e Agenda</span>
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             Gerenciamento de tarefas técnicas, procedimentos com checklist, lembretes de escala e calendário
@@ -366,7 +375,7 @@ export const TasksPage: React.FC = () => {
       <TaskDetailDrawer
         taskId={selectedTaskId}
         open={detailDrawerOpen}
-        onOpenChange={setDetailDrawerOpen}
+        onOpenChange={handleDetailDrawerChange}
         onTaskUpdated={loadTasks}
         onEditTask={(task: Task) => {
           setDetailDrawerOpen(false);

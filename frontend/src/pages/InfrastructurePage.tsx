@@ -13,7 +13,6 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
@@ -29,6 +28,8 @@ import type {
 } from '@/types/infrastructure';
 
 import { EquipmentTab } from './infrastructure/tabs/EquipmentTab';
+import { equipmentToForm } from './infrastructure/equipmentForm';
+import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
 import { StoresTab } from './infrastructure/tabs/StoresTab';
 import { LicensesTab } from './infrastructure/tabs/LicensesTab';
 import { StockTab } from './infrastructure/tabs/StockTab';
@@ -134,6 +135,19 @@ export const InfrastructurePage: React.FC = () => {
     setIsEquipmentModalOpen(true);
   };
 
+  // #equipment?id=N: abre a ficha do equipamento (busca global, atendimentos, manutenções)
+  useDeepLinkId('equipment', async (id) => {
+    try {
+      const eq = await infrastructureService.getEquipmentById(id);
+      setActiveTab('equipment');
+      setEditingEquipment(eq);
+      setEqForm(equipmentToForm(eq));
+      setIsEquipmentModalOpen(true);
+    } catch {
+      clearDeepLinkId();
+    }
+  });
+
   return (
     <div className="space-y-6">
       {/* 1. Header Section */}
@@ -141,11 +155,8 @@ export const InfrastructurePage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
-              Infraestrutura & Parque Tecnológico
+              Equipamentos e Lojas
             </h1>
-            <Badge variant="default" className="font-mono text-[11px] uppercase tracking-wider">
-              Fase 8
-            </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
             Inventário do parque de equipamentos, gerenciamento de unidades/lojas, licenças de software e controle de estoque operacional.

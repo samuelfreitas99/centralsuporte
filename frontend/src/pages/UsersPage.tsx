@@ -219,7 +219,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onSelectTab, onOpenProfile
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-xl font-heading font-bold text-foreground tracking-tight">
-              Usuários e Perfis
+              Usuários
             </h2>
             <Badge variant="outline" className="font-mono text-xs border-border/70 text-muted-foreground">
               {filteredUsers.length} de {users.length}

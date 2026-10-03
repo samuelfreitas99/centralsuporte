@@ -11,9 +11,10 @@ import { Avatar } from '@/components/ui/Avatar';
 interface HeaderProps {
   onToggleSidebar?: () => void;
   onSelectTab?: (tabId: string) => void;
+  onOpenSearch?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onSelectTab }) => {
+export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onSelectTab, onOpenSearch }) => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -47,24 +48,21 @@ export const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onSelectTab }) 
               </span>
               <span className="flex h-2 w-2 rounded-full bg-emerald-500" title="Sistema operacional ativo" />
             </div>
-            <p className="text-[10px] text-muted-foreground hidden sm:block font-medium leading-none">
-              Painel Operacional Técnico
-            </p>
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-2.5">
         {/* Quick Search Trigger (Busca Global Ctrl+K) */}
-        {onSelectTab && (
+        {onOpenSearch && (
           <button
             type="button"
-            onClick={() => onSelectTab('search-reports')}
-            className="hidden md:flex items-center gap-2 rounded-lg border border-border/70 bg-muted/30 hover:bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            aria-label="Pesquisa Global e Relatórios (Atalho Ctrl+K)"
+            onClick={onOpenSearch}
+            className="flex items-center gap-2 rounded-lg border border-border/70 bg-muted/30 hover:bg-muted/60 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label="Buscar (atalho Ctrl+K)"
           >
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="font-medium">Busca Global...</span>
+            <span className="hidden md:inline font-medium">Buscar...</span>
             <kbd className="pointer-events-none hidden sm:inline-flex h-4 select-none items-center gap-0.5 rounded border border-border/70 bg-background/80 px-1 font-mono text-[9px] font-medium text-muted-foreground">
               <span>Ctrl</span>K
             </kbd>

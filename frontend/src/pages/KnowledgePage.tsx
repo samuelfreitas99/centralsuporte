@@ -25,6 +25,7 @@ import { knowledgeService } from '@/services/knowledgeService';
 import { ArticleFormDialog } from '@/components/knowledge/ArticleFormDialog';
 import { ArticleViewDialog } from '@/components/knowledge/ArticleViewDialog';
 import { CategoryManagementDialog } from '@/components/knowledge/CategoryManagementDialog';
+import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
 
 export const KnowledgePage: React.FC = () => {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
@@ -71,33 +72,19 @@ export const KnowledgePage: React.FC = () => {
     loadData();
   }, [loadData]);
 
-  // Deep linking: Open view dialog if ID is in hash
-  useEffect(() => {
-    const handleHashChange = async () => {
-      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
-      const id = hashParams.get('id');
-      if (id && articles.length > 0) {
-        if (!selectedArticle || selectedArticle.id !== Number(id)) {
-          try {
-            const detailed = await knowledgeService.getArticleById(Number(id));
-            setSelectedArticle(detailed);
-            setViewDialogOpen(true);
-            setArticles((prev) =>
-              prev.map((a) => (a.id === detailed.id ? { ...a, views_count: detailed.views_count } : a))
-            );
-          } catch (err) {
-            console.error('Failed to load article from hash', err);
-          }
-        }
-      } else {
-        setViewDialogOpen(false);
-      }
-    };
-
-    handleHashChange();
-    window.addEventListener('popstate', handleHashChange);
-    return () => window.removeEventListener('popstate', handleHashChange);
-  }, [articles, selectedArticle]);
+  // #knowledge?id=N: abre o artigo (busca global, Início, atendimento convertido)
+  useDeepLinkId('knowledge', async (id) => {
+    try {
+      const detailed = await knowledgeService.getArticleById(id);
+      setSelectedArticle(detailed);
+      setViewDialogOpen(true);
+      setArticles((prev) =>
+        prev.map((a) => (a.id === detailed.id ? { ...a, views_count: detailed.views_count } : a))
+      );
+    } catch {
+      clearDeepLinkId();
+    }
+  });
 
 
 
@@ -169,7 +156,7 @@ export const KnowledgePage: React.FC = () => {
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" />
-            <span>Base de Conhecimento Técnico</span>
+            <span>Base de Conhecimento</span>
           </h2>
           <p className="text-sm text-muted-foreground mt-0.5">
             Procedimentos operacionais, manuais de infraestrutura, diagnósticos de suporte e biblioteca de soluções
@@ -436,9 +423,7 @@ export const KnowledgePage: React.FC = () => {
         open={viewDialogOpen}
         onOpenChange={(open) => {
           setViewDialogOpen(open);
-          if (!open && window.location.hash.includes('?id=')) {
-            window.history.replaceState(null, '', '#knowledge');
-          }
+          if (!open) clearDeepLinkId();
         }}
         onEdit={handleOpenEdit}
         onDeleted={loadData}

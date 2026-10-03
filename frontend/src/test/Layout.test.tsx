@@ -80,7 +80,7 @@ describe('Layout Components', () => {
   });
 
   describe('Sidebar', () => {
-    it('renders navigation modules and OTRS disclaimer card', () => {
+    it('renders navigation grouped by intent with OTRS reminder', () => {
       mockHasPermission.mockReturnValue(true);
       const onSelectTab = vi.fn();
 
@@ -88,23 +88,28 @@ describe('Layout Components', () => {
         <Sidebar currentTab="dashboard" onSelectTab={onSelectTab} isOpen={true} onClose={vi.fn()} />
       );
 
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
-      expect(screen.getByText('Tarefas e Checklists')).toBeInTheDocument();
+      expect(screen.getByText('Início')).toBeInTheDocument();
+      expect(screen.getByText('Dia a dia')).toBeInTheDocument();
+      expect(screen.getByText('Atendimentos')).toBeInTheDocument();
+      expect(screen.getByText('Tarefas e Agenda')).toBeInTheDocument();
       expect(screen.getByText('Base de Conhecimento')).toBeInTheDocument();
-      expect(screen.getByText('Chamados no OTRS')).toBeInTheDocument();
+      expect(screen.getByText('Gestão')).toBeInTheDocument();
+      expect(screen.getByText('OTRS')).toBeInTheDocument();
 
       fireEvent.click(screen.getByText('Base de Conhecimento'));
       expect(onSelectTab).toHaveBeenCalledWith('knowledge');
     });
 
-    it('hides Usuários e Perfis when user lacks permission', () => {
+    it('hides modules the user has no permission for, keeping Início', () => {
       mockHasPermission.mockReturnValue(false);
 
       renderWithProviders(
         <Sidebar currentTab="dashboard" onSelectTab={vi.fn()} isOpen={true} onClose={vi.fn()} />
       );
 
-      expect(screen.queryByText('Usuários e Perfis')).not.toBeInTheDocument();
+      expect(screen.queryByText('Usuários')).not.toBeInTheDocument();
+      expect(screen.queryByText('Auditoria')).not.toBeInTheDocument();
+      expect(screen.getByText('Início')).toBeInTheDocument();
     });
   });
 
@@ -134,7 +139,7 @@ describe('Layout Components', () => {
       );
 
       expect(screen.getByText('Central de Suporte')).toBeInTheDocument();
-      expect(screen.getByText('Dashboard')).toBeInTheDocument();
+      expect(screen.getByText('Início')).toBeInTheDocument();
       expect(screen.getByTestId('main-content')).toBeInTheDocument();
     });
   });

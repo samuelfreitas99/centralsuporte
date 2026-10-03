@@ -33,6 +33,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
 import { commandService } from '@/services/commandService';
 import { responseService } from '@/services/responseService';
 import type {
@@ -234,6 +235,19 @@ export const CommandsPage: React.FC = () => {
   };
 
   // Open Create/Edit Command Modal
+  // #commands?id=N (busca global): mostra o comando filtrando a lista pelo título
+  useDeepLinkId('commands', async (id) => {
+    try {
+      const cmd = await commandService.getCommand(id);
+      setActiveTab('commands');
+      setSelectedSystem('all');
+      setSelectedCategory('all');
+      setSearchQuery(cmd.title);
+    } finally {
+      clearDeepLinkId();
+    }
+  });
+
   const handleOpenCommandDrawer = (cmd?: CommandItem) => {
     if (cmd) {
       setEditingCommand(cmd);
@@ -410,11 +424,8 @@ export const CommandsPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
-              Repositório Operacional
+              Comandos e Respostas
             </h1>
-            <Badge variant="default" className="text-[11px] uppercase tracking-wider font-mono">
-              Fase 6
-            </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
             Biblioteca de comandos úteis de suporte e modelos de comunicação padrão com cópia rápida em 1 clique.

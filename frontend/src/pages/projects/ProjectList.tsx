@@ -86,7 +86,7 @@ export const ProjectList: React.FC = () => {
         <div>
           <h1 className="text-2xl font-heading font-bold text-foreground flex items-center gap-2 tracking-tight">
             <Briefcase className="h-6 w-6 text-blue-500" />
-            Projetos Operacionais
+            Projetos
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
             Gerencie implantações, reformas e acompanhe o progresso das movimentações operacionais.

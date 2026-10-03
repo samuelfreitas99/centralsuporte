@@ -58,7 +58,7 @@ describe('Phase 15 — Accessibility (a11y), UX & Performance', () => {
     expect(mainElement).toHaveAttribute('id', 'main-content');
   });
 
-  it('triggers global search tab navigation on Ctrl+K shortcut', () => {
+  it('opens the global search palette on Ctrl+K / Cmd+K without leaving the page', async () => {
     const onSelectTab = vi.fn();
     render(
       <AppLayout currentTab="dashboard" onSelectTab={onSelectTab}>
@@ -66,27 +66,19 @@ describe('Phase 15 — Accessibility (a11y), UX & Performance', () => {
       </AppLayout>
     );
 
-    // Simulate Ctrl+K
     fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
-    expect(onSelectTab).toHaveBeenCalledWith('search-reports');
-
-    // Simulate Cmd+K (Mac)
-    fireEvent.keyDown(window, { key: 'k', metaKey: true });
-    expect(onSelectTab).toHaveBeenCalledWith('search-reports');
+    expect(await screen.findByLabelText('Termo de busca')).toBeInTheDocument();
+    expect(screen.getByText('Conteúdo')).toBeInTheDocument();
+    expect(onSelectTab).not.toHaveBeenCalled();
   });
 
-  it('renders quick search trigger in Header and navigates to search-reports', () => {
-    const onSelectTab = vi.fn();
-    render(<Header onToggleSidebar={vi.fn()} onSelectTab={onSelectTab} />);
+  it('renders quick search trigger in Header that opens the palette', () => {
+    const onOpenSearch = vi.fn();
+    render(<Header onToggleSidebar={vi.fn()} onOpenSearch={onOpenSearch} />);
 
-    const searchButton = screen.getByRole('button', {
-      name: /Pesquisa Global e Relatórios \(Atalho Ctrl\+K\)/i,
-    });
-    expect(searchButton).toBeInTheDocument();
-    expect(screen.getByText('Busca Global...')).toBeInTheDocument();
-
+    const searchButton = screen.getByRole('button', { name: /Buscar \(atalho Ctrl\+K\)/i });
     fireEvent.click(searchButton);
-    expect(onSelectTab).toHaveBeenCalledWith('search-reports');
+    expect(onOpenSearch).toHaveBeenCalled();
   });
 
   it('renders PageSkeleton with accessible aria attributes and pulse placeholders', () => {

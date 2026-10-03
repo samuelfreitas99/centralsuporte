@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
 import { Container } from './Container';
+import { CommandPalette } from './CommandPalette';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -15,13 +16,14 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   onSelectTab = () => {},
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  // Atalho global de teclado: Ctrl+K ou Cmd+K para busca global, Escape para fechar gaveta mobile
+  // Atalho global: Ctrl+K / Cmd+K abre a busca sobre a tela atual; Escape fecha o menu mobile
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        onSelectTab('search-reports');
+        setSearchOpen(true);
       }
       if (e.key === 'Escape' && sidebarOpen) {
         setSidebarOpen(false);
@@ -30,7 +32,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onSelectTab, sidebarOpen]);
+  }, [sidebarOpen]);
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
@@ -45,7 +47,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       <Header
         onToggleSidebar={() => setSidebarOpen(true)}
         onSelectTab={onSelectTab}
+        onOpenSearch={() => setSearchOpen(true)}
       />
+
+      <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} onNavigate={onSelectTab} />
 
       <div className="flex flex-1 overflow-hidden">
         <Sidebar

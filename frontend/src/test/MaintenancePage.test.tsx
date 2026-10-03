@@ -181,7 +181,7 @@ describe('MaintenancePage (Phase 9)', () => {
   it('renders page header and maintenance list', async () => {
     renderMaintenancePage();
 
-    expect(screen.getByText('Centro de Manutenções')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Manutenções' })).toBeInTheDocument();
     expect(screen.getByText('Workspace operacional para gestão de preventivas, corretivas e intervenções.')).toBeInTheDocument();
 
     await waitFor(() => {

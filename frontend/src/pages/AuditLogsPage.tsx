@@ -110,7 +110,7 @@ export const AuditLogsPage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2.5">
             <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
-              Trilhas de Auditoria & Segurança
+              Auditoria
             </h1>
             <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
               <CheckCircle2 className="h-3 w-3" />

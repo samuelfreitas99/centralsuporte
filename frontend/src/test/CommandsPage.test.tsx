@@ -127,7 +127,7 @@ describe('CommandsPage (Phase 6)', () => {
   it('renders page header with title, subtitle, and tabs', async () => {
     renderCommandsPage();
 
-    expect(screen.getByText('Repositório Operacional')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Comandos e Respostas' })).toBeInTheDocument();
     expect(screen.getByText(/biblioteca de comandos úteis de suporte/i)).toBeInTheDocument();
     expect(screen.getByText('Comandos Rápidos')).toBeInTheDocument();
     expect(screen.getByText('Respostas Padrão')).toBeInTheDocument();

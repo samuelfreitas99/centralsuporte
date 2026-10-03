@@ -53,7 +53,7 @@ describe('AuditLogsPage', () => {
   it('renders audit page header, immutable badge and filters', async () => {
     render(<AuditLogsPage />);
 
-    expect(screen.getByText('Trilhas de Auditoria & Segurança')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Auditoria' })).toBeInTheDocument();
     expect(screen.getByText('Imutável')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Filtrar por usuário, IP, ação/i)).toBeInTheDocument();
     expect(screen.getByText('Atualizar Trilha')).toBeInTheDocument();

@@ -33,10 +33,10 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [ ] S0.6 Configuração de produção: `.env` com `SECRET_KEY`/`DEFAULT_ADMIN_PASSWORD`, sem `--reload`, frontend com build estático — P-06
 
 ### S1 — Navegação clara
-- [ ] S1.1 Menu reorganizado por intenção (Início / Dia a dia / Conhecimento / Inventário / Gestão) com nomes curtos — P-10
-- [ ] S1.2 Busca global em paleta flutuante (Ctrl+K) que abre o item; Relatórios em página própria — P-11, P-12
-- [ ] S1.3 Deep link `#modulo?id=N` padronizado para os resultados da busca — P-12, P-16
-- [ ] S1.4 Remover resíduos (badges "Fase X", tela "Roadmap Futuro", banners OTRS repetidos, mock fora de `services/`) — P-14, P-15
+- [x] S1.1 Menu reorganizado por intenção (Início / Dia a dia / Conhecimento / Inventário / Gestão) com nomes curtos — P-10
+- [x] S1.2 Busca global em paleta flutuante (Ctrl+K) que abre o item; Relatórios em página própria — P-11, P-12
+- [x] S1.3 Deep link `#modulo?id=N` padronizado para os resultados da busca — P-12, P-16
+- [x] S1.4 Remover resíduos (badges "Fase X", tela "Roadmap Futuro", banners OTRS repetidos, mock fora de `services/`) — P-14, P-15
 - [ ] S1.5 Unificar "Usuários" e "Perfis e Permissões" em uma tela com abas — P-13
 
 ### S2 — Atendimento conectado ao equipamento (fluxo central)
@@ -53,7 +53,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [ ] S4.1 Componentes comuns: `PageHeader`, `FilterBar`, `StatusBadge`, `ConfirmDialog` (substituir `window.confirm`) — P-60, P-61
 - [ ] S4.2 Quebrar `CommandsPage.tsx` e `AttendancePage.tsx` em componentes menores — P-51
 - [ ] S4.3 Paginação em atendimentos, equipamentos e artigos; lista de equipamentos sem histórico embutido — P-62
-- [ ] S4.4 Tabela de rotas única no lugar da cadeia de ternários em `AuthenticatedView.tsx` — P-63
+- [x] S4.4 Tabela de rotas única no lugar da cadeia de ternários em `AuthenticatedView.tsx` — P-63
 
 ---
 

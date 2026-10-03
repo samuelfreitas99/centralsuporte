@@ -126,7 +126,7 @@ describe('AttendancePage (Phase 7)', () => {
   it('renders page header and OTRS boundary banner', async () => {
     renderAttendancePage();
 
-    expect(screen.getByText('Atendimentos Internos')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Atendimentos' })).toBeInTheDocument();
     expect(screen.getByText(/Integração Oficial com OTRS/i)).toBeInTheDocument();
 
     await waitFor(() => {

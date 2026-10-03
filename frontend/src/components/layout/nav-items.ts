@@ -9,32 +9,53 @@ import {
   Server,
   FolderArchive,
   Users,
-  Search,
+  BarChart3,
   ShieldAlert,
   Briefcase,
   Shield,
 } from 'lucide-react';
 
+export type NavSection = 'inicio' | 'dia-a-dia' | 'conhecimento' | 'inventario' | 'gestao';
+
 export interface NavItem {
+  /** Identificador usado no hash da URL (`#id`). Não renomeie: quebra links salvos. */
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
   permission?: string;
-  section?: 'operacional' | 'sistema';
+  section: NavSection;
 }
 
-export const NAV_ITEMS: NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'operacional' },
-  { id: 'search-reports', label: 'Pesquisa & Relatórios', icon: Search, section: 'operacional' },
-  { id: 'projects', label: 'Projetos', icon: Briefcase, section: 'operacional' },
-  { id: 'tasks', label: 'Tarefas e Checklists', icon: CheckSquare, section: 'operacional' },
-  { id: 'maintenances', label: 'Manutenções', icon: Wrench, section: 'operacional' },
-  { id: 'knowledge', label: 'Base de Conhecimento', icon: BookOpen, section: 'operacional' },
-  { id: 'commands', label: 'Comandos e Respostas', icon: Terminal, section: 'operacional' },
-  { id: 'attendance', label: 'Atendimentos Internos', icon: Headset, section: 'operacional' },
-  { id: 'equipment', label: 'Infraestrutura & Parque', icon: Server, section: 'sistema' },
-  { id: 'files', label: 'Arquivos e Docs', icon: FolderArchive, section: 'sistema' },
-  { id: 'users', label: 'Usuários', icon: Users, permission: 'users:read', section: 'sistema' },
-  { id: 'roles', label: 'Perfis e Permissões', icon: Shield, permission: 'roles:read', section: 'sistema' },
-  { id: 'audit', label: 'Auditoria & Logs', icon: ShieldAlert, permission: 'audit:read', section: 'sistema' },
+/** Grupos do menu, na ordem em que aparecem. `title` vazio = sem cabeçalho. */
+export const NAV_SECTIONS: { id: NavSection; title: string }[] = [
+  { id: 'inicio', title: '' },
+  { id: 'dia-a-dia', title: 'Dia a dia' },
+  { id: 'conhecimento', title: 'Conhecimento' },
+  { id: 'inventario', title: 'Inventário' },
+  { id: 'gestao', title: 'Gestão' },
 ];
+
+export const NAV_ITEMS: NavItem[] = [
+  { id: 'dashboard', label: 'Início', icon: LayoutDashboard, section: 'inicio' },
+
+  { id: 'attendance', label: 'Atendimentos', icon: Headset, permission: 'attendance:read', section: 'dia-a-dia' },
+  { id: 'tasks', label: 'Tarefas e Agenda', icon: CheckSquare, permission: 'tasks:read', section: 'dia-a-dia' },
+  { id: 'maintenances', label: 'Manutenções', icon: Wrench, permission: 'maintenance:read', section: 'dia-a-dia' },
+  { id: 'projects', label: 'Projetos', icon: Briefcase, permission: 'project:read', section: 'dia-a-dia' },
+
+  { id: 'knowledge', label: 'Base de Conhecimento', icon: BookOpen, permission: 'knowledge:read', section: 'conhecimento' },
+  { id: 'commands', label: 'Comandos e Respostas', icon: Terminal, permission: 'knowledge:read', section: 'conhecimento' },
+  { id: 'files', label: 'Arquivos', icon: FolderArchive, permission: 'attachment:read', section: 'conhecimento' },
+
+  { id: 'equipment', label: 'Equipamentos e Lojas', icon: Server, permission: 'equipment:read', section: 'inventario' },
+
+  { id: 'reports', label: 'Relatórios', icon: BarChart3, section: 'gestao' },
+  { id: 'users', label: 'Usuários', icon: Users, permission: 'users:read', section: 'gestao' },
+  { id: 'roles', label: 'Perfis e Permissões', icon: Shield, permission: 'roles:read', section: 'gestao' },
+  { id: 'audit', label: 'Auditoria', icon: ShieldAlert, permission: 'audit:read', section: 'gestao' },
+];
+
+/** Hashes antigos que continuam funcionando (links salvos/favoritos). */
+export const NAV_ALIASES: Record<string, string> = {
+  'search-reports': 'reports',
+};

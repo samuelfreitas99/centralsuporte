@@ -81,7 +81,7 @@ describe('TasksPage', () => {
   it('renders header, metrics cards, reminders and calendar', async () => {
     render(<TasksPage />);
 
-    expect(screen.getByText('Organização Operacional')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Tarefas e Agenda' })).toBeInTheDocument();
     
     // Reminders and Calendar should be in the document right away
     expect(screen.getByText('Lembretes de Turno')).toBeInTheDocument();

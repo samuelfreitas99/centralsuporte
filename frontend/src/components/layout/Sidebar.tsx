@@ -1,10 +1,10 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { X, ExternalLink, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/Avatar';
-import { NAV_ITEMS } from './nav-items';
+import { NAV_ITEMS, NAV_SECTIONS } from './nav-items';
 
 interface SidebarProps {
   currentTab: string;
@@ -26,16 +26,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return hasPermission(item.permission);
   });
 
-  const operationalItems = filteredItems.filter((i) => i.section === 'operacional' || !i.section);
-  const systemItems = filteredItems.filter((i) => i.section === 'sistema');
-
   const renderNavGroup = (title: string, items: typeof filteredItems) => {
     if (items.length === 0) return null;
     return (
       <div className="space-y-1">
-        <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2">
-          {title}
-        </p>
+        {title && (
+          <p className="px-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/60 mb-2">
+            {title}
+          </p>
+        )}
         <div className="space-y-0.5">
           {items.map((item) => {
             const Icon = item.icon;
@@ -95,7 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="flex h-14 items-center justify-between border-b border-border/60 px-4 lg:hidden">
           <div className="flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-primary" />
-            <span className="font-semibold text-foreground font-heading text-sm">Menu Operacional</span>
+            <span className="font-semibold text-foreground font-heading text-sm">Menu</span>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} aria-label="Fechar menu" className="h-8 w-8">
             <X className="h-4 w-4" />
@@ -136,23 +135,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Navigation Items */}
-        <nav className="flex-1 space-y-5 overflow-y-auto p-3">
-          {renderNavGroup('Operação & Diagnóstico', operationalItems)}
-          {renderNavGroup('Inventário & Sistema', systemItems)}
+        <nav className="flex-1 space-y-5 overflow-y-auto p-3" aria-label="Menu principal">
+          {NAV_SECTIONS.map((section) => (
+            <React.Fragment key={section.id}>
+              {renderNavGroup(section.title, filteredItems.filter((i) => i.section === section.id))}
+            </React.Fragment>
+          ))}
         </nav>
 
-        {/* OTRS Complementary Warning Card */}
-        <div className="border-t border-border/60 p-3">
-          <div className="rounded-lg border border-border/60 bg-muted/20 p-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1.5 font-semibold text-foreground/90 mb-1">
-              <span>Chamados no OTRS</span>
-              <ExternalLink className="h-3 w-3 text-muted-foreground" />
-            </div>
-            <p className="text-[11px] leading-relaxed text-muted-foreground/80">
-              O OTRS é o sistema oficial de chamados. A Central armazena diagnósticos, comandos e procedimentos técnicos internos.
-            </p>
-          </div>
-        </div>
+        {/* Lembrete discreto da fronteira com o OTRS (única menção fixa na interface) */}
+        <p className="border-t border-border/60 px-4 py-3 text-[11px] leading-relaxed text-muted-foreground/70">
+          Chamados oficiais ficam no <span className="font-semibold text-muted-foreground">OTRS</span>. Aqui registramos o conhecimento técnico interno.
+        </p>
       </aside>
     </>
   );

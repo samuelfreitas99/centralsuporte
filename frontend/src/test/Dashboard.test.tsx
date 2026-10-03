@@ -27,7 +27,7 @@ const defaultAuth: AuthContextType = {
   hasRole: vi.fn().mockReturnValue(true),
 };
 
-import { mockTasks, mockReminders, mockAttendances, mockKnowledge } from '@/services/dashboardMock';
+import { mockTasks, mockReminders, mockAttendances, mockKnowledge } from './fixtures/dashboardMock';
 import { organizationService } from '@/services/organizationService';
 import { attendanceService } from '@/services/attendanceService';
 import { knowledgeService } from '@/services/knowledgeService';

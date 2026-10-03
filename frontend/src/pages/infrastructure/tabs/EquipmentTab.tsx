@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { equipmentToForm } from '../equipmentForm';
+import { clearDeepLinkId } from '@/hooks/useDeepLink';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Server,
@@ -141,22 +143,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   const handleOpenEquipmentModalLocal = (eq?: EquipmentItem) => {
     if (eq) {
       setEditingEquipment(eq);
-      setEqForm({
-        patrimony: eq.patrimony || '',
-        hostname: eq.hostname || '',
-        equipment_type: eq.equipment_type,
-        brand: eq.brand || '',
-        model: eq.model || '',
-        serial_number: eq.serial_number || '',
-        ip_address: eq.ip_address || '',
-        mac_address: eq.mac_address || '',
-        operating_system: eq.operating_system || '',
-        store_id: eq.store_id || null,
-        department_id: eq.department_id || null,
-        assigned_user: eq.assigned_user || '',
-        status: eq.status,
-        notes: eq.notes || '',
-      });
+      setEqForm(equipmentToForm(eq));
     } else {
       setEditingEquipment(null);
       setEqForm({
@@ -354,7 +341,13 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
       )}
 
       {/* DRAWER: CREATE / EDIT EQUIPMENT */}
-      <Drawer open={isEquipmentModalOpen} onOpenChange={setIsEquipmentModalOpen}>
+      <Drawer
+        open={isEquipmentModalOpen}
+        onOpenChange={(open) => {
+          setIsEquipmentModalOpen(open);
+          if (!open) clearDeepLinkId();
+        }}
+      >
         <DrawerContent size="lg" className="flex flex-col h-full max-h-[100dvh]">
           <DrawerHeader>
             <DrawerTitle className="flex items-center gap-2">

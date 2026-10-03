@@ -115,7 +115,7 @@ describe('KnowledgePage', () => {
   it('renders header, categories, and articles list', async () => {
     render(<KnowledgePage />);
 
-    expect(screen.getByText('Base de Conhecimento Técnico')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Base de Conhecimento' })).toBeInTheDocument();
     expect(screen.getByText('Novo Artigo Técnico')).toBeInTheDocument();
     expect(screen.getByText('Gerenciar Categorias')).toBeInTheDocument();
 

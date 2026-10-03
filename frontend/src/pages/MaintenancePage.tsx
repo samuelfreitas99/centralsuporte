@@ -30,6 +30,7 @@ import type { CalendarEvent } from '@/types/tasks';
 
 import { ChecklistTemplatesDialog } from '@/components/maintenance/ChecklistTemplatesDialog';
 import { MaintenanceDrawer } from '@/components/maintenance/MaintenanceDrawer';
+import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
 import { MaintenanceCreateDrawer } from '@/components/maintenance/MaintenanceCreateDrawer';
 
 export const MaintenancePage: React.FC = () => {
@@ -104,6 +105,15 @@ export const MaintenancePage: React.FC = () => {
     setIsDetailDrawerOpen(true);
   };
 
+  // #maintenances?id=N (busca global, ficha do equipamento, Início)
+  useDeepLinkId('maintenances', async (id) => {
+    try {
+      handleOpenDetail(await maintenanceService.getMaintenance(id));
+    } catch {
+      clearDeepLinkId();
+    }
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'agendada': return <Badge variant="info">Agendada</Badge>;
@@ -160,7 +170,7 @@ export const MaintenancePage: React.FC = () => {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
-            Centro de Manutenções
+            Manutenções
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Workspace operacional para gestão de preventivas, corretivas e intervenções.
@@ -403,7 +413,10 @@ export const MaintenancePage: React.FC = () => {
       {/* DRAWERS & MODALS */}
       <MaintenanceDrawer
         isOpen={isDetailDrawerOpen}
-        onClose={() => setIsDetailDrawerOpen(false)}
+        onClose={() => {
+          setIsDetailDrawerOpen(false);
+          clearDeepLinkId();
+        }}
         maintenance={selectedMaintenance}
         equipmentList={equipmentList}
         onSuccess={loadData}

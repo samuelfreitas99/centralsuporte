@@ -42,6 +42,7 @@ import { attendanceService } from '@/services/attendanceService';
 import { projectService } from '@/services/projectService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
+import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
 import type {
   AttendanceItem,
   AttendanceCreateInput,
@@ -118,7 +119,7 @@ export const AttendancePage: React.FC = () => {
     loadAttendances();
   }, [loadAttendances]);
 
-  // Deep linking: Open drawer if ID is in hash
+  // #attendance?new=true[&project_id=N]: abre o formulário de novo atendimento
   useEffect(() => {
     const handleHashChange = () => {
       const hashParams = new URLSearchParams(window.location.hash.split('?')[1] || '');
@@ -161,14 +162,8 @@ export const AttendancePage: React.FC = () => {
         setIsFormOpen(true);
         // Clear query parameters while keeping #attendance tab intact
         window.history.replaceState(null, '', '#attendance');
-      } else if (id && attendances.length > 0) {
-        const att = attendances.find(a => a.id === Number(id));
-        if (att && (!selectedAttendanceDetails || selectedAttendanceDetails.id !== att.id)) {
-          setSelectedAttendanceDetails(att);
-          setDetailsTab('info');
-        }
-      } else if (!isNew) {
-        // If there's no ID in the hash, close the drawer
+      } else if (!id) {
+        // Voltar no navegador (hash sem id) fecha o detalhe
         setSelectedAttendanceDetails(null);
       }
     };
@@ -181,7 +176,17 @@ export const AttendancePage: React.FC = () => {
       window.removeEventListener('popstate', handleHashChange);
       window.removeEventListener('hashchange', handleHashChange);
     };
-  }, [attendances, selectedAttendanceDetails]);
+  }, []);
+
+  // #attendance?id=N: abre o detalhe (busca global, Início, ficha do equipamento)
+  useDeepLinkId('attendance', async (id) => {
+    try {
+      setSelectedAttendanceDetails(await attendanceService.getAttendance(id));
+      setDetailsTab('info');
+    } catch {
+      clearDeepLinkId();
+    }
+  });
 
   // One-click copy commands used
   const handleCopyCommands = async (commands: string, id: number) => {
@@ -360,7 +365,7 @@ export const AttendancePage: React.FC = () => {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
-              Atendimentos Internos
+              Atendimentos
             </h1>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -574,9 +579,7 @@ export const AttendancePage: React.FC = () => {
       <Drawer open={Boolean(selectedAttendanceDetails)} onOpenChange={(open) => {
         if (!open) {
           setSelectedAttendanceDetails(null);
-          if (window.location.hash.includes('?id=')) {
-            window.history.replaceState(null, '', '#attendance');
-          }
+          clearDeepLinkId();
         }
       }}>
         <DrawerContent side="right" size="lg" className="p-0 flex flex-col h-full rounded-l-2xl sm:rounded-l-2xl rounded-tr-none sm:rounded-tr-none">

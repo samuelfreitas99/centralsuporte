@@ -165,11 +165,11 @@ describe('InfrastructurePage (Phase 8)', () => {
     vi.mocked(infrastructureService.getStockItems).mockResolvedValue(mockStock);
   });
 
-  it('renders page header and Phase 8 badge', async () => {
+  it('renders page header without development phase labels', async () => {
     renderInfrastructurePage();
 
-    expect(screen.getByText('Infraestrutura & Parque Tecnológico')).toBeInTheDocument();
-    expect(screen.getByText('Fase 8')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Equipamentos e Lojas' })).toBeInTheDocument();
+    expect(screen.queryByText('Fase 8')).not.toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('PDV-01-MATRIZ')).toBeInTheDocument();
