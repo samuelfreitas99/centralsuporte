@@ -1,80 +1,110 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
+import {
+  AlertTriangle,
+  BookOpen,
+  CalendarClock,
+  CheckSquare,
+  Headset,
+  KeyRound,
+  Package,
+  PlusCircle,
+  Search,
+  Wrench,
+} from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { TaskListSection } from '@/components/dashboard/TaskListSection';
 import { RecentAttendancesSection } from '@/components/dashboard/RecentAttendancesSection';
 import { QuickKnowledgeSection } from '@/components/dashboard/QuickKnowledgeSection';
 import { RemindersSection } from '@/components/dashboard/RemindersSection';
-
+import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { dashboardService } from '@/services/dashboardService';
 import { organizationService } from '@/services/organizationService';
 import { attendanceService } from '@/services/attendanceService';
 import { knowledgeService } from '@/services/knowledgeService';
-
+import type { DashboardSummary } from '@/types/dashboard';
 import type { Task, Reminder } from '@/types/tasks';
 import type { AttendanceItem } from '@/types/attendance';
 import type { KnowledgeArticle } from '@/types/knowledge';
-
-import {
-  CheckSquare,
-  Clock,
-  Headset,
-  BookOpen,
-  PlusCircle,
-  Wrench,
-  Terminal,
-  Server,
-  AlertTriangle,
-  ExternalLink,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 interface DashboardPageProps {
   onSelectTab?: (tab: string) => void;
 }
 
+interface ShiftAlert {
+  key: string;
+  icon: React.ComponentType<{ className?: string }>;
+  text: string;
+  target: string;
+  tone: 'danger' | 'warning';
+}
+
+/** Alertas de início de turno montados a partir do resumo (só aparecem quando há algo a fazer). */
+const buildAlerts = (s: DashboardSummary): ShiftAlert[] => {
+  const alerts: ShiftAlert[] = [];
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  if (s.tasks?.overdue) {
+    alerts.push({ key: 'overdue', icon: AlertTriangle, tone: 'danger', target: 'tasks', text: `${plural(s.tasks.overdue, 'tarefa atrasada', 'tarefas atrasadas')}` });
+  }
+  if (s.maintenances?.overdue) {
+    alerts.push({ key: 'maint-overdue', icon: Wrench, tone: 'danger', target: 'maintenances', text: `${plural(s.maintenances.overdue, 'manutenção agendada', 'manutenções agendadas')} com data vencida` });
+  }
+  if (s.maintenances?.today) {
+    alerts.push({ key: 'maint-today', icon: CalendarClock, tone: 'warning', target: 'maintenances', text: `${plural(s.maintenances.today, 'manutenção', 'manutenções')} para hoje` });
+  }
+  if (s.low_stock_total) {
+    const names = (s.low_stock ?? []).slice(0, 2).map((i) => i.name).join(', ');
+    alerts.push({ key: 'stock', icon: Package, tone: 'warning', target: 'equipment', text: `${plural(s.low_stock_total, 'item', 'itens')} com estoque baixo${names ? ` (${names}${s.low_stock_total > 2 ? '…' : ''})` : ''}` });
+  }
+  if (s.expiring_licenses_total) {
+    const next = s.expiring_licenses?.[0];
+    alerts.push({ key: 'licenses', icon: KeyRound, tone: 'warning', target: 'equipment', text: `${plural(s.expiring_licenses_total, 'licença vence', 'licenças vencem')} em até 30 dias${next ? ` (próxima: ${next.name}, ${next.days_left < 0 ? 'vencida' : `${next.days_left} dias`})` : ''}` });
+  }
+  return alerts;
+};
+
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { hasPermission } = useAuth();
+  const go = (target: string) => onSelectTab?.(target);
+
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [attendances, setAttendances] = useState<AttendanceItem[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        // Load data concurrently
-        const [tasksData, remindersData, attendancesData, articlesData] = await Promise.all([
-          organizationService.getTasks({ limit: 10 }), // get some tasks for summary
-          organizationService.getReminders(),
-          attendanceService.getAttendances(),
-          knowledgeService.getArticles(),
-        ]);
-        
-        setTasks(tasksData.items as Task[]);
-        setReminders(remindersData);
-        setAttendances(attendancesData);
-        setArticles(articlesData);
-      } catch (err) {
-        console.error('Failed to load dashboard data:', err);
-      } finally {
-        setLoading(false);
-      }
+    let cancelled = false;
+    const load = async () => {
+      // Cada bloco falha de forma independente (ex.: sem permissão para um módulo).
+      const [summaryData, tasksData, remindersData, attendancesData, articlesData] = await Promise.all([
+        dashboardService.getSummary().catch(() => null),
+        organizationService.getTasks({ assigned_to_me: true, limit: 20 }).catch(() => null),
+        organizationService.getReminders().catch(() => [] as Reminder[]),
+        attendanceService.getAttendances().catch(() => [] as AttendanceItem[]),
+        knowledgeService.getArticles().catch(() => [] as KnowledgeArticle[]),
+      ]);
+      if (cancelled) return;
+      setSummary(summaryData);
+      setMyTasks(
+        ((tasksData?.items ?? []) as Task[]).filter((t) => t.status === 'pendente' || t.status === 'em_andamento')
+      );
+      setReminders(remindersData);
+      setAttendances(attendancesData);
+      setArticles(articlesData);
+      setLoading(false);
     };
-    fetchDashboardData();
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  const criticalTasks = useMemo(() => tasks.filter(t => t.priority === 'urgente' && t.status !== 'concluida'), [tasks]);
-
-  const metrics = useMemo(() => {
-    return {
-      pendingTasks: tasks.filter(t => t.status === 'pendente').length,
-      inProgressTasks: tasks.filter(t => t.status === 'em_andamento').length,
-      recentAttendances: attendances.length,
-      knowledgeBase: articles.length,
-    };
-  }, [tasks, attendances, articles]);
+  const alerts = summary ? buildAlerts(summary) : [];
+  const metric = (n: number | undefined) => (n === undefined ? '—' : n);
 
   return (
     <motion.div
@@ -83,154 +113,117 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
       transition={{ duration: 0.25 }}
       className="space-y-8 pb-8"
     >
-      {/* 1. Critical Alerts (Renderização Condicional) */}
-      {criticalTasks.length > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 shadow-sm relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-destructive"></div>
-          <div className="flex items-start sm:items-center gap-3">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-destructive/20 text-destructive">
-              <AlertTriangle className="h-4 w-4" />
-            </div>
-            <div>
-              <h3 className="text-sm font-bold text-destructive">Atenção Crítica Necessária</h3>
-              <p className="text-xs text-destructive/90 mt-0.5 font-medium">
-                Você possui {criticalTasks.length} {criticalTasks.length === 1 ? 'tarefa urgente' : 'tarefas urgentes'} para resolver no plantão.
-              </p>
-            </div>
-          </div>
-          <Button variant="destructive" size="sm" onClick={() => onSelectTab?.('tasks')} className="shrink-0 h-8 text-xs font-bold shadow-sm">
-            Resolver Agora
+      <DashboardHeader />
+
+      {/* Ações rápidas */}
+      <div className="flex flex-wrap items-center gap-2">
+        {hasPermission('attendance:write') && (
+          <Button size="sm" onClick={() => go('attendance?new=true')} className="h-8 gap-1.5 text-xs font-medium shadow-sm">
+            <PlusCircle className="h-3.5 w-3.5" />
+            Novo atendimento
           </Button>
-        </div>
-      )}
-
-      {/* Grid Principal */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
-        
-        {/* 2. O MEU TURNO (Esquerda - 8 colunas) */}
-        <div className="xl:col-span-8 flex flex-col gap-6">
-          <DashboardHeader />
-          
-          {/* Ações Rápidas Integradas organicamente sob o cabeçalho */}
-          <div className="flex flex-wrap items-center gap-2 mb-2 bg-card p-2 rounded-xl border border-border/60 shadow-xs">
-            <Button
-              variant="default"
-              size="sm"
-              onClick={() => onSelectTab?.('attendance')}
-              className="h-8 gap-1.5 text-xs font-medium shadow-sm"
-            >
-              <PlusCircle className="h-3.5 w-3.5" />
-              <span>Novo Atendimento</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSelectTab?.('commands')}
-              className="h-8 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            >
-              <Terminal className="h-3.5 w-3.5" />
-              <span>Comandos</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSelectTab?.('equipment')}
-              className="h-8 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            >
-              <Server className="h-3.5 w-3.5" />
-              <span>Equipamentos</span>
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onSelectTab?.('maintenances')}
-              className="h-8 gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            >
-              <Wrench className="h-3.5 w-3.5" />
-              <span>Manutenções</span>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-            <TaskListSection
-              tasks={tasks.slice(0, 5)}
-              loading={loading}
-              onNavigateToTasks={() => onSelectTab?.('tasks')}
-            />
-            <RemindersSection
-              reminders={reminders.slice(0, 5)}
-              loading={loading}
-              onNavigateToReminders={() => onSelectTab?.('tasks')}
-            />
-          </div>
-        </div>
-
-        {/* 3. MÉTRICAS DA EQUIPE (Direita - 4 colunas) */}
-        <div className="xl:col-span-4 flex flex-col gap-4">
-          <div className="flex items-center justify-between pb-2 border-b border-border/40">
-            <h2 className="font-heading text-lg font-bold text-foreground">Visão Geral</h2>
-          </div>
-          <div className="grid grid-cols-2 gap-4 pt-2">
-            <MetricCard
-              title="Pendentes"
-              value={metrics.pendingTasks}
-              subtitle="Tarefas da rotina"
-              icon={CheckSquare}
-              variant="warning"
-              onClick={() => onSelectTab?.('tasks')}
-            />
-            <MetricCard
-              title="Em Curso"
-              value={metrics.inProgressTasks}
-              subtitle="Execução agora"
-              icon={Clock}
-              variant="primary"
-              onClick={() => onSelectTab?.('tasks')}
-            />
-            <MetricCard
-              title="Atendimentos"
-              value={metrics.recentAttendances}
-              subtitle="Total hoje"
-              icon={Headset}
-              variant="success"
-              onClick={() => onSelectTab?.('attendance')}
-            />
-            <MetricCard
-              title="Base"
-              value={metrics.knowledgeBase}
-              subtitle="Artigos disponíveis"
-              icon={BookOpen}
-              variant="default"
-              onClick={() => onSelectTab?.('knowledge')}
-            />
-          </div>
-        </div>
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}
+          className="h-8 gap-1.5 text-xs font-medium"
+        >
+          <Search className="h-3.5 w-3.5" />
+          Buscar (Ctrl+K)
+        </Button>
       </div>
 
-      <div className="w-full h-px bg-border/60 my-6 shadow-xs"></div>
+      {/* Alertas de início de turno */}
+      {alerts.length > 0 && (
+        <section aria-label="Alertas do turno" className="grid gap-2 sm:grid-cols-2">
+          {alerts.map((a) => {
+            const Icon = a.icon;
+            return (
+              <button
+                key={a.key}
+                type="button"
+                onClick={() => go(a.target)}
+                className={
+                  a.tone === 'danger'
+                    ? 'flex items-center gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3.5 py-2.5 text-left text-xs font-medium text-destructive hover:bg-destructive/15 cursor-pointer'
+                    : 'flex items-center gap-2.5 rounded-xl border border-warning/30 bg-warning/10 px-3.5 py-2.5 text-left text-xs font-medium text-foreground hover:bg-warning/15 cursor-pointer'
+                }
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                <span>{a.text}</span>
+              </button>
+            );
+          })}
+        </section>
+      )}
 
-      {/* 4. CONTEXTO CONTÍNUO / TIMELINE */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+      {/* Números do turno (contagens reais do servidor) */}
+      <section aria-label="Resumo" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {summary?.tasks && (
+          <MetricCard
+            title="Minhas tarefas"
+            value={metric(summary.tasks.assigned_to_me)}
+            subtitle={`${summary.tasks.pending + summary.tasks.in_progress} abertas na equipe`}
+            icon={CheckSquare}
+            variant="primary"
+            onClick={() => go('tasks')}
+          />
+        )}
+        {summary?.tasks && (
+          <MetricCard
+            title="Urgentes"
+            value={metric(summary.tasks.urgent)}
+            subtitle={`${summary.tasks.overdue} atrasadas`}
+            icon={AlertTriangle}
+            variant="warning"
+            onClick={() => go('tasks?priority=urgente')}
+          />
+        )}
+        {summary?.attendances && (
+          <MetricCard
+            title="Atendimentos"
+            value={metric(summary.attendances.open)}
+            subtitle={`em andamento · ${summary.attendances.today} hoje`}
+            icon={Headset}
+            variant="success"
+            onClick={() => go('attendance')}
+          />
+        )}
+        {summary?.maintenances ? (
+          <MetricCard
+            title="Manutenções"
+            value={metric(summary.maintenances.today)}
+            subtitle={`hoje · ${summary.maintenances.next_7_days} nos próximos 7 dias`}
+            icon={Wrench}
+            onClick={() => go('maintenances')}
+          />
+        ) : (
+          summary?.knowledge_published != null && (
+            <MetricCard
+              title="Base"
+              value={summary.knowledge_published}
+              subtitle="artigos publicados"
+              icon={BookOpen}
+              onClick={() => go('knowledge')}
+            />
+          )
+        )}
+      </section>
+
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <TaskListSection tasks={myTasks.slice(0, 5)} loading={loading} onNavigateToTasks={() => go('tasks')} />
+        <RemindersSection reminders={reminders.slice(0, 5)} loading={loading} onNavigateToReminders={() => go('tasks')} />
         <RecentAttendancesSection
           attendances={attendances.slice(0, 5)}
           loading={loading}
-          onNavigateToAttendance={(id?: number) => onSelectTab?.(id ? `attendance?id=${id}` : 'attendance')}
+          onNavigateToAttendance={(id?: number) => go(id ? `attendance?id=${id}` : 'attendance')}
         />
         <QuickKnowledgeSection
           articles={articles.slice(0, 5)}
           loading={loading}
-          onNavigateToKnowledge={(id?: number) => onSelectTab?.(id ? `knowledge?id=${id}` : 'knowledge')}
+          onNavigateToKnowledge={(id?: number) => go(id ? `knowledge?id=${id}` : 'knowledge')}
         />
-      </div>
-
-      {/* 5. Banner OTRS Reduzido */}
-      <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-2 rounded-xl bg-card border border-border/50 p-4 text-xs text-muted-foreground shadow-sm">
-        <div className="flex items-center gap-1.5 font-bold text-foreground">
-          <ExternalLink className="h-4 w-4 text-primary" />
-          <span>Integração Oficial com OTRS</span>
-        </div>
-        <span className="hidden sm:inline text-border">—</span>
-        <span className="font-medium text-center">Abertura, histórico do cliente e encerramento ocorrem exclusivamente no sistema OTRS.</span>
       </div>
     </motion.div>
   );

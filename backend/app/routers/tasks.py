@@ -22,6 +22,21 @@ router = APIRouter(prefix="/tasks", tags=["Tasks"])
 def is_admin(user: User) -> bool:
     return user.has_role("Administrador")
 
+
+def visible_tasks_query(db: Session, user: User):
+    """Tarefas que o usuário pode ver: admin vê tudo; os demais veem tarefas de equipe/todos,
+    as que criaram e as atribuídas a eles. Usado também pelo resumo do Início."""
+    query = db.query(Task)
+    if not is_admin(user):
+        query = query.filter(
+            or_(
+                Task.visibility.in_(["equipe", "todos"]),
+                Task.creator_id == user.id,
+                Task.assigned_users.any(User.id == user.id),
+            )
+        )
+    return query
+
 @router.get("", response_model=PaginatedResponse[TaskListResponse])
 def list_tasks(
     status_filter: Optional[str] = Query(None, alias="status"),
@@ -35,22 +50,7 @@ def list_tasks(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("tasks:read")),
 ):
-    query = db.query(Task)
-
-    # Visibility rules:
-    # Admin sees everything.
-    # Non-admin sees tasks that are:
-    # 1. visibility in ('equipe', 'todos') OR
-    # 2. creator_id == current_user.id OR
-    # 3. assigned to current_user
-    if not is_admin(current_user):
-        query = query.filter(
-            or_(
-                Task.visibility.in_(["equipe", "todos"]),
-                Task.creator_id == current_user.id,
-                Task.assigned_users.any(User.id == current_user.id)
-            )
-        )
+    query = visible_tasks_query(db, current_user)
 
     if status_filter:
         query = query.filter(Task.status == status_filter)

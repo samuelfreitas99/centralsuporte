@@ -1211,3 +1211,49 @@ class ProjectSummaryResponse(BaseModel):
     total_attendances: int = 0
     total_events: int = 0
     total_stock_movements: int = 0
+
+
+# --- Dashboard (Início) ---
+
+class DashboardTaskCounts(BaseModel):
+    pending: int
+    in_progress: int
+    overdue: int
+    urgent: int
+    assigned_to_me: int
+
+class DashboardAttendanceCounts(BaseModel):
+    open: int
+    mine_open: int
+    today: int
+
+class DashboardMaintenanceCounts(BaseModel):
+    today: int
+    overdue: int
+    next_7_days: int
+
+class DashboardLowStockItem(BaseModel):
+    id: int
+    name: str
+    current_quantity: int
+    min_quantity: int
+    unit: str
+
+class DashboardExpiringLicense(BaseModel):
+    id: int
+    name: str
+    expiration_date: datetime
+    days_left: int
+
+class DashboardSummaryResponse(BaseModel):
+    """Seções ausentes (null) = usuário sem permissão para o módulo."""
+    generated_at: datetime
+    tasks: Optional[DashboardTaskCounts] = None
+    attendances: Optional[DashboardAttendanceCounts] = None
+    maintenances: Optional[DashboardMaintenanceCounts] = None
+    low_stock_total: Optional[int] = None
+    low_stock: Optional[List[DashboardLowStockItem]] = None
+    expiring_licenses_total: Optional[int] = None
+    expiring_licenses: Optional[List[DashboardExpiringLicense]] = None
+    reminders_pending: int = 0
+    knowledge_published: Optional[int] = None

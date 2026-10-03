@@ -23,14 +23,14 @@ export const DashboardHeader: React.FC = () => {
             <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
           </span>
           <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-            Turno Operacional Ativo
+            Seu turno
           </span>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl font-heading">
-          Olá, {user?.username}
+          Olá, {user?.display_name || user?.full_name || user?.username}
         </h1>
         <p className="text-sm text-muted-foreground max-w-xl leading-relaxed">
-          Estação de comando. Acompanhe diagnósticos, consulte base de conhecimento e gerencie atividades de suporte.
+          O que está atrasado, o que é para hoje e o que precisa de atenção no seu turno.
         </p>
       </div>
 

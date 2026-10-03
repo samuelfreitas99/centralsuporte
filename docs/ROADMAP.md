@@ -47,7 +47,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S2.4 Ações a partir do equipamento: "Registrar atendimento" (`#attendance?new=true&equipment_id=N`) e "Agendar manutenção" (`#maintenances?new=true&equipment_id=N`) já preenchidos — P-23
 
 ### S3 — Início (Dashboard) útil
-- [ ] S3.1 Endpoint `GET /dashboard/summary` com contagens reais e alertas de início de turno — P-40, P-41, P-42
+- [x] S3.1 Endpoint `GET /dashboard/summary` com contagens reais e alertas de início de turno — P-40, P-41, P-42
 - [ ] S3.2 Lembretes em um lugar só (sino + bloco no Início); distinguir alerta automático de lembrete pessoal — P-30, P-31
 
 ### S4 — Código compartilhado e manutenção
