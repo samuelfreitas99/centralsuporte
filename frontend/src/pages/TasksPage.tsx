@@ -1,21 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { formatDateTime } from '@/lib/format';
-import { PriorityBadge } from '@/components/ui/StatusBadge';
+import { TaskRow } from '@/components/tasks/TaskRow';
+import { useAuth } from '@/hooks/useAuth';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
 import { statusOptions, priorityOptions } from '@/lib/status';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   CheckSquare,
   Plus,
-  ExternalLink,
-  Clock,
-  Trash2,
-  Edit,
-  Eye,
 } from 'lucide-react';
 import type { Task, TaskList, TaskCreatePayload, TaskUpdatePayload } from '@/types/tasks';
 import { organizationService } from '@/services/organizationService';
@@ -29,13 +23,15 @@ import { Pagination } from '@/components/ui/Pagination';
 
 export const TasksPage: React.FC = () => {
   const [tasks, setTasks] = useState<TaskList[]>([]);
-  const [totalTasks, setTotalTasks] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const { page, limit, setPage, updateHashParams } = usePagination(50);
 
   const [loading, setLoading] = useState(true);
+  const { hasPermission } = useAuth();
+  const canEdit = hasPermission('tasks:write');
   const [debouncedSearch, setDebouncedSearch] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('search') || '');
-  const [statusFilter, setStatusFilter] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('status') || '');
+  // Padrão: só as tarefas abertas (pendentes e em andamento), em ordem de prazo. "todas" = sem filtro.
+  const [statusFilter, setStatusFilter] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('status') || 'abertas');
   const [priorityFilter, setPriorityFilter] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('priority') || '');
 
   // Dialogs state
@@ -49,14 +45,13 @@ export const TasksPage: React.FC = () => {
     try {
       setLoading(true);
       const data = await organizationService.getTasks({
-        status: statusFilter || undefined,
+        status: statusFilter && statusFilter !== 'todas' ? statusFilter : undefined,
         priority: priorityFilter || undefined,
         search: debouncedSearch || undefined,
         page,
         limit,
       });
       setTasks(data.items);
-      setTotalTasks(data.total);
       setTotalPages(data.total_pages);
     } catch (err) {
       console.error('Falha ao buscar tarefas:', err);
@@ -148,13 +143,6 @@ export const TasksPage: React.FC = () => {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-xl border border-border bg-card p-4 shadow-xs">
-              <span className="text-xs font-medium text-muted-foreground">Total de Registros</span>
-              <p className="text-2xl font-bold text-foreground mt-1">{totalTasks}</p>
-            </div>
-          </div>
-
           <Card className="flex-1 flex flex-col min-h-[500px]">
             <div className="p-4 pb-3">
               <FilterBar
@@ -168,9 +156,9 @@ export const TasksPage: React.FC = () => {
               >
                 <FilterSelect
                   label="Status"
-                  value={statusFilter || 'all'}
-                  onChange={(value) => handleStatusFilterChange(value === 'all' ? '' : value)}
-                  options={statusOptions('task')}
+                  value={statusFilter === 'todas' ? 'all' : statusFilter}
+                  onChange={(value) => handleStatusFilterChange(value === 'all' ? 'todas' : value)}
+                  options={[{ value: 'abertas', label: 'Abertas' }, ...statusOptions('task')]}
                 />
                 <FilterSelect
                   label="Prioridade"
@@ -180,7 +168,7 @@ export const TasksPage: React.FC = () => {
                 />
                 <Button size="sm" onClick={openCreateDialog} className="flex items-center gap-1.5 h-9 shrink-0">
                   <Plus className="h-4 w-4" />
-                  <span>Nova Tarefa</span>
+                  <span>Nova tarefa</span>
                 </Button>
               </FilterBar>
             </div>
@@ -188,123 +176,39 @@ export const TasksPage: React.FC = () => {
             <CardContent className="p-0 border-t border-border/50 flex-1 flex flex-col">
               {loading ? (
                 <div className="flex-1 flex items-center justify-center py-12 text-sm text-muted-foreground">
-                  Carregando tarefas operacionais...
+                  Carregando tarefas...
                 </div>
               ) : tasks.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center py-12 text-sm text-muted-foreground gap-2">
                   <CheckSquare className="h-8 w-8 text-muted-foreground/40 mb-1" />
-                  <p className="font-semibold text-foreground">Nenhuma tarefa encontrada.</p>
+                  <p className="font-semibold text-foreground">
+                    {statusFilter === 'abertas' && !debouncedSearch && !priorityFilter ? 'Nenhuma tarefa aberta. Tudo em dia!' : 'Nenhuma tarefa encontrada com esses filtros.'}
+                  </p>
                   <Button size="sm" variant="outline" onClick={openCreateDialog} className="mt-2 text-xs">
-                    Criar Primeira Tarefa
+                    Nova tarefa
                   </Button>
                 </div>
               ) : (
                 <>
                   <div className="divide-y divide-border/50 flex-1">
-                    {tasks.map((task) => {
-                      return (
-                        <div
-                          key={task.id}
-                          className="p-4 hover:bg-muted/30 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4 group"
-                        >
-                          <div className="space-y-1.5 flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span
-                                className={`text-sm font-bold cursor-pointer hover:underline ${
-                                  task.status === 'concluida' ? 'line-through text-muted-foreground' : 'text-foreground'
-                                }`}
-                                onClick={() => openDetailDrawer(task.id)}
-                              >
-                                {task.title}
-                              </span>
-
-                              <PriorityBadge priority={task.priority} className="text-[10px] py-0 h-4 uppercase" />
-
-                              {task.category && (
-                                <Badge variant="outline" className="text-[10px] py-0 h-4 bg-background">
-                                  {task.category}
-                                </Badge>
-                              )}
-
-                              {task.otrs_reference && (
-                                <div
-                                  className="flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20 shrink-0"
-                                  title="Chamado oficial associado no OTRS"
-                                >
-                                  <ExternalLink className="h-2.5 w-2.5" />
-                                  <span>{task.otrs_reference}</span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground pt-1">
-                              {task.due_date && (
-                                <div className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" />
-                                  <span>Prazo: {formatDateTime(task.due_date)}</span>
-                                </div>
-                              )}
-
-                              <div>
-                                <span>Criado por: {task.creator?.username || 'Suporte'}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0 self-end sm:self-center opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
-                            <select
-                              className="h-8 rounded-md border border-input bg-background px-2 text-xs font-semibold text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                              value={task.status}
-                              onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                            >
-                              <option value="pendente">Pendente</option>
-                              <option value="em_andamento">Em Andamento</option>
-                              <option value="concluida">Concluída</option>
-                              <option value="cancelada">Cancelada</option>
-                            </select>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 text-xs flex items-center gap-1"
-                              onClick={() => openDetailDrawer(task.id)}
-                            >
-                              <Eye className="h-3.5 w-3.5" />
-                              <span className="hidden sm:inline">Detalhes</span>
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                              onClick={() => openEditDialog(task.id)}
-                              title="Editar tarefa"
-                            >
-                              <Edit className="h-3.5 w-3.5" />
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
-                              onClick={() => handleDeleteTask(task.id)}
-                              title="Excluir tarefa"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {tasks.map((task) => (
+                      <TaskRow
+                        key={task.id}
+                        task={task}
+                        canEdit={canEdit}
+                        onOpen={() => openDetailDrawer(task.id)}
+                        onToggleDone={() => handleStatusChange(task.id, task.status === 'concluida' ? 'pendente' : 'concluida')}
+                        onEdit={() => openEditDialog(task.id)}
+                        onDelete={() => handleDeleteTask(task.id)}
+                      />
+                    ))}
                   </div>
-                  
-                  <div className="p-4 border-t border-border/50">
-                    <Pagination 
-                      currentPage={page} 
-                      totalPages={totalPages} 
-                      onPageChange={setPage} 
-                    />
-                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="p-4 border-t border-border/50">
+                      <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+                    </div>
+                  )}
                 </>
               )}
             </CardContent>

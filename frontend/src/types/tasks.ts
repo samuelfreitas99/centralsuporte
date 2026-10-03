@@ -3,6 +3,8 @@ export interface UserSimple {
   username: string;
   email: string;
   is_active: boolean;
+  full_name?: string | null;
+  display_name?: string | null;
   role_id?: number | null;
 }
 

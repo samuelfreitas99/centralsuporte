@@ -85,7 +85,7 @@ export const RemindersSection: React.FC = () => {
             <span>Meus lembretes</span>
           </CardTitle>
           <CardDescription className="text-xs">
-            Avisos pontuais para retorno de contato, conferência e rotinas
+            Só você vê. Avisamos no sino na hora marcada.
           </CardDescription>
         </div>
         <Button
@@ -95,7 +95,7 @@ export const RemindersSection: React.FC = () => {
           onClick={() => setShowAdd(!showAdd)}
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>Novo Lembrete</span>
+          <span>Novo</span>
         </Button>
       </CardHeader>
 

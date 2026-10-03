@@ -52,7 +52,10 @@ def list_tasks(
 ):
     query = visible_tasks_query(db, current_user)
 
-    if status_filter:
+    # "abertas" = pendente + em andamento (visão padrão da tela de tarefas)
+    if status_filter == "abertas":
+        query = query.filter(Task.status.in_(["pendente", "em_andamento"]))
+    elif status_filter:
         query = query.filter(Task.status == status_filter)
     if priority_filter:
         query = query.filter(Task.priority == priority_filter)
@@ -83,7 +86,12 @@ def list_tasks(
     )
 
     # Apply pagination and sorting
-    tasks = query.order_by(Task.created_at.desc()).offset(pagination.offset).limit(pagination.limit).all()
+    # Abertas: o que vence primeiro aparece primeiro (sem prazo por último). Demais: mais recentes.
+    if status_filter == "abertas":
+        order = (Task.due_date.asc().nulls_last(), Task.created_at.desc())
+    else:
+        order = (Task.created_at.desc(),)
+    tasks = query.order_by(*order).offset(pagination.offset).limit(pagination.limit).all()
     
     return paginate(tasks, pagination.page, pagination.limit, total)
 

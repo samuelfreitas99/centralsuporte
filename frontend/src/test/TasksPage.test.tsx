@@ -85,7 +85,7 @@ describe('TasksPage', () => {
     
     // Reminders and Calendar should be in the document right away
     expect(screen.getByText('Meus lembretes')).toBeInTheDocument();
-    expect(screen.getByText('Eventos e Manutenções Programadas')).toBeInTheDocument();
+    expect(screen.getByText('Agenda')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Verificar switch de distribuição')).toBeInTheDocument();
@@ -100,10 +100,10 @@ describe('TasksPage', () => {
     render(<TasksPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Nova Tarefa')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Nova tarefa' })).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Nova Tarefa'));
+    fireEvent.click(screen.getByRole('button', { name: 'Nova tarefa' }));
 
     expect(screen.getByText('Nova Tarefa Operacional')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Ex: Verificar switch do rack 02')).toBeInTheDocument();
@@ -123,7 +123,7 @@ describe('TasksPage', () => {
 
     vi.mocked(organizationService.getTasks).mockClear();
 
-    fireEvent.click(screen.getByText('Detalhes'));
+    fireEvent.click(screen.getByRole('button', { name: 'Verificar switch de distribuição' }));
 
     await waitFor(() => {
       // With Radix UI/Vaul Drawer, content might take a moment to be available in JSDOM portal.
@@ -135,5 +135,15 @@ describe('TasksPage', () => {
     expect(organizationService.getTasks).not.toHaveBeenCalled();
     
     // Close the drawer if possible, or just complete the test
+  });
+
+  it('lists open tasks by default and completes a task with one click', async () => {
+    render(<TasksPage />);
+    await waitFor(() => {
+      expect(organizationService.getTasks).toHaveBeenCalledWith(expect.objectContaining({ status: 'abertas' }));
+    });
+    const toggle = (await screen.findAllByRole('button', { name: 'Marcar como concluída' }))[0];
+    fireEvent.click(toggle);
+    await waitFor(() => expect(organizationService.updateTaskStatus).toHaveBeenCalledWith(expect.any(Number), 'concluida'));
   });
 });

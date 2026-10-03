@@ -222,3 +222,20 @@ def test_unauthenticated_access_blocked():
     assert client.get("/checklists").status_code == 401
     assert client.get("/reminders").status_code == 401
     assert client.get("/calendar/events").status_code == 401
+
+
+def test_open_tasks_filter_orders_by_due_date():
+    from datetime import datetime, timedelta, timezone
+    token = get_auth_token()
+    h = {"Authorization": f"Bearer {token}"}
+    now = datetime.now(timezone.utc)
+    tag = "ordem-abertas"
+    later = client.post("/tasks", json={"title": f"{tag} depois", "due_date": (now + timedelta(days=5)).isoformat()}, headers=h).json()
+    sooner = client.post("/tasks", json={"title": f"{tag} antes", "due_date": (now + timedelta(days=1)).isoformat()}, headers=h).json()
+    no_due = client.post("/tasks", json={"title": f"{tag} sem prazo"}, headers=h).json()
+    done = client.post("/tasks", json={"title": f"{tag} feita", "status": "concluida"}, headers=h).json()
+
+    page = client.get(f"/tasks?status=abertas&search={tag}", headers=h).json()
+    ids = [t["id"] for t in page["items"]]
+    assert ids == [sooner["id"], later["id"], no_due["id"]]
+    assert done["id"] not in ids

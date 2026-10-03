@@ -95,10 +95,10 @@ export const CalendarSection: React.FC = () => {
         <div>
           <CardTitle className="text-base font-bold flex items-center gap-2">
             <CalendarIcon className="h-4 w-4 text-primary" />
-            <span>Eventos e Manutenções Programadas</span>
+            <span>Agenda</span>
           </CardTitle>
           <CardDescription className="text-xs">
-            Janelas de manutenção, intervenções técnicas e escalas da equipe
+            Visitas, plantões e janelas de manutenção da equipe
           </CardDescription>
         </div>
         <Button
@@ -108,7 +108,7 @@ export const CalendarSection: React.FC = () => {
           onClick={() => setShowAdd(!showAdd)}
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>Agendar Evento</span>
+          <span>Novo</span>
         </Button>
       </CardHeader>
 
