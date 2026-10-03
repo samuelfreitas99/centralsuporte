@@ -9,19 +9,9 @@ import {
   Plus,
   ExternalLink,
   HardDrive,
-  MapPin,
-  CheckCircle2,
   Clock,
-  BookOpen,
-  Terminal,
-  Copy,
-  Check,
   AlertTriangle,
   RefreshCw,
-  Edit2,
-  Trash2,
-  MessageSquare,
-  Send,
   Sparkles,
   User
 } from 'lucide-react';
@@ -30,24 +20,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-  DrawerFooter,
-} from '@/components/ui/drawer';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/hooks/useAuth';
 import { attendanceService } from '@/services/attendanceService';
 import { projectService } from '@/services/projectService';
-import { AttachmentManager } from '@/components/attachments/AttachmentManager';
-import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import { useDeepLinkId, clearDeepLinkId } from '@/hooks/useDeepLink';
+import { AttendanceDetailDrawer } from '@/components/attendance/AttendanceDetailDrawer';
+import { AttendanceFormDrawer } from '@/components/attendance/AttendanceFormDrawer';
+import { EMPTY_FORM, attendanceToForm } from '@/components/attendance/attendanceForm';
 import { Pagination } from '@/components/ui/Pagination';
-import { EquipmentPicker } from '@/components/infrastructure/EquipmentPicker';
 import { equipmentLabel } from '@/lib/equipment';
 import { infrastructureService } from '@/services/infrastructureService';
 import type {
@@ -56,83 +37,6 @@ import type {
 } from '@/types/attendance';
 
 const PAGE_SIZE = 30;
-
-const EMPTY_FORM: AttendanceCreateInput = {
-  title: '',
-  otrs_ticket: '',
-  otrs_url: '',
-  requester_name: '',
-  status: 'em_andamento',
-  equipment_id: null,
-  equipment_name: '',
-  store_department: '',
-  problem_description: '',
-  symptoms: '',
-  diagnosis: '',
-  cause: '',
-  solution: '',
-  commands_used: '',
-  internal_notes: '',
-  project_id: undefined,
-};
-
-const attendanceToForm = (att: AttendanceItem): AttendanceCreateInput => ({
-  title: att.title,
-  otrs_ticket: att.otrs_ticket || '',
-  otrs_url: att.otrs_url || '',
-  requester_name: att.requester_name || '',
-  status: att.status || 'em_andamento',
-  equipment_id: att.equipment_id ?? null,
-  equipment_name: att.equipment_name || '',
-  store_department: att.store_department || '',
-  problem_description: att.problem_description || '',
-  symptoms: att.symptoms || '',
-  diagnosis: att.diagnosis || '',
-  cause: att.cause || '',
-  solution: att.solution || '',
-  commands_used: att.commands_used || '',
-  internal_notes: att.internal_notes || '',
-  project_id: att.project_id || undefined,
-});
-
-const DetailBlock: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({
-  icon,
-  title,
-  children,
-}) => (
-  <div className="space-y-2">
-    <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-      {icon}
-      {title}
-    </h4>
-    <div className="rounded-xl border border-border/60 bg-card p-4 text-sm text-muted-foreground leading-relaxed shadow-sm whitespace-pre-wrap">
-      {children}
-    </div>
-  </div>
-);
-
-const TEXTAREA_CLASS =
-  'w-full rounded-xl border border-border/60 bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y';
-
-const FormSection: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <section className="space-y-4">
-    <h4 className="text-sm font-bold text-foreground border-b border-border/40 pb-2">{title}</h4>
-    {children}
-  </section>
-);
-
-const FormField: React.FC<{ label: string; hint?: string; className?: string; children: React.ReactNode }> = ({
-  label,
-  hint,
-  className,
-  children,
-}) => (
-  <div className={className}>
-    <label className="text-xs font-bold text-foreground mb-1.5 block">{label}</label>
-    {children}
-    {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
-  </div>
-);
 
 export const AttendancePage: React.FC = () => {
   const { user, hasRole } = useAuth();
@@ -150,26 +54,19 @@ export const AttendancePage: React.FC = () => {
   const [totalAttendances, setTotalAttendances] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [copiedCmdId, setCopiedCmdId] = useState<number | null>(null);
 
   // Drawer state: Create / Edit Attendance
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingAttendance, setEditingAttendance] = useState<AttendanceItem | null>(null);
   const [attendanceForm, setAttendanceForm] = useState<AttendanceCreateInput>(EMPTY_FORM);
-  const setField = <K extends keyof AttendanceCreateInput>(key: K, value: AttendanceCreateInput[K]) =>
-    setAttendanceForm((prev) => ({ ...prev, [key]: value }));
 
   const [lockedProjectName, setLockedProjectName] = useState<string | undefined>();
 
 
   // Drawer state: Details
   const [selectedAttendanceDetails, setSelectedAttendanceDetails] = useState<AttendanceItem | null>(null);
-  const [detailsTab, setDetailsTab] = useState('info');
 
-  const [newNoteText, setNewNoteText] = useState('');
-  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [convertingId, setConvertingId] = useState<number | null>(null);
 
   // Load Attendances
   const loadAttendances = useCallback(async () => {
@@ -260,7 +157,6 @@ export const AttendancePage: React.FC = () => {
   const openAttendanceDetails = async (id: number) => {
     try {
       setSelectedAttendanceDetails(await attendanceService.getAttendance(id));
-      setDetailsTab('info');
     } catch {
       clearDeepLinkId();
     }
@@ -268,44 +164,6 @@ export const AttendancePage: React.FC = () => {
 
   // #attendance?id=N: abre o detalhe (busca global, Início, ficha do equipamento)
   useDeepLinkId('attendance', openAttendanceDetails);
-
-  // One-click copy commands used
-  const handleCopyCommands = async (commands: string, id: number) => {
-    if (!commands) return;
-    try {
-      await navigator.clipboard.writeText(commands);
-      setCopiedCmdId(id);
-      success('Comandos copiados!', 'Comandos utilizados foram copiados para a área de transferência.');
-    } catch {
-      toastError('Erro ao copiar', 'Não foi possível copiar os comandos.');
-    } finally {
-      setTimeout(() => setCopiedCmdId(null), 2000);
-    }
-  };
-
-  // Convert to Knowledge Action
-  const handleConvertToKnowledge = async (att: AttendanceItem) => {
-    setConvertingId(att.id);
-    try {
-      const article = await attendanceService.convertToKnowledge(att.id);
-      success(
-        'Rascunho criado na Base de Conhecimento!',
-        `Artigo "${article.title}" gerado com sucesso para revisão técnica.`
-      );
-      // Update attendance with linked article id
-      setAttendances((prev) =>
-        prev.map((a) => (a.id === att.id ? { ...a, knowledge_article_id: article.id } : a))
-      );
-      if (selectedAttendanceDetails?.id === att.id) {
-        setSelectedAttendanceDetails(prev => prev ? { ...prev, knowledge_article_id: article.id } : prev);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao converter atendimento em conhecimento';
-      toastError('Erro na conversão', msg);
-    } finally {
-      setConvertingId(null);
-    }
-  };
 
   // Open Create/Edit Drawer
   const handleOpenForm = (att?: AttendanceItem) => {
@@ -365,30 +223,6 @@ export const AttendancePage: React.FC = () => {
   };
 
   // Add Technical Note
-  const handleAddNote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedAttendanceDetails || !newNoteText.trim()) return;
-
-    setIsSubmittingNote(true);
-    try {
-      const createdNote = await attendanceService.addNote(selectedAttendanceDetails.id, newNoteText.trim());
-      success('Nota técnica adicionada', 'Novo apontamento registrado no atendimento.');
-      setNewNoteText('');
-
-      // Update local state
-      const updatedNotes = [...selectedAttendanceDetails.notes, createdNote];
-      setSelectedAttendanceDetails({ ...selectedAttendanceDetails, notes: updatedNotes });
-      setAttendances((prev) =>
-        prev.map((a) => (a.id === selectedAttendanceDetails.id ? { ...a, notes: updatedNotes } : a))
-      );
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Falha ao adicionar nota';
-      toastError('Erro', msg);
-    } finally {
-      setIsSubmittingNote(false);
-    }
-  };
-
   // Permissions
   const canModifyAttendance = (att: AttendanceItem) => {
     if (!user) return false;
@@ -603,456 +437,39 @@ export const AttendancePage: React.FC = () => {
         </div>
       )}
 
-      {/* DRAWER: DETAILS VIEW (Progressive Disclosure) */}
-      <Drawer open={Boolean(selectedAttendanceDetails)} onOpenChange={(open) => {
-        if (!open) {
+      {/* Detalhe do atendimento */}
+      <AttendanceDetailDrawer
+        key={selectedAttendanceDetails?.id ?? 'fechado'}
+        attendance={selectedAttendanceDetails}
+        onClose={() => {
           setSelectedAttendanceDetails(null);
           clearDeepLinkId();
-        }
-      }}>
-        <DrawerContent side="right" size="lg" className="p-0 flex flex-col h-full rounded-l-2xl sm:rounded-l-2xl rounded-tr-none sm:rounded-tr-none">
-          {selectedAttendanceDetails && (
-            <>
-              <DrawerHeader className="px-6 py-5 bg-card border-b border-border/60">
-                <div className="flex items-center gap-2 mb-3">
-                  {selectedAttendanceDetails.otrs_ticket ? (
-                    <a
-                      href={selectedAttendanceDetails.otrs_url || '#'}
-                      target={selectedAttendanceDetails.otrs_url ? '_blank' : '_self'}
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      <span>Chamado OTRS #{selectedAttendanceDetails.otrs_ticket}</span>
-                    </a>
-                  ) : (
-                    <Badge variant="outline" className="text-[10px] text-muted-foreground border-border/60">
-                      Atendimento Interno
-                    </Badge>
-                  )}
-                  {getStatusBadge(selectedAttendanceDetails.status)}
-                </div>
-                <DrawerTitle className="text-xl leading-snug mb-1">
-                  {selectedAttendanceDetails.title}
-                </DrawerTitle>
-                <DrawerDescription className="flex items-center gap-3 mt-2 text-xs font-medium">
-                  <span className="flex items-center gap-1 text-foreground/80"><User className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.technician?.username}</span>
-                  {selectedAttendanceDetails.equipment_name &&
-                    (selectedAttendanceDetails.equipment_id ? (
-                      <a
-                        href={`#equipment?id=${selectedAttendanceDetails.equipment_id}`}
-                        className="flex items-center gap-1 text-primary hover:underline"
-                        title="Abrir ficha do equipamento"
-                      >
-                        <HardDrive className="h-3.5 w-3.5" /> {selectedAttendanceDetails.equipment_name}
-                      </a>
-                    ) : (
-                      <span className="flex items-center gap-1 text-foreground/80"><HardDrive className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.equipment_name}</span>
-                    ))}
-                  {selectedAttendanceDetails.store_department && (
-                    <span className="flex items-center gap-1 text-foreground/80"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /> {selectedAttendanceDetails.store_department}</span>
-                  )}
-                </DrawerDescription>
-              </DrawerHeader>
+        }}
+        onUpdated={(updated) => {
+          setSelectedAttendanceDetails(updated);
+          setAttendances((prev) =>
+            prev.map((a) => (a.id === updated.id ? { ...a, knowledge_article_id: updated.knowledge_article_id } : a))
+          );
+        }}
+        onEdit={handleOpenForm}
+        onDelete={handleDeleteAttendance}
+        canModify={selectedAttendanceDetails ? canModifyAttendance(selectedAttendanceDetails) : false}
+      />
 
-              <div className="flex-1 overflow-y-auto bg-muted/10 p-6">
-                <Tabs value={detailsTab} onValueChange={setDetailsTab} className="w-full h-full flex flex-col">
-                  <TabsList className="mb-6 w-full justify-start border-b border-border/40 rounded-none h-auto p-0 bg-transparent gap-6">
-                    <TabsTrigger value="info" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 py-2 text-sm">
-                      Detalhes
-                    </TabsTrigger>
-                    <TabsTrigger value="notes" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none px-1 py-2 text-sm flex items-center gap-2">
-                      Notas & Anexos
-                      <Badge variant="secondary" className="px-1.5 py-0 h-4 text-[9px]">
-                        {selectedAttendanceDetails.notes?.length || 0}
-                      </Badge>
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="info" className="space-y-6 flex-1 outline-none mt-0">
-                    <div className="grid gap-6">
-                      {(selectedAttendanceDetails.problem_description || selectedAttendanceDetails.symptoms) && (
-                        <DetailBlock icon={<MessageSquare className="h-4 w-4 text-sky-500" />} title="Problema relatado">
-                          {selectedAttendanceDetails.problem_description}
-                          {selectedAttendanceDetails.symptoms && (
-                            <p className="mt-2 text-xs"><span className="font-semibold">Sintomas:</span> {selectedAttendanceDetails.symptoms}</p>
-                          )}
-                        </DetailBlock>
-                      )}
-
-                      <DetailBlock icon={<Clock className="h-4 w-4 text-primary" />} title="Diagnóstico">
-                        {selectedAttendanceDetails.diagnosis || 'Ainda não informado.'}
-                      </DetailBlock>
-
-                      {/* Causa */}
-                      {selectedAttendanceDetails.cause && (
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                            <AlertTriangle className="h-4 w-4 text-warning" />
-                            Causa
-                          </h4>
-                          <div className="rounded-xl border border-warning/20 bg-warning/5 p-4 text-sm text-foreground/80 leading-relaxed shadow-sm">
-                            {selectedAttendanceDetails.cause}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Solução */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                          <CheckCircle2 className="h-4 w-4 text-success" />
-                          Solução aplicada
-                        </h4>
-                        <div className="rounded-xl border border-success/20 bg-success/5 p-4 text-sm text-foreground/80 leading-relaxed shadow-sm">
-                          {selectedAttendanceDetails.solution || 'Procedimento ainda não finalizado.'}
-                        </div>
-                      </div>
-
-                      {/* Comandos */}
-                      {selectedAttendanceDetails.commands_used && (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
-                              <Terminal className="h-4 w-4 text-primary" />
-                              Comandos Utilizados
-                            </h4>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleCopyCommands(selectedAttendanceDetails.commands_used!, selectedAttendanceDetails.id)}
-                              className="h-7 text-xs font-medium cursor-pointer hover:bg-muted/50"
-                            >
-                              {copiedCmdId === selectedAttendanceDetails.id ? (
-                                <><Check className="h-3 w-3 mr-1.5 text-success" /> Copiado!</>
-                              ) : (
-                                <><Copy className="h-3 w-3 mr-1.5" /> Copiar</>
-                              )}
-                            </Button>
-                          </div>
-                          <div className="rounded-xl border border-border/60 bg-slate-950 p-4 shadow-inner">
-                            <pre className="font-mono text-xs text-blue-300 whitespace-pre-wrap break-all">
-                              {selectedAttendanceDetails.commands_used}
-                            </pre>
-                          </div>
-                        </div>
-                      )}
-
-                      {selectedAttendanceDetails.internal_notes && (
-                        <DetailBlock icon={<AlertTriangle className="h-4 w-4 text-muted-foreground" />} title="Notas internas">
-                          {selectedAttendanceDetails.internal_notes}
-                        </DetailBlock>
-                      )}
-                    </div>
-                  </TabsContent>
-
-                  <TabsContent value="notes" className="space-y-6 flex-1 flex flex-col outline-none mt-0">
-                    <div className="flex-1 overflow-y-auto space-y-4 pr-1">
-                      {selectedAttendanceDetails.notes && selectedAttendanceDetails.notes.length > 0 ? (
-                        selectedAttendanceDetails.notes.map((n) => (
-                          <div key={n.id} className="rounded-xl border border-border/60 bg-card p-4 space-y-2 shadow-sm">
-                            <div className="flex items-center justify-between border-b border-border/40 pb-2">
-                              <span className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                                <User className="h-3.5 w-3.5 text-muted-foreground" />
-                                {n.author?.username || 'Técnico'}
-                              </span>
-                              <span className="text-[10px] font-mono text-muted-foreground">
-                                {new Date(n.created_at).toLocaleDateString()} {new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                              </span>
-                            </div>
-                            <p className="text-sm text-foreground/80 leading-relaxed">{n.note}</p>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="flex flex-col items-center justify-center py-10 text-center">
-                          <MessageSquare className="h-8 w-8 text-muted-foreground/30 mb-3" />
-                          <p className="text-sm font-medium text-muted-foreground">Nenhuma nota registrada.</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <form onSubmit={handleAddNote} className="pt-4 border-t border-border/60 shrink-0">
-                      <div className="flex flex-col gap-2">
-                        <label className="text-xs font-bold text-foreground">Nova Nota Técnica</label>
-                        <div className="flex items-end gap-2">
-                          <textarea
-                            value={newNoteText}
-                            onChange={(e) => setNewNoteText(e.target.value)}
-                            placeholder="Registre observações sobre testes, progresso..."
-                            className="w-full rounded-xl border border-border/60 bg-card p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 resize-none h-20 shadow-sm"
-                          />
-                          <Button 
-                            type="submit" 
-                            disabled={isSubmittingNote || !newNoteText.trim()} 
-                            className="shrink-0 h-10 w-10 p-0 rounded-xl shadow-sm cursor-pointer"
-                            title="Enviar nota"
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </form>
-
-                    <div className="pt-4 border-t border-border/60 shrink-0">
-                      <AttachmentManager
-                        entityType="attendance"
-                        entityId={selectedAttendanceDetails.id}
-                        title="Evidências & Anexos"
-                        readOnly={!canModifyAttendance(selectedAttendanceDetails)}
-                        compact
-                      />
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-
-              <DrawerFooter className="flex flex-row items-center justify-between border-t border-border/60 bg-card p-4">
-                <div className="flex items-center gap-2">
-                  {selectedAttendanceDetails.knowledge_article_id ? (
-                    <Badge variant="secondary" className="flex items-center gap-1.5 py-1.5">
-                      <BookOpen className="h-3.5 w-3.5 text-primary" />
-                      Artigo Criado
-                    </Badge>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleConvertToKnowledge(selectedAttendanceDetails)}
-                      disabled={convertingId === selectedAttendanceDetails.id}
-                      className="text-xs font-medium gap-1.5 border-primary/20 text-primary hover:bg-primary/10 cursor-pointer"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {convertingId === selectedAttendanceDetails.id ? 'Convertendo...' : 'Gerar Artigo'}
-                    </Button>
-                  )}
-                </div>
-
-                {canModifyAttendance(selectedAttendanceDetails) && (
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteAttendance(selectedAttendanceDetails)}
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive cursor-pointer h-9 px-3"
-                    >
-                      <Trash2 className="h-4 w-4 sm:mr-1.5" />
-                      <span className="hidden sm:inline">Excluir</span>
-                    </Button>
-                    <Button
-                      variant="default"
-                      size="sm"
-                      onClick={() => handleOpenForm(selectedAttendanceDetails)}
-                      className="shadow-sm cursor-pointer h-9 px-4"
-                    >
-                      <Edit2 className="h-4 w-4 sm:mr-1.5" />
-                      <span className="hidden sm:inline">Editar</span>
-                    </Button>
-                  </div>
-                )}
-              </DrawerFooter>
-            </>
-          )}
-        </DrawerContent>
-      </Drawer>
-
-      {/* DRAWER: CREATE / EDIT ATTENDANCE */}
-      <Drawer
+      {/* Novo atendimento / edição */}
+      <AttendanceFormDrawer
         open={isFormOpen}
         onOpenChange={(open) => {
           setIsFormOpen(open);
-          if (!open) {
-            setLockedProjectName(undefined);
-          }
+          if (!open) setLockedProjectName(undefined);
         }}
-      >
-        <DrawerContent side="right" size="lg" className="p-0 flex flex-col h-full rounded-l-2xl sm:rounded-l-2xl rounded-tr-none sm:rounded-tr-none">
-          <DrawerHeader className="px-6 py-5 bg-card border-b border-border/60">
-            <DrawerTitle className="flex items-center gap-2 text-xl">
-              <Headset className="h-5 w-5 text-primary" />
-              {editingAttendance ? 'Editar atendimento' : 'Novo atendimento'}
-            </DrawerTitle>
-            <DrawerDescription className="mt-1">
-              Registro técnico interno. O chamado oficial continua no OTRS.
-            </DrawerDescription>
-          </DrawerHeader>
-
-          <form onSubmit={handleSaveAttendance} className="flex-1 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto bg-muted/10 p-6 space-y-6">
-              
-              <FormSection title="Chamado">
-                <FormField label="Título *">
-                  <Input
-                    value={attendanceForm.title}
-                    onChange={(e) => setField('title', e.target.value)}
-                    placeholder="Ex.: PDV 03 não imprime cupom"
-                    className="bg-card border-border/60 h-10"
-                    required
-                  />
-                </FormField>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <FormField label="Nº do chamado OTRS">
-                    <Input
-                      value={attendanceForm.otrs_ticket || ''}
-                      onChange={(e) => setField('otrs_ticket', e.target.value)}
-                      placeholder="Ex.: 2026092410001"
-                      className="bg-card border-border/60 h-10 font-mono"
-                    />
-                  </FormField>
-                  <FormField label="Link do chamado" className="sm:col-span-2">
-                    <Input
-                      type="url"
-                      value={attendanceForm.otrs_url || ''}
-                      onChange={(e) => setField('otrs_url', e.target.value)}
-                      placeholder="https://otrs.../TicketZoom;TicketID=..."
-                      className="bg-card border-border/60 h-10"
-                    />
-                  </FormField>
-                </div>
-                <FormField label="Status">
-                  <select
-                    value={attendanceForm.status || 'em_andamento'}
-                    onChange={(e) => setField('status', e.target.value)}
-                    className="w-full sm:w-1/2 h-10 rounded-xl border border-border/60 bg-card px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/40 cursor-pointer"
-                  >
-                    <option value="em_andamento">Em andamento</option>
-                    <option value="resolvido">Resolvido</option>
-                    <option value="cancelado">Cancelado</option>
-                  </select>
-                </FormField>
-              </FormSection>
-
-              <FormSection title="Onde e quem">
-                <FormField label="Equipamento" hint="Vincule ao inventário para o atendimento aparecer na ficha do equipamento.">
-                  <EquipmentPicker
-                    value={{ id: attendanceForm.equipment_id ?? null, name: attendanceForm.equipment_name || '' }}
-                    onChange={(val, eq) =>
-                      setAttendanceForm((prev) => ({
-                        ...prev,
-                        equipment_id: val.id,
-                        equipment_name: val.name,
-                        store_department:
-                          prev.store_department ||
-                          [eq?.store?.name, eq?.department?.name].filter(Boolean).join(' / '),
-                      }))
-                    }
-                  />
-                </FormField>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <FormField label="Loja / Departamento">
-                    <Input
-                      value={attendanceForm.store_department || ''}
-                      onChange={(e) => setField('store_department', e.target.value)}
-                      placeholder="Ex.: Loja 03 / Frente de caixa"
-                      className="bg-card border-border/60 h-10"
-                    />
-                  </FormField>
-                  <FormField label="Solicitante">
-                    <Input
-                      value={attendanceForm.requester_name || ''}
-                      onChange={(e) => setField('requester_name', e.target.value)}
-                      placeholder="Quem pediu o atendimento"
-                      className="bg-card border-border/60 h-10"
-                    />
-                  </FormField>
-                </div>
-                <FormField label="Projeto (opcional)">
-                  <ProjectSelect
-                    value={attendanceForm.project_id || null}
-                    onChange={(projectId) => setField('project_id', projectId || null)}
-                    lockedContextName={lockedProjectName}
-                  />
-                </FormField>
-              </FormSection>
-
-              <FormSection title="O que aconteceu">
-                <FormField label="Problema relatado">
-                  <textarea
-                    value={attendanceForm.problem_description || ''}
-                    onChange={(e) => setField('problem_description', e.target.value)}
-                    rows={3}
-                    placeholder="O que o usuário relatou..."
-                    className={TEXTAREA_CLASS}
-                  />
-                </FormField>
-                <FormField label="Sintomas observados">
-                  <textarea
-                    value={attendanceForm.symptoms || ''}
-                    onChange={(e) => setField('symptoms', e.target.value)}
-                    rows={2}
-                    placeholder="Mensagens de erro, luzes, comportamento..."
-                    className={TEXTAREA_CLASS}
-                  />
-                </FormField>
-              </FormSection>
-
-              <FormSection title="Diagnóstico e solução">
-                <FormField label="Diagnóstico">
-                  <textarea
-                    value={attendanceForm.diagnosis || ''}
-                    onChange={(e) => setField('diagnosis', e.target.value)}
-                    rows={3}
-                    placeholder="O que foi verificado e constatado..."
-                    className={TEXTAREA_CLASS}
-                  />
-                </FormField>
-                <FormField label="Causa">
-                  <textarea
-                    value={attendanceForm.cause || ''}
-                    onChange={(e) => setField('cause', e.target.value)}
-                    rows={2}
-                    placeholder="O que originou o problema..."
-                    className={TEXTAREA_CLASS}
-                  />
-                </FormField>
-                <FormField label="Solução aplicada">
-                  <textarea
-                    value={attendanceForm.solution || ''}
-                    onChange={(e) => setField('solution', e.target.value)}
-                    rows={3}
-                    placeholder="O que foi feito para resolver..."
-                    className={TEXTAREA_CLASS}
-                  />
-                </FormField>
-                <FormField label="Comandos utilizados">
-                  <textarea
-                    value={attendanceForm.commands_used || ''}
-                    onChange={(e) => setField('commands_used', e.target.value)}
-                    rows={3}
-                    placeholder="Um comando por linha..."
-                    className={`${TEXTAREA_CLASS} font-mono text-xs`}
-                  />
-                </FormField>
-              </FormSection>
-
-              <FormSection title="Notas internas">
-                <FormField label="Observações só para a equipe" hint="Não aparecem no OTRS. Para o andamento do dia a dia, use as notas no detalhe do atendimento.">
-                  <textarea
-                    value={attendanceForm.internal_notes || ''}
-                    onChange={(e) => setField('internal_notes', e.target.value)}
-                    rows={2}
-                    className={TEXTAREA_CLASS}
-                  />
-                </FormField>
-              </FormSection>
-            </div>
-
-            <DrawerFooter className="flex flex-row items-center justify-end gap-3 border-t border-border/60 bg-card p-4">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => setIsFormOpen(false)}
-                disabled={isSubmitting}
-                className="hover:bg-muted/50 cursor-pointer"
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="shadow-sm cursor-pointer min-w-[120px]">
-                {isSubmitting ? 'Salvando...' : editingAttendance ? 'Salvar alterações' : 'Registrar atendimento'}
-              </Button>
-            </DrawerFooter>
-          </form>
-        </DrawerContent>
-      </Drawer>
+        isEditing={Boolean(editingAttendance)}
+        form={attendanceForm}
+        setForm={setAttendanceForm}
+        lockedProjectName={lockedProjectName}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSaveAttendance}
+      />
     </div>
   );
 };
