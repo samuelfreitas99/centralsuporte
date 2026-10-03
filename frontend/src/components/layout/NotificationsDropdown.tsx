@@ -1,122 +1,131 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { priorityLabel } from '@/lib/status';
-import { formatDate } from '@/lib/format';
-import {
-  Bell,
-  CheckCircle2,
-  Clock,
-  AlertTriangle,
-  RefreshCw,
-  X,
-  Zap,
-} from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertTriangle, Bell, BellRing, CheckCircle2, Clock, RefreshCw, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/hooks/useAuth';
+import { formatRelative } from '@/lib/format';
+import { priorityLabel } from '@/lib/status';
+import {
+  notificationPermission,
+  requestNotificationPermission,
+  showNotification,
+  takeUnnotified,
+} from '@/lib/notifications';
 import { organizationService } from '@/services/organizationService';
 import { automationService } from '@/services/automationService';
 import type { Reminder } from '@/types/tasks';
 
-export const NotificationsDropdown: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isTriggering, setIsTriggering] = useState(false);
-  const [lastCheckMessage, setLastCheckMessage] = useState<string | null>(null);
+const POLL_MS = 60_000;
+const MAX_SYSTEM_NOTIFICATIONS = 3;
 
+const isDue = (r: Reminder) => new Date(r.remind_at).getTime() <= Date.now();
+const targetFor = (r: Reminder) => (r.task_id ? `tasks?id=${r.task_id}` : 'tasks');
+
+/**
+ * Sino de avisos: lembretes que já chegaram na hora e alertas automáticos (tarefas vencendo,
+ * manutenções do dia, equipamentos com falhas repetidas). Avisos novos também viram
+ * notificação do sistema quando o navegador permite.
+ */
+export const NotificationsDropdown: React.FC = () => {
+  const { hasPermission } = useAuth();
+  const [isOpen, setIsOpen] = useState(false);
+  const [due, setDue] = useState<Reminder[]>([]);
+  const [loaded, setLoaded] = useState(false);
+  const [permission, setPermission] = useState(notificationPermission);
+  const [checking, setChecking] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const loadReminders = useCallback(async () => {
-    setIsLoading(true);
+  const load = useCallback(async () => {
     try {
-      const data = await organizationService.getReminders('pendente');
-      setReminders(data);
+      const pending = await organizationService.getReminders('pendente');
+      const nowDue = pending.filter(isDue).sort((a, b) => +new Date(b.remind_at) - +new Date(a.remind_at));
+      setDue(nowDue);
+      setLoaded(true);
+
+      const fresh = new Set(takeUnnotified(nowDue.map((r) => r.id)));
+      const toShow = nowDue.filter((r) => fresh.has(r.id));
+      toShow.slice(0, MAX_SYSTEM_NOTIFICATIONS).forEach((r) =>
+        showNotification(r.title, r.description || 'Abra a Central para ver os detalhes.', `/#${targetFor(r)}`, `reminder-${r.id}`)
+      );
+      if (toShow.length > MAX_SYSTEM_NOTIFICATIONS) {
+        showNotification('Central de Suporte', `Mais ${toShow.length - MAX_SYSTEM_NOTIFICATIONS} avisos no sino.`, '/#dashboard', 'reminder-more');
+      }
     } catch (err) {
-      console.error('Falha ao carregar lembretes:', err);
-    } finally {
-      setIsLoading(false);
+      console.error('Falha ao carregar avisos:', err);
     }
   }, []);
 
   useEffect(() => {
-    loadReminders();
-    const interval = setInterval(loadReminders, 120000);
-    return () => clearInterval(interval);
-  }, [loadReminders]);
-
-  // Close on outside click
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = () => {
+      load();
+      timer = setInterval(load, POLL_MS);
     };
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const handle = setTimeout(start, 0);
+    return () => {
+      clearTimeout(handle);
+      if (timer) clearInterval(timer);
+    };
+  }, [load]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const close = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
   }, [isOpen]);
 
-  const handleTriggerAutomation = async () => {
-    setIsTriggering(true);
-    setLastCheckMessage(null);
+  const setStatus = async (id: number, status: 'concluido' | 'dispensado') => {
+    try {
+      await organizationService.updateReminderStatus(id, status);
+      setDue((prev) => prev.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error('Falha ao atualizar aviso:', err);
+    }
+  };
+
+  const checkNow = async () => {
+    setChecking(true);
     try {
       const res = await automationService.triggerRules();
-      await loadReminders();
-      const count = res.total_created;
-      setLastCheckMessage(
-        count > 0
-          ? `${count} novo(s) alerta(s) gerado(s)`
-          : 'Regras verificadas: tudo em dia'
-      );
-    } catch (err) {
-      console.error('Erro ao disparar regras:', err);
-      setLastCheckMessage('Falha ao executar verificação');
+      await load();
+      setMessage(res.total_created > 0 ? `${res.total_created} aviso(s) novo(s)` : 'Nada novo. Tudo em dia.');
+    } catch {
+      setMessage('Não foi possível verificar agora.');
     } finally {
-      setIsTriggering(false);
-      setTimeout(() => setLastCheckMessage(null), 4000);
+      setChecking(false);
+      setTimeout(() => setMessage(null), 4000);
     }
   };
 
-  const handleResolveReminder = async (id: number) => {
-    try {
-      await organizationService.updateReminderStatus(id, 'concluido');
-      setReminders((prev) => prev.filter((r) => r.id !== id));
-    } catch (err) {
-      console.error('Erro ao concluir lembrete:', err);
-    }
-  };
+  const enableNotifications = async () => setPermission(await requestNotificationPermission());
 
-  const handleDismissReminder = async (id: number) => {
-    try {
-      await organizationService.updateReminderStatus(id, 'dispensado');
-      setReminders((prev) => prev.filter((r) => r.id !== id));
-    } catch (err) {
-      console.error('Erro ao dispensar lembrete:', err);
-    }
+  const open = (r: Reminder) => {
+    window.location.hash = targetFor(r);
+    setIsOpen(false);
   };
-
-  const pendingCount = reminders.length;
 
   return (
     <div className="relative" ref={containerRef}>
-      {/* Bell Button */}
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="relative text-muted-foreground hover:text-foreground h-8 w-8 rounded-lg cursor-pointer"
-        aria-label="Abrir notificações e lembretes"
+        onClick={() => setIsOpen((v) => !v)}
+        className="relative h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+        aria-label={due.length ? `Avisos (${due.length})` : 'Avisos'}
         aria-expanded={isOpen}
       >
         <Bell className="h-4 w-4" />
-        {pendingCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white shadow-xs">
-            {pendingCount > 9 ? '9+' : pendingCount}
+        {due.length > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+            {due.length > 9 ? '9+' : due.length}
           </span>
         )}
       </Button>
 
-      {/* Popover Dropdown Panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -124,117 +133,78 @@ export const NotificationsDropdown: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-80 sm:w-96 rounded-xl border border-border/70 bg-popover text-popover-foreground shadow-lg z-50 overflow-hidden"
+            className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border/70 bg-popover text-popover-foreground shadow-lg sm:w-96"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-3 border-b border-border/60 bg-muted/20">
-              <div className="flex items-center gap-2">
-                <Zap className="h-3.5 w-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground font-heading">
-                  Alertas & Regras Reativas
-                </span>
-                {pendingCount > 0 && (
-                  <span className="text-[10px] font-medium bg-primary/10 text-primary px-1.5 py-0.2 rounded-full border border-primary/20">
-                    {pendingCount}
-                  </span>
-                )}
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleTriggerAutomation}
-                disabled={isTriggering}
-                className="h-6 px-2 text-[11px] gap-1.5 border-border/70 text-foreground hover:border-primary/40 cursor-pointer"
-                title="Executar varredura de regras agora"
-              >
-                <RefreshCw className={`h-3 w-3 text-primary ${isTriggering ? 'animate-spin' : ''}`} />
-                <span>{isTriggering ? 'Verificando...' : 'Verificar'}</span>
-              </Button>
+            <div className="flex items-center justify-between border-b border-border/60 bg-muted/20 p-3">
+              <span className="text-sm font-semibold text-foreground">Avisos</span>
+              {hasPermission('tasks:write') && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={checkNow}
+                  disabled={checking}
+                  className="h-7 gap-1.5 px-2 text-[11px] cursor-pointer"
+                  title="Procura agora tarefas vencendo, manutenções do dia e equipamentos com falhas repetidas"
+                >
+                  <RefreshCw className={`h-3 w-3 ${checking ? 'animate-spin' : ''}`} />
+                  {checking ? 'Verificando...' : 'Verificar agora'}
+                </Button>
+              )}
             </div>
 
-            {/* Feedback message banner if any */}
-            {lastCheckMessage && (
-              <div className="bg-primary/10 border-b border-primary/20 px-3 py-1.5 text-[11px] text-primary text-center font-medium">
-                {lastCheckMessage}
+            {message && (
+              <div className="border-b border-primary/20 bg-primary/10 px-3 py-1.5 text-center text-[11px] font-medium text-primary">
+                {message}
               </div>
             )}
 
-            {/* List Content */}
-            <div className="max-h-80 overflow-y-auto divide-y divide-border/40">
-              {isLoading && reminders.length === 0 ? (
-                <div className="p-6 text-center text-xs text-muted-foreground">
-                  Carregando lembretes...
-                </div>
-              ) : reminders.length === 0 ? (
-                <div className="p-6 text-center space-y-1.5">
-                  <CheckCircle2 className="h-7 w-7 text-emerald-500 mx-auto opacity-80" />
-                  <p className="text-xs font-medium text-foreground">Tudo em dia!</p>
-                  <p className="text-[11px] text-muted-foreground">
-                    Nenhum prazo vencendo, manutenção iminente ou alerta pendente no momento.
-                  </p>
+            <div className="max-h-80 divide-y divide-border/40 overflow-y-auto">
+              {!loaded ? (
+                <p className="p-6 text-center text-xs text-muted-foreground">Carregando...</p>
+              ) : due.length === 0 ? (
+                <div className="space-y-1.5 p-6 text-center">
+                  <CheckCircle2 className="mx-auto h-7 w-7 text-emerald-500 opacity-80" />
+                  <p className="text-xs font-medium text-foreground">Nenhum aviso agora.</p>
+                  <p className="text-[11px] text-muted-foreground">Seus lembretes aparecem aqui na hora marcada.</p>
                 </div>
               ) : (
-                reminders.map((rem) => {
-                  const isUrgent = rem.priority === 'urgente' || rem.priority === 'alta';
+                due.map((r) => {
+                  const urgent = r.priority === 'urgente' || r.priority === 'alta';
                   return (
-                    <div
-                      key={rem.id}
-                      className="p-3 hover:bg-muted/30 transition-colors flex items-start gap-2.5 group"
-                    >
-                      <div className="mt-0.5 shrink-0">
-                        {isUrgent ? (
-                          <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
-                        ) : (
-                          <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+                    <div key={r.id} className="group flex items-start gap-2.5 p-3 hover:bg-muted/30">
+                      {urgent ? (
+                        <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
+                      ) : (
+                        <Clock className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      )}
+                      <button type="button" onClick={() => open(r)} className="min-w-0 flex-1 text-left cursor-pointer">
+                        <span className="block text-xs font-medium text-foreground">{r.title}</span>
+                        {r.description && (
+                          <span className="mt-0.5 block line-clamp-2 text-[11px] text-muted-foreground">{r.description}</span>
                         )}
-                      </div>
-                      <div className="flex-1 min-w-0 space-y-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-xs font-medium text-foreground truncate">
-                            {rem.title}
-                          </span>
-                          {rem.source === 'automacao' && (
-                            <span className="text-[9px] font-medium text-muted-foreground shrink-0" title="Gerado pelas regras automáticas">
-                              Automático
-                            </span>
-                          )}
-                          <span
-                            className={`text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.2 rounded border shrink-0 ${
-                              isUrgent
-                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                : 'bg-muted text-muted-foreground border-border/60'
-                            }`}
-                          >
-                            {priorityLabel(rem.priority)}
-                          </span>
-                        </div>
-                        {rem.description && (
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
-                            {rem.description}
-                          </p>
-                        )}
-                        <div className="flex items-center justify-between pt-0.5">
-                          <span className="text-[10px] text-muted-foreground font-mono">
-                            {formatDate(rem.remind_at)}
-                          </span>
-                          <div className="flex items-center gap-1 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                            <button
-                              onClick={() => handleResolveReminder(rem.id)}
-                              className="p-1 text-emerald-500 hover:bg-emerald-500/15 rounded cursor-pointer transition-colors"
-                              title="Marcar como resolvido"
-                            >
-                              <CheckCircle2 className="h-3.5 w-3.5" />
-                            </button>
-                            <button
-                              onClick={() => handleDismissReminder(rem.id)}
-                              className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded cursor-pointer transition-colors"
-                              title="Dispensar alerta"
-                            >
-                              <X className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-                        </div>
+                        <span className="mt-1 block text-[10px] text-muted-foreground">
+                          {formatRelative(r.remind_at)} · {r.source === 'automacao' ? 'automático' : 'lembrete'} · {priorityLabel(r.priority)}
+                        </span>
+                      </button>
+                      <div className="flex shrink-0 items-center gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => setStatus(r.id, 'concluido')}
+                          className="rounded p-1 text-emerald-500 hover:bg-emerald-500/15 cursor-pointer"
+                          aria-label="Marcar como resolvido"
+                          title="Resolvido"
+                        >
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setStatus(r.id, 'dispensado')}
+                          className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                          aria-label="Dispensar aviso"
+                          title="Dispensar"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
                   );
@@ -242,12 +212,26 @@ export const NotificationsDropdown: React.FC = () => {
               )}
             </div>
 
-            {/* Footer Info */}
-            <div className="p-2 border-t border-border/60 bg-muted/20 text-center">
-              <span className="text-[10px] text-muted-foreground">
-                Scheduler Reativo • Verificações automáticas a cada 60 min
-              </span>
-            </div>
+            {permission === 'default' && (
+              <button
+                type="button"
+                onClick={enableNotifications}
+                className="flex w-full items-center justify-center gap-1.5 border-t border-border/60 bg-muted/20 p-2.5 text-[11px] font-medium text-primary hover:bg-muted/40 cursor-pointer"
+              >
+                <BellRing className="h-3.5 w-3.5" />
+                Ativar notificações no computador
+              </button>
+            )}
+            {permission === 'denied' && (
+              <p className="border-t border-border/60 bg-muted/20 p-2 text-center text-[10px] text-muted-foreground">
+                Notificações bloqueadas no navegador. Libere nas configurações do site para receber avisos.
+              </p>
+            )}
+            {permission === 'unsupported' && (
+              <p className="border-t border-border/60 bg-muted/20 p-2 text-center text-[10px] text-muted-foreground">
+                Para avisos no computador, acesse a Central pelo endereço seguro (https).
+              </p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

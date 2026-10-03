@@ -4,114 +4,69 @@ import { NotificationsDropdown } from '@/components/layout/NotificationsDropdown
 import { organizationService } from '@/services/organizationService';
 import { automationService } from '@/services/automationService';
 import type { Reminder } from '@/types/tasks';
-import type { AutomationTriggerResponse } from '@/types/automation';
 
-vi.mock('@/services/organizationService');
-vi.mock('@/services/automationService');
+const hasPermission = vi.fn().mockReturnValue(true);
+vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ hasPermission }) }));
+vi.mock('@/services/organizationService', () => ({
+  organizationService: { getReminders: vi.fn(), updateReminderStatus: vi.fn() },
+}));
+vi.mock('@/services/automationService', () => ({ automationService: { triggerRules: vi.fn() } }));
 
-const mockReminders: Reminder[] = [
-  {
-    id: 101,
-    title: '🚨 Tarefa Atrasada: Revisão Firewall',
-    description: 'Tarefa vencida há 1 hora',
-    remind_at: '2026-09-24T18:00:00Z',
-    user_id: 1,
-    priority: 'urgente',
-    status: 'pendente',
-    created_at: '2026-09-24T17:00:00Z',
-  },
-  {
-    id: 102,
-    title: '🔧 Manutenção Programada: SW-CORE',
-    description: 'Manutenção agendada para amanhã',
-    remind_at: '2026-09-25T10:00:00Z',
-    user_id: 1,
-    priority: 'alta',
-    status: 'pendente',
-    created_at: '2026-09-24T17:30:00Z',
-  },
+const past = new Date(Date.now() - 60_000).toISOString();
+const future = new Date(Date.now() + 3_600_000).toISOString();
+const reminders: Reminder[] = [
+  { id: 1, title: 'Tarefa Atrasada: Revisão Firewall', remind_at: past, user_id: 1, priority: 'urgente', status: 'pendente', source: 'automacao', task_id: 7, created_at: past },
+  { id: 2, title: 'Manutenção Programada: SW-CORE', remind_at: past, user_id: 1, priority: 'alta', status: 'pendente', source: 'automacao', created_at: past },
+  { id: 3, title: 'Ligar para a operadora', remind_at: future, user_id: 1, priority: 'media', status: 'pendente', source: 'manual', created_at: past },
 ];
 
-const mockTriggerResponse: AutomationTriggerResponse = {
-  executed_at: '2026-09-24T20:00:00Z',
-  tasks_evaluated: 2,
-  task_reminders_created: 1,
-  maintenances_evaluated: 1,
-  maintenance_reminders_created: 0,
-  equipment_alerts_created: 0,
-  total_created: 1,
-  error: null,
-};
-
-describe('NotificationsDropdown (Phase 13 Automation)', () => {
+describe('NotificationsDropdown (sino de avisos)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(organizationService.getReminders).mockResolvedValue(mockReminders);
-    vi.mocked(organizationService.updateReminderStatus).mockResolvedValue({} as any);
-    vi.mocked(automationService.triggerRules).mockResolvedValue(mockTriggerResponse);
+    localStorage.clear();
+    hasPermission.mockReturnValue(true);
+    vi.mocked(organizationService.getReminders).mockResolvedValue(reminders);
+    vi.mocked(organizationService.updateReminderStatus).mockResolvedValue({} as Reminder);
+    vi.mocked(automationService.triggerRules).mockResolvedValue({ total_created: 2 } as never);
   });
 
-  it('renders notification bell button with pending count badge', async () => {
+  it('counts only reminders that are already due', async () => {
     render(<NotificationsDropdown />);
-
-    await waitFor(() => {
-      expect(organizationService.getReminders).toHaveBeenCalledWith('pendente');
-    });
-
-    const bellButton = screen.getByRole('button', { name: /Abrir notificações/i });
-    expect(bellButton).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Avisos (2)' })).toBeInTheDocument();
   });
 
-  it('opens panel on bell click and displays pending reminders', async () => {
+  it('lists due items; future reminders stay out of the bell', async () => {
     render(<NotificationsDropdown />);
-
-    const bellButton = screen.getByRole('button', { name: /Abrir notificações/i });
-    fireEvent.click(bellButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Alertas & Regras Reativas')).toBeInTheDocument();
-      expect(screen.getByText(/Revisão Firewall/i)).toBeInTheDocument();
-      expect(screen.getByText(/Manutenção Programada: SW-CORE/i)).toBeInTheDocument();
-      expect(screen.getByText('Urgente')).toBeInTheDocument();
-    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Avisos (2)' }));
+    expect(screen.getByText('Tarefa Atrasada: Revisão Firewall')).toBeInTheDocument();
+    expect(screen.getByText('Manutenção Programada: SW-CORE')).toBeInTheDocument();
+    expect(screen.queryByText('Ligar para a operadora')).not.toBeInTheDocument();
   });
 
-  it('triggers automation rules on verify button click', async () => {
+  it('opens the related task when clicking a notice', async () => {
     render(<NotificationsDropdown />);
-
-    const bellButton = screen.getByRole('button', { name: /Abrir notificações/i });
-    fireEvent.click(bellButton);
-
-    await waitFor(() => {
-      expect(screen.getByText('Verificar')).toBeInTheDocument();
-    });
-
-    const verifyButton = screen.getByRole('button', { name: /Verificar/i });
-    fireEvent.click(verifyButton);
-
-    await waitFor(() => {
-      expect(automationService.triggerRules).toHaveBeenCalledTimes(1);
-      expect(screen.getByText(/novo\(s\) alerta\(s\) gerado\(s\)/i)).toBeInTheDocument();
-    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Avisos (2)' }));
+    fireEvent.click(screen.getByText('Tarefa Atrasada: Revisão Firewall'));
+    expect(window.location.hash).toBe('#tasks?id=7');
   });
 
-  it('resolves a reminder when clicking check button', async () => {
+  it('resolves a notice', async () => {
     render(<NotificationsDropdown />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Avisos (2)' }));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Marcar como resolvido' })[0]);
+    await waitFor(() => expect(organizationService.updateReminderStatus).toHaveBeenCalledWith(1, 'concluido'));
+  });
 
-    const bellButton = screen.getByRole('button', { name: /Abrir notificações/i });
-    fireEvent.click(bellButton);
+  it('"Verificar agora" runs the rules for users who can edit tasks only', async () => {
+    const { unmount } = render(<NotificationsDropdown />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Avisos (2)' }));
+    fireEvent.click(screen.getByRole('button', { name: /Verificar agora/ }));
+    expect(await screen.findByText('2 aviso(s) novo(s)')).toBeInTheDocument();
+    unmount();
 
-    await waitFor(() => {
-      expect(screen.getByText(/Revisão Firewall/i)).toBeInTheDocument();
-    });
-
-    const resolveButtons = screen.getAllByTitle('Marcar como resolvido');
-    expect(resolveButtons.length).toBeGreaterThan(0);
-    fireEvent.click(resolveButtons[0]);
-
-    await waitFor(() => {
-      expect(organizationService.updateReminderStatus).toHaveBeenCalledWith(101, 'concluido');
-    });
+    hasPermission.mockReturnValue(false);
+    render(<NotificationsDropdown />);
+    fireEvent.click(await screen.findByRole('button', { name: 'Avisos (2)' }));
+    expect(screen.queryByRole('button', { name: /Verificar agora/ })).not.toBeInTheDocument();
   });
 });
