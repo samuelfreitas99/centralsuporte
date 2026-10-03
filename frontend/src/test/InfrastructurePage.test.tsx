@@ -160,7 +160,9 @@ describe('InfrastructurePage (Phase 8)', () => {
 
     vi.mocked(infrastructureService.getStores).mockResolvedValue(mockStores);
     vi.mocked(infrastructureService.getDepartments).mockResolvedValue(mockDepartments);
-    vi.mocked(infrastructureService.getEquipment).mockResolvedValue(mockEquipment);
+    // Contrato atual: a lista vem sem histórico; a ficha (by id) traz o histórico completo.
+    vi.mocked(infrastructureService.getEquipment).mockResolvedValue(mockEquipment.map(({ history: _h, ...eq }) => eq));
+    vi.mocked(infrastructureService.getEquipmentById).mockImplementation(async (id: number) => mockEquipment.find((e) => e.id === id)!);
     vi.mocked(infrastructureService.getLicenses).mockResolvedValue(mockLicenses);
     vi.mocked(infrastructureService.getStockItems).mockResolvedValue(mockStock);
   });

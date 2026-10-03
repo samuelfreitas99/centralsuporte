@@ -1,7 +1,7 @@
 from typing import List, Optional
 from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import or_
 
 from app.database import get_db
@@ -30,6 +30,7 @@ from app.schemas import (
     EquipmentCreate,
     EquipmentUpdate,
     EquipmentResponse,
+    EquipmentListResponse,
     EquipmentHistoryCreate,
     EquipmentHistoryResponse,
     LicenseCreate,
@@ -340,7 +341,7 @@ def delete_location(
 # 2. EQUIPAMENTOS (EQUIPMENT) & HISTÓRICO
 # ============================================================================
 
-@router.get("/equipment", response_model=List[EquipmentResponse])
+@router.get("/equipment", response_model=List[EquipmentListResponse])
 def list_equipment(
     q: Optional[str] = Query(None, description="Busca textual por hostname, patrimônio, IP, modelo"),
     store_id: Optional[int] = Query(None, description="Filtrar por loja"),
@@ -385,6 +386,11 @@ def list_equipment(
     if project_id:
         query = query.filter(Equipment.projects.any(id=project_id))
 
+    query = query.options(
+        joinedload(Equipment.store),
+        joinedload(Equipment.department).joinedload(Department.store),
+        joinedload(Equipment.technical_location),
+    )
     return query.order_by(Equipment.hostname.asc(), Equipment.id.desc()).all()
 
 

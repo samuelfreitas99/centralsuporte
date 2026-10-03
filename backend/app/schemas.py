@@ -751,15 +751,18 @@ class EquipmentUpdate(BaseModel):
             return None
         return v
 
-class EquipmentResponse(EquipmentBase):
+class EquipmentListResponse(EquipmentBase):
+    """Item de listagem: sem o histórico técnico (que pode ter centenas de eventos por equipamento)."""
     id: int
     store: Optional[StoreResponse] = None
     department: Optional[DepartmentResponse] = None
     technical_location: Optional[TechnicalLocationResponse] = None
-    history: List[EquipmentHistoryResponse] = []
     created_at: datetime
     updated_at: datetime
     model_config = ConfigDict(from_attributes=True)
+
+class EquipmentResponse(EquipmentListResponse):
+    history: List[EquipmentHistoryResponse] = []
 
 
 class LicenseAssignmentCreate(BaseModel):

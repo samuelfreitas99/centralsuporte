@@ -147,6 +147,11 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
     if (eq) {
       setEditingEquipment(eq);
       setEqForm(equipmentToForm(eq));
+      // A listagem não traz o histórico técnico; carrega a ficha completa ao abrir.
+      infrastructureService
+        .getEquipmentById(eq.id)
+        .then((full) => full && setEditingEquipment((current) => (current?.id === full.id ? full : current)))
+        .catch(() => {});
     } else {
       setEditingEquipment(null);
       setEqForm({

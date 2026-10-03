@@ -55,7 +55,9 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
   - feito: `ConfirmDialog` + `useConfirm` (todas as 16 chamadas de `window.confirm` substituídas)
   - falta: `PageHeader`, `FilterBar`, `StatusBadge`
 - [ ] S4.2 Quebrar `CommandsPage.tsx` e `AttendancePage.tsx` em componentes menores — P-51
-- [ ] S4.3 Paginação em atendimentos, equipamentos e artigos; lista de equipamentos sem histórico embutido — P-62
+- [~] S4.3 Listas leves e paginadas — P-62
+  - feito: lista de equipamentos sem histórico embutido (`EquipmentListResponse`): 4 MB → 375 KB, 0,52 s → 0,04 s
+  - falta: paginação em atendimentos, equipamentos e artigos (seguir o padrão de tarefas)
 - [x] S4.4 Tabela de rotas única no lugar da cadeia de ternários em `AuthenticatedView.tsx` — P-63
 
 ---

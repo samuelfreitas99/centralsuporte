@@ -334,3 +334,16 @@ def test_license_protection_and_reveal():
     assert get_del_lic.status_code == 200
     assert get_del_lic.json()["status"] == "cancelada"
     assert get_del_lic.json()["license_key"] == "[REDACTED]"
+
+
+def test_equipment_list_omits_history_but_detail_includes_it():
+    token = client.post("/auth/login", json={"username": "admin", "password": "admin123"}).json()["access_token"]
+    h = {"Authorization": f"Bearer {token}"}
+    eq = client.post("/infrastructure/equipment", json={"equipment_type": "computador", "hostname": "HIST-LIST-01"}, headers=h).json()
+    client.post(f"/infrastructure/equipment/{eq['id']}/history", json={"event_type": "observacao", "description": "nota"}, headers=h)
+
+    listed = client.get("/infrastructure/equipment?q=HIST-LIST-01", headers=h).json()
+    assert listed and "history" not in listed[0]
+
+    detail = client.get(f"/infrastructure/equipment/{eq['id']}", headers=h).json()
+    assert any(e["description"] == "nota" for e in detail["history"])
