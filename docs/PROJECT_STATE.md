@@ -12,7 +12,11 @@
 * Todos os módulos do MVP e pós-MVP (fases 0–12) estão funcionando.
 * Testes: backend 178 ✓ (banco isolado `centralsuporte_test`), frontend 144 ✓, `tsc -b` limpo, lint sem avisos novos (57 antigos).
 * Paginação: tarefas, atendimentos e arquivos. Equipamentos, manutenções e artigos ainda carregam tudo, mas sem histórico embutido (S4.3).
-* Migração mais recente: `a7c1e2d3f4b5` (`reminders.source`), já aplicada no banco principal.
+* Migração mais recente: `a7c1e2d3f4b5` (`reminders.source`).
+* **Banco principal zerado em 2026-10-03** (era experimental, autorizado pelo responsável): recriado pelas
+  migrações (`alembic upgrade head`) + seed; só existe o usuário `admin` (senha padrão `admin123`).
+  Anexos físicos de teste removidos. Backups anteriores em `~/centralsuporte_backups/` (fora do repositório).
+* As migrações sobem do zero e `alembic check` não acusa divergência entre modelos e migrações.
 
 ## Feito neste ciclo
 
@@ -30,10 +34,6 @@ Itens pendentes do `ROADMAP.md`: S4.1 (resto: `PageHeader`, `FilterBar`, `Status
 
 ## Pendências que dependem do responsável
 
-* **S0.5 — Limpeza do banco principal.** O banco `centralsuporte_db` tem centenas de registros criados
-  por testes antigos (usuários `*_test*`, ~8.000 lembretes, artigos "Configuração Scanner Honeywell xxxxxx" etc.)
-  misturados a dados reais. Não limpar sem backup e confirmação.
-* Backup feito antes da migração de lembretes: `~/centralsuporte_backups/centralsuporte_db_2026-10-03_pre_reminder_source.dump` (`pg_restore`).
 * **S0.6 — Produção:** definir `SECRET_KEY` e `DEFAULT_ADMIN_PASSWORD` no `.env` e trocar a senha do `admin`.
 
 ## Avisos para quem continuar

@@ -30,7 +30,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S0.3 Remover scripts soltos, mover testes para `tests/`, corrigir `User(role_id=...)` — P-04, P-05
 - [x] S0.4 Reorganizar documentação (`docs/README.md`, histórico em `docs/history/`) — P-07
 - [x] S0.7 Exigir permissões RBAC em Atendimentos, Manutenções, Infraestrutura, Comandos e Respostas — P-08
-- [?] S0.5 Limpar dados de teste do banco principal (com backup). **Precisa de confirmação do responsável** — P-02
+- [x] S0.5 Banco principal recriado do zero (banco era experimental; backup em `~/centralsuporte_backups/`) — P-02
 - [ ] S0.6 Configuração de produção: `.env` com `SECRET_KEY`/`DEFAULT_ADMIN_PASSWORD`, sem `--reload`, frontend com build estático — P-06
 
 ### S1 — Navegação clara

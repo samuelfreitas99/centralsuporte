@@ -105,3 +105,8 @@
 - **Decisão**: A suíte pytest usa exclusivamente o banco `centralsuporte_test` (recriado a cada execução por `backend/conftest.py`, com trava de nome `*_test`) e um diretório temporário de uploads.
 - **Contexto**: Os testes gravavam no banco da aplicação, acumulando centenas de usuários, perfis, tarefas e lembretes falsos.
 - **Consequências**: Testes ficam determinísticos e o banco real deixa de ser poluído. A limpeza dos dados de teste já existentes no banco principal é uma ação separada (S0.5), que exige backup e confirmação.
+
+### 2026-10-03: Banco principal recriado do zero
+- **Decisão**: Em vez de limpar seletivamente, o banco `centralsuporte_db` foi recriado (drop do schema, `alembic upgrade head`, seed padrão) e os anexos físicos foram apagados.
+- **Contexto**: O responsável confirmou que todo o conteúdo era experimental. O banco estava dominado por dados gerados pela suíte de testes antes do isolamento (S0.1).
+- **Consequências**: Ambiente limpo para uso real; a partir daqui o banco principal só recebe dados pela interface. Backups do estado anterior ficam em `~/centralsuporte_backups/` (fora do Git).
