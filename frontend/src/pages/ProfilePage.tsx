@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { PageSkeleton } from '@/components/ui/PageSkeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { EditProfileDialog } from '@/components/users/EditProfileDialog';
+import { ChangePasswordDialog } from '@/components/users/ChangePasswordDialog';
 import { UserFormDrawer } from '@/components/users/UserFormDrawer';
 import {
   ArrowLeft,
@@ -26,6 +27,7 @@ import {
   UserCheck,
   UserX,
   Settings,
+  KeyRound,
 } from 'lucide-react';
 
 interface ProfilePageProps {
@@ -48,6 +50,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
 
   // Dialog / Drawer states
   const [isSelfEditDialogOpen, setIsSelfEditDialogOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isAdminEditDialogOpen, setIsAdminEditDialogOpen] = useState(false);
 
   // Target ID: if userId prop is provided and > 0, use it; otherwise fallback to currentUser.id
@@ -184,6 +187,16 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
             >
               <Edit3 className="h-4 w-4" />
               <span>Editar Meu Perfil</span>
+            </Button>
+          )}
+          {isSelf && (
+            <Button
+              variant="outline"
+              onClick={() => setIsPasswordDialogOpen(true)}
+              className="flex items-center gap-1.5 cursor-pointer border-border/70"
+            >
+              <KeyRound className="h-4 w-4" />
+              <span>Alterar senha</span>
             </Button>
           )}
 
@@ -459,6 +472,8 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
       </div>
 
       {/* Modals & Drawers */}
+      <ChangePasswordDialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen} />
+
       <EditProfileDialog
         isOpen={isSelfEditDialogOpen}
         onClose={() => setIsSelfEditDialogOpen(false)}

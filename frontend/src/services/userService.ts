@@ -57,6 +57,14 @@ export const userService = {
     return request<UserProfileResponse>('/users/me/profile');
   },
 
+  /** Troca a senha do usuário logado (exige a senha atual). */
+  changeMyPassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    await request<void>('/users/me/password', {
+      method: 'POST',
+      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
+    });
+  },
+
   updateMyProfile: async (payload: UserProfileSelfUpdate): Promise<UserProfileResponse> => {
     return request<UserProfileResponse>('/users/me/profile', {
       method: 'PUT',

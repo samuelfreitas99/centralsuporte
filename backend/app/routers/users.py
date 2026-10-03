@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Query
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -17,6 +17,7 @@ from app.models import (
     Permission,
 )
 from app.schemas import (
+    PasswordChangeRequest,
     UserCreate,
     UserUpdate,
     UserProfileSelfUpdate,
@@ -28,7 +29,7 @@ from app.schemas import (
     RoleUpdate,
     PermissionResponse,
 )
-from app.auth import get_password_hash, require_permission, get_current_active_user
+from app.auth import get_password_hash, require_permission, get_current_active_user, verify_password
 from app.services.audit import record_audit_log
 
 router = APIRouter(tags=["Gestão de Usuários"])
@@ -198,6 +199,33 @@ def update_my_profile(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+
+@router.post("/users/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def change_my_password(
+    payload: PasswordChangeRequest,
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db),
+):
+    """Qualquer usuário ativo pode trocar a própria senha informando a atual."""
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Senha atual incorreta")
+    if payload.new_password == payload.current_password:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="A nova senha deve ser diferente da atual")
+
+    current_user.hashed_password = get_password_hash(payload.new_password)
+    record_audit_log(
+        db=db,
+        action="PASSWORD_CHANGED",
+        entity_type="user",
+        entity_id=current_user.id,
+        user=current_user,
+        details={"self_service": True},
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent"),
+    )
+    db.commit()
 
 
 @router.get("/users/{user_id}/profile", response_model=UserProfileResponse)

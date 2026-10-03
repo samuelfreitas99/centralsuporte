@@ -31,8 +31,11 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     let errorDetail = `Erro HTTP ${response.status}`;
     try {
       const errorJson = await response.json();
-      if (errorJson.detail) {
+      if (typeof errorJson.detail === 'string') {
         errorDetail = errorJson.detail;
+      } else if (Array.isArray(errorJson.detail)) {
+        // Erros de validação (422): junta as mensagens dos campos
+        errorDetail = errorJson.detail.map((d: { msg?: string }) => d.msg).filter(Boolean).join('; ') || errorDetail;
       }
     } catch {
       // response wasn't JSON
@@ -47,6 +50,9 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     throw new Error(errorDetail);
   }
 
+  if (response.status === 204) {
+    return undefined as T;
+  }
   return response.json() as Promise<T>;
 }
 

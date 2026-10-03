@@ -1291,3 +1291,9 @@ class DashboardSummaryResponse(BaseModel):
     expiring_licenses: Optional[List[DashboardExpiringLicense]] = None
     reminders_pending: int = 0
     knowledge_published: Optional[int] = None
+
+
+class PasswordChangeRequest(BaseModel):
+    """Troca da própria senha: exige a senha atual."""
+    current_password: str
+    new_password: str = Field(min_length=8, max_length=128)
