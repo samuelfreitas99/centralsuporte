@@ -94,7 +94,7 @@ def test_full_operational_organization_flow():
     # Step 8: Verify task in completed filter query
     list_completed = client.get("/tasks?status=concluida", headers=headers)
     assert list_completed.status_code == 200
-    assert any(t["id"] == task_id for t in list_completed.json())
+    assert any(t["id"] == task_id for t in list_completed.json()["items"])
 
     # Step 9: Schedule maintenance window event in the calendar
     start_time = datetime.now(timezone.utc) + timedelta(days=3)

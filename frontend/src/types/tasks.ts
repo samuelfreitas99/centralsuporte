@@ -49,6 +49,9 @@ export interface Task {
   project_stage?: string | null;
 }
 
+export type TaskList = Omit<Task, 'description' | 'checklists'>;
+
+
 export interface TaskCreatePayload {
   title: string;
   description?: string;

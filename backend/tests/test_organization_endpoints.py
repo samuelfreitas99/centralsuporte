@@ -42,8 +42,10 @@ def test_tasks_crud_and_status():
     # 3. List Tasks with filter
     list_res = client.get("/tasks?status=pendente&priority=alta", headers=headers)
     assert list_res.status_code == 200
-    tasks = list_res.json()
-    assert any(t["id"] == task_id for t in tasks)
+    page = list_res.json()
+    assert page["page"] == 1 and page["total"] >= 1
+    assert "description" not in page["items"][0]  # DTO de lista não carrega descrição/checklists
+    assert any(t["id"] == task_id for t in page["items"])
 
     # 4. Update Task (PUT)
     update_res = client.put(

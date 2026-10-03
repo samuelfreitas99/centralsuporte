@@ -322,6 +322,25 @@ class TaskResponse(TaskBase):
     checklists: List[ChecklistResponse] = []
     model_config = ConfigDict(from_attributes=True)
 
+class TaskListResponse(BaseModel):
+    id: int
+    title: str
+    priority: str
+    status: str
+    due_date: Optional[datetime] = None
+    visibility: str
+    category: Optional[str] = None
+    otrs_reference: Optional[str] = None
+    project_id: Optional[int] = None
+    project_stage: Optional[str] = None
+    creator_id: int
+    creator: Optional[UserSimpleResponse] = None
+    completed_at: Optional[datetime] = None
+    created_at: datetime
+    updated_at: datetime
+    assigned_users: List[UserSimpleResponse] = []
+    model_config = ConfigDict(from_attributes=True)
+
 # --- Knowledge Base Schemas (Phase 5) ---
 
 class KnowledgeCategoryBase(BaseModel):

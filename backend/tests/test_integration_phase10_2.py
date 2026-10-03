@@ -166,8 +166,8 @@ def test_integration_phase10_2(setup_db, auth_headers):
 
     # 12. Consult filters by Project
     res = client.get(f"/tasks?project_id={p1_id}", headers=auth_headers)
-    assert len(res.json()) >= 1
-    assert any(t["id"] == ptask_id for t in res.json())
+    assert res.json()["total"] >= 1
+    assert any(t["id"] == ptask_id for t in res.json()["items"])
 
     res = client.get(f"/checklists?project_id={p1_id}", headers=auth_headers)
     assert len(res.json()) >= 1

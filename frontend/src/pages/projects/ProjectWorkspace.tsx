@@ -62,14 +62,14 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
         projectService.getProjectSummary(projectId),
         infrastructureService.getEquipment(),
         projectService.getProjectTimeline(projectId).catch(() => []),
-        organizationService.getTasks({ project_id: projectId }),
+        organizationService.getTasks({ project_id: projectId, limit: 100 }),
         maintenanceService.getMaintenances({ project_id: projectId }),
       ]);
       setProject(projData);
       setSummary(sumData);
       setAllEquipments(eqData);
       setTimeline(timeData);
-      setTasks(tasksData);
+      setTasks(tasksData.items as Task[]);
       setMaintenances(maintData);
     } catch (err) {
       console.error('Failed to load project workspace', err);
@@ -100,8 +100,8 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
   }, [activeTab, projectId, attendances.length, equipments.length]);
 
   const handleSaveTask = async () => {
-    const data = await organizationService.getTasks({ project_id: projectId });
-    setTasks(data);
+    const data = await organizationService.getTasks({ project_id: projectId, limit: 100 });
+    setTasks(data.items as Task[]);
     const sum = await projectService.getProjectSummary(projectId);
     setSummary(sum);
   };
@@ -639,25 +639,17 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
         }}
       />
 
-      {selectedTask && (
-        <TaskDetailDrawer
-          task={selectedTask}
-          open={taskDetailOpen}
-          onOpenChange={setTaskDetailOpen}
-          onTaskUpdated={async () => {
-            const updatedTasks = await organizationService.getTasks({ project_id: projectId });
-            setTasks(updatedTasks);
-            const found = updatedTasks.find(t => t.id === selectedTask.id);
-            if (found) setSelectedTask(found);
-            loadData();
-          }}
-          onEditTask={(task) => {
-            setTaskDetailOpen(false);
-            setTaskToEdit(task);
-            setTaskFormOpen(true);
-          }}
-        />
-      )}
+      <TaskDetailDrawer
+        taskId={selectedTask?.id ?? null}
+        open={taskDetailOpen}
+        onOpenChange={setTaskDetailOpen}
+        onTaskUpdated={handleSaveTask}
+        onEditTask={(task) => {
+          setTaskDetailOpen(false);
+          setTaskToEdit(task);
+          setTaskFormOpen(true);
+        }}
+      />
 
       <MaintenanceCreateDrawer
         isOpen={maintenanceCreateOpen}

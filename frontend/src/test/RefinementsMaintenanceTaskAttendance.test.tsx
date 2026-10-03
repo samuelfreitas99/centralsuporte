@@ -1,9 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { organizationService } from '@/services/organizationService';
 import { EquipmentMultiSelect } from '@/components/maintenance/EquipmentMultiSelect';
 import { TaskDetailDrawer } from '@/components/tasks/TaskDetailDrawer';
 import type { EquipmentItem } from '@/types/infrastructure';
 import type { Task } from '@/types/tasks';
+
+vi.mock('@/services/organizationService', () => ({
+  organizationService: { getTaskById: vi.fn() },
+}));
 
 vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({
@@ -84,7 +89,8 @@ describe('Refinements - Task Details Drawer vs Direct Edit', () => {
     updated_at: '2026-09-29T10:00:00Z',
   };
 
-  it('renders read-only task details and triggers onEdit only on explicit button click', () => {
+  it('renders read-only task details and triggers onEdit only on explicit button click', async () => {
+    vi.mocked(organizationService.getTaskById).mockResolvedValue(mockTask);
     const onEdit = vi.fn();
     const onOpenChange = vi.fn();
     const onTaskUpdated = vi.fn();
@@ -93,14 +99,14 @@ describe('Refinements - Task Details Drawer vs Direct Edit', () => {
       <TaskDetailDrawer
         open={true}
         onOpenChange={onOpenChange}
-        task={mockTask}
+        taskId={mockTask.id}
         onTaskUpdated={onTaskUpdated}
         onEditTask={onEdit}
       />
     );
 
     // Detail view elements
-    expect(screen.getByText('Configurar switches da loja')).toBeInTheDocument();
+    expect(await screen.findByText('Configurar switches da loja')).toBeInTheDocument();
     expect(screen.getByText('Realizar configuração de VLANs e portas de acesso')).toBeInTheDocument();
     expect(screen.getByText('tecnico_joao')).toBeInTheDocument();
 

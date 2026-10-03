@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 from sqlalchemy import or_
 
 from app.database import get_db
@@ -12,14 +12,17 @@ from app.schemas import (
     TaskUpdate,
     TaskStatusUpdate,
     TaskResponse,
+    TaskListResponse,
+    PaginatedResponse,
 )
+from app.utils.pagination import PaginationParams, paginate
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 
 def is_admin(user: User) -> bool:
     return user.has_role("Administrador")
 
-@router.get("", response_model=List[TaskResponse])
+@router.get("", response_model=PaginatedResponse[TaskListResponse])
 def list_tasks(
     status_filter: Optional[str] = Query(None, alias="status"),
     priority_filter: Optional[str] = Query(None, alias="priority"),
@@ -28,6 +31,7 @@ def list_tasks(
     project_id: Optional[int] = Query(None),
     search: Optional[str] = None,
     assigned_to_me: Optional[bool] = False,
+    pagination: PaginationParams = Depends(PaginationParams),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("tasks:read")),
 ):
@@ -69,8 +73,19 @@ def list_tasks(
     if assigned_to_me:
         query = query.filter(Task.assigned_users.any(User.id == current_user.id))
 
-    tasks = query.order_by(Task.created_at.desc()).all()
-    return tasks
+    # Calculate total authorized items
+    total = query.count()
+
+    # N+1 optimization: load relationships required by TaskListResponse
+    query = query.options(
+        joinedload(Task.creator),
+        selectinload(Task.assigned_users)
+    )
+
+    # Apply pagination and sorting
+    tasks = query.order_by(Task.created_at.desc()).offset(pagination.offset).limit(pagination.limit).all()
+    
+    return paginate(tasks, pagination.page, pagination.limit, total)
 
 @router.post("", response_model=TaskResponse, status_code=status.HTTP_201_CREATED)
 def create_task(

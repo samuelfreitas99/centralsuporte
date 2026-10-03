@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Drawer,
   DrawerContent,
@@ -25,7 +25,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 
 interface TaskDetailDrawerProps {
-  task: Task | null;
+  taskId: number | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onTaskUpdated: () => void;
@@ -33,12 +33,14 @@ interface TaskDetailDrawerProps {
 }
 
 export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
-  task,
+  taskId,
   open,
   onOpenChange,
   onTaskUpdated,
   onEditTask,
 }) => {
+  const [loadedTask, setLoadedTask] = useState<Task | null>(null);
+
   const [newItemTitle, setNewItemTitle] = useState('');
   const [activeChecklistId, setActiveChecklistId] = useState<number | null>(null);
   const [newChecklistTitle, setNewChecklistTitle] = useState('');
@@ -46,6 +48,27 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
   const [loadingAction, setLoadingAction] = useState(false);
   const { hasPermission } = useAuth();
 
+  const loadTask = useCallback(async () => {
+    if (!taskId) return;
+    try {
+      setLoadedTask(await organizationService.getTaskById(taskId));
+    } catch (err) {
+      console.error('Falha ao carregar tarefa:', err);
+    }
+  }, [taskId]);
+
+  useEffect(() => {
+    if (open && taskId) loadTask();
+  }, [open, taskId, loadTask]);
+
+  // Recarrega o próprio drawer e avisa a tela pai (lista) para se atualizar.
+  const refresh = () => {
+    loadTask();
+    onTaskUpdated();
+  };
+
+  // Evita exibir a tarefa anterior enquanto a nova é carregada.
+  const task = loadedTask && loadedTask.id === taskId ? loadedTask : null;
   if (!task) return null;
 
   const handleToggleItem = async (checklistId: number, itemId: number, currentCompleted: boolean) => {
@@ -54,7 +77,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
       await organizationService.updateChecklistItem(checklistId, itemId, {
         is_completed: !currentCompleted,
       });
-      onTaskUpdated();
+      refresh();
     } catch (err) {
       console.error('Falha ao atualizar item de checklist:', err);
     } finally {
@@ -69,7 +92,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
       await organizationService.addChecklistItem(checklistId, newItemTitle.trim());
       setNewItemTitle('');
       setActiveChecklistId(null);
-      onTaskUpdated();
+      refresh();
     } catch (err) {
       console.error('Falha ao adicionar item:', err);
     } finally {
@@ -87,7 +110,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
       });
       setNewChecklistTitle('');
       setShowAddChecklist(false);
-      onTaskUpdated();
+      refresh();
     } catch (err) {
       console.error('Falha ao criar checklist:', err);
     } finally {
@@ -99,7 +122,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
     try {
       setLoadingAction(true);
       await organizationService.updateTaskStatus(task.id, newStatus);
-      onTaskUpdated();
+      refresh();
     } catch (err) {
       console.error('Falha ao alterar status:', err);
     } finally {

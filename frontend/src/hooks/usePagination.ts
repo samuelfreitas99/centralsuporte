@@ -70,5 +70,6 @@ export function usePagination(defaultLimit: number = 50) {
     setPage,
     setLimit,
     resetPage,
+    updateHashParams,
   };
 }

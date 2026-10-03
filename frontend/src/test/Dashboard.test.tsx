@@ -71,7 +71,7 @@ function renderDashboard() {
 describe('DashboardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (organizationService.getTasks as any).mockResolvedValue(mockTasks);
+    (organizationService.getTasks as any).mockResolvedValue({ items: mockTasks, page: 1, limit: 10, total: mockTasks.length, total_pages: 1, has_next: false, has_prev: false });
     // Transform mockReminders to match API type (text -> title)
     (organizationService.getReminders as any).mockResolvedValue(
       mockReminders.map(r => ({ ...r, title: r.text, due_time: r.time }))

@@ -12,6 +12,7 @@ vi.mock('@/hooks/useAuth', () => ({
 vi.mock('@/services/organizationService', () => ({
   organizationService: {
     getTasks: vi.fn(),
+    getTaskById: vi.fn(),
     createTask: vi.fn(),
     updateTask: vi.fn(),
     updateTaskStatus: vi.fn(),
@@ -63,7 +64,16 @@ const mockTasks: Task[] = [
 describe('TasksPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(organizationService.getTasks).mockResolvedValue(mockTasks);
+    vi.mocked(organizationService.getTasks).mockResolvedValue({
+      items: mockTasks,
+      page: 1,
+      limit: 50,
+      total: mockTasks.length,
+      total_pages: 1,
+      has_next: false,
+      has_prev: false,
+    });
+    vi.mocked(organizationService.getTaskById).mockResolvedValue(mockTasks[0]);
     vi.mocked(organizationService.getReminders).mockResolvedValue([]);
     vi.mocked(organizationService.getCalendarEvents).mockResolvedValue([]);
   });

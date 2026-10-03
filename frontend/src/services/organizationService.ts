@@ -1,6 +1,8 @@
 import { request } from './api';
+import type { PaginatedResponse } from '../types/pagination';
 import type {
   Task,
+  TaskList,
   TaskCreatePayload,
   TaskUpdatePayload,
   Checklist,
@@ -21,7 +23,9 @@ export const organizationService = {
     search?: string;
     assigned_to_me?: boolean;
     project_id?: number;
-  }): Promise<Task[]> => {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<TaskList>> => {
     const query = new URLSearchParams();
     if (params?.status) query.append('status', params.status);
     if (params?.priority) query.append('priority', params.priority);
@@ -30,9 +34,11 @@ export const organizationService = {
     if (params?.search) query.append('search', params.search);
     if (params?.assigned_to_me) query.append('assigned_to_me', 'true');
     if (params?.project_id !== undefined) query.append('project_id', params.project_id.toString());
+    if (params?.page !== undefined) query.append('page', params.page.toString());
+    if (params?.limit !== undefined) query.append('limit', params.limit.toString());
 
     const qs = query.toString();
-    return request<Task[]>(`/tasks${qs ? `?${qs}` : ''}`);
+    return request<PaginatedResponse<TaskList>>(`/tasks${qs ? `?${qs}` : ''}`);
   },
 
   getTaskById: async (id: number): Promise<Task> => {

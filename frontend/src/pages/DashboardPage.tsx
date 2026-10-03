@@ -46,13 +46,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
         setLoading(true);
         // Load data concurrently
         const [tasksData, remindersData, attendancesData, articlesData] = await Promise.all([
-          organizationService.getTasks(), // without assigned_to_me for now, to get all
+          organizationService.getTasks({ limit: 10 }), // get some tasks for summary
           organizationService.getReminders(),
           attendanceService.getAttendances(),
           knowledgeService.getArticles(),
         ]);
         
-        setTasks(tasksData);
+        setTasks(tasksData.items as Task[]);
         setReminders(remindersData);
         setAttendances(attendancesData);
         setArticles(articlesData);
