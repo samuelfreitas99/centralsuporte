@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Drawer,
   DrawerContent,
@@ -126,15 +127,7 @@ export const MaintenanceDrawer: React.FC<Props> = ({
 
   if (!maintenance) return null;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'agendada': return <Badge variant="info">Agendada</Badge>;
-      case 'em_andamento': return <Badge variant="warning">Em Andamento</Badge>;
-      case 'concluida': return <Badge variant="success">Concluída</Badge>;
-      case 'cancelada': return <Badge variant="destructive">Cancelada</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => <StatusBadge domain="maintenance" status={status} />;
 
   const getTypeLabel = (type: string) => {
     switch (type) {

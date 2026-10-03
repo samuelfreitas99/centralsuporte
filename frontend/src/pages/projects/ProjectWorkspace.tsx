@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -127,16 +128,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'planejado': return <Badge variant="outline" className="bg-slate-500/10 text-slate-400 border-slate-500/50">Planejado</Badge>;
-      case 'em_andamento': return <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/50">Em Andamento</Badge>;
-      case 'pausado': return <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/50">Pausado</Badge>;
-      case 'concluido': return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/50">Concluído</Badge>;
-      case 'cancelado': return <Badge variant="outline" className="bg-red-500/10 text-red-400 border-red-500/50">Cancelado</Badge>;
-      default: return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => <StatusBadge domain="project" status={status} />;
 
   const pendingTasks = tasks.filter(t => t.status !== 'concluida' && t.status !== 'cancelada').slice(0, 3);
   const scheduledMaintenances = maintenances.filter(m => m.status === 'agendada' || m.status === 'em_andamento').slice(0, 3);

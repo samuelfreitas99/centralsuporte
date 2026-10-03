@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PriorityBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import type { BadgeProps } from '@/components/ui/badge';
 import {
   CheckSquare,
   Plus,
@@ -152,12 +152,6 @@ export const TasksPage: React.FC = () => {
     if (!open) clearDeepLinkId();
   };
 
-  const getTaskPriorityVariant = (priority: string): BadgeProps['variant'] => {
-    if (priority === 'urgente') return 'destructive';
-    if (priority === 'alta') return 'warning';
-    if (priority === 'baixa') return 'secondary';
-    return 'default';
-  };
 
   return (
     <div className="space-y-6">
@@ -251,12 +245,7 @@ export const TasksPage: React.FC = () => {
                                 {task.title}
                               </span>
 
-                              <Badge
-                                variant={getTaskPriorityVariant(task.priority)}
-                                className="text-[10px] py-0 h-4 uppercase"
-                              >
-                                {task.priority}
-                              </Badge>
+                              <PriorityBadge priority={task.priority} className="text-[10px] py-0 h-4 uppercase" />
 
                               {task.category && (
                                 <Badge variant="outline" className="text-[10px] py-0 h-4 bg-background">

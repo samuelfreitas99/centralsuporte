@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
 import { equipmentToForm } from '../equipmentForm';
 import { clearDeepLinkId } from '@/hooks/useDeepLink';
@@ -106,20 +107,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
     }
   };
 
-  const getEquipmentStatusBadge = (status: EquipmentStatus) => {
-    switch (status) {
-      case 'ativo':
-        return <span className="text-emerald-500 font-medium">Ativo</span>;
-      case 'em_manutencao':
-        return <span className="text-amber-500 font-medium">Em Manutenção</span>;
-      case 'reserva':
-        return <span className="text-blue-500 font-medium">Reserva</span>;
-      case 'descartado':
-        return <span className="text-red-500 font-medium">Descartado</span>;
-      default:
-        return <span className="text-muted-foreground">{status}</span>;
-    }
-  };
+  const getEquipmentStatusBadge = (status: EquipmentStatus) => <StatusBadge domain="equipment" status={status} />;
 
   const filteredEquipment = useMemo(() => {
     return equipmentList.filter((eq) => {

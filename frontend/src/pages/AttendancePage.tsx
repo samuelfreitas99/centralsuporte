@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
@@ -395,18 +396,7 @@ export const AttendancePage: React.FC = () => {
   };
 
   // Status badge config
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'resolvido':
-      case 'concluido':
-        return <Badge variant="success" className="text-[10px] uppercase py-0 leading-tight">Resolvido</Badge>;
-      case 'cancelado':
-        return <Badge variant="destructive" className="text-[10px] uppercase py-0 leading-tight">Cancelado</Badge>;
-      case 'em_andamento':
-      default:
-        return <Badge variant="warning" className="text-[10px] uppercase py-0 leading-tight">Em Andamento</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => <StatusBadge domain="attendance" status={status} className="text-[10px] uppercase py-0 leading-tight" />;
 
   return (
     <div className="space-y-6">

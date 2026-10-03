@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PriorityBadge, StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Drawer,
   DrawerContent,
@@ -130,31 +131,9 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'urgente':
-        return <Badge variant="destructive">Urgente</Badge>;
-      case 'alta':
-        return <Badge variant="warning">Alta</Badge>;
-      case 'baixa':
-        return <Badge variant="secondary">Baixa</Badge>;
-      default:
-        return <Badge variant="default">Média</Badge>;
-    }
-  };
+  const getPriorityBadge = (priority: string) => <PriorityBadge priority={priority} />;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'concluida':
-        return <Badge variant="success">Concluída</Badge>;
-      case 'em_andamento':
-        return <Badge variant="warning">Em Andamento</Badge>;
-      case 'cancelada':
-        return <Badge variant="secondary">Cancelada</Badge>;
-      default:
-        return <Badge variant="outline">Pendente</Badge>;
-    }
-  };
+  const getStatusBadge = (status: string) => <StatusBadge domain="task" status={status} />;
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>

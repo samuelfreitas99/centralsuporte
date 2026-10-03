@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PriorityBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckSquare, AlertCircle, ArrowRight, Loader2 } from 'lucide-react';
@@ -42,20 +43,7 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ tasks: initial
     }
   };
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'urgente':
-        return <Badge variant="destructive" className="uppercase text-[9px] py-0">Urgente</Badge>;
-      case 'alta':
-        return <Badge variant="warning" className="uppercase text-[9px] py-0">Alta</Badge>;
-      case 'media':
-        return <Badge variant="secondary" className="uppercase text-[9px] py-0">Média</Badge>;
-      case 'baixa':
-        return <Badge variant="outline" className="uppercase text-[9px] py-0">Baixa</Badge>;
-      default:
-        return <Badge variant="outline" className="uppercase text-[9px] py-0">{priority}</Badge>;
-    }
-  };
+  const getPriorityBadge = (priority: string) => <PriorityBadge priority={priority} className="uppercase text-[9px] py-0" />;
 
   return (
     <Card variant="default" className="h-full flex flex-col shadow-sm border-border/60">

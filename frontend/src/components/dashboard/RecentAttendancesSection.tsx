@@ -1,6 +1,6 @@
 import React from 'react';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Headset, ExternalLink, ArrowRight, Loader2, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AttendanceItem } from '@/types/attendance';
@@ -12,17 +12,7 @@ interface RecentAttendancesSectionProps {
 }
 
 export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> = ({ attendances, loading, onNavigateToAttendance }) => {
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { variant: 'default'|'success'|'warning'|'secondary'|'destructive', label: string }> = {
-      aberto: { variant: 'warning', label: 'Aberto' },
-      em_andamento: { variant: 'default', label: 'Em Andamento' },
-      pausado: { variant: 'secondary', label: 'Pausado' },
-      concluido: { variant: 'success', label: 'Concluído' },
-      cancelado: { variant: 'destructive', label: 'Cancelado' },
-    };
-    const s = statusMap[status] || { variant: 'outline', label: status };
-    return <Badge variant={s.variant} className="text-[10px] uppercase py-0 leading-tight">{s.label}</Badge>;
-  };
+  const getStatusBadge = (status: string) => <StatusBadge domain="attendance" status={status} className="text-[10px] uppercase py-0 leading-tight" />;
 
   return (
     <Card variant="default" className="h-full flex flex-col shadow-sm border-border/60">
