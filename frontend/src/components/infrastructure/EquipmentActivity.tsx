@@ -10,6 +10,7 @@ import type { MaintenanceRecord } from '@/types/maintenance';
 interface EquipmentActivityProps {
   equipmentId: number;
   canRegisterAttendance: boolean;
+  canScheduleMaintenance?: boolean;
 }
 
 interface ActivityRow {
@@ -39,7 +40,11 @@ const go = (target: string) => {
  * Tudo o que aconteceu com um equipamento: atendimentos vinculados e manutenções (individuais ou em lote),
  * do mais recente para o mais antigo. Cada linha abre o registro original.
  */
-export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({ equipmentId, canRegisterAttendance }) => {
+export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({
+  equipmentId,
+  canRegisterAttendance,
+  canScheduleMaintenance = false,
+}) => {
   const [rows, setRows] = useState<ActivityRow[] | null>(null);
 
   useEffect(() => {
@@ -80,6 +85,18 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({ equipmentI
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">Atendimentos e manutenções deste equipamento.</p>
+        <div className="flex flex-wrap gap-2">
+        {canScheduleMaintenance && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 text-xs cursor-pointer"
+            onClick={() => go(`maintenances?new=true&equipment_id=${equipmentId}`)}
+          >
+            <Wrench className="h-3.5 w-3.5" />
+            Agendar manutenção
+          </Button>
+        )}
         {canRegisterAttendance && (
           <Button
             size="sm"
@@ -91,6 +108,7 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({ equipmentI
             Registrar atendimento
           </Button>
         )}
+        </div>
       </div>
 
       {rows === null ? (

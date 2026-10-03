@@ -44,9 +44,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S2.1 Formulário completo: problema, sintomas, URL OTRS, notas internas — P-20
 - [x] S2.2 Equipamento e loja escolhidos de listas (vínculo real `equipment_id`), texto livre como alternativa — P-21
 - [x] S2.3 Ficha do equipamento mostra atendimentos e manutenções do equipamento — P-22
-- [~] S2.4 Ações a partir do equipamento: "Registrar atendimento" e "Agendar manutenção" já preenchidos — P-23
-  - feito: "Registrar atendimento" (`#attendance?new=true&equipment_id=N`)
-  - falta: "Agendar manutenção" (`MaintenancePage` ainda não aceita `?new=true&equipment_id=N`)
+- [x] S2.4 Ações a partir do equipamento: "Registrar atendimento" (`#attendance?new=true&equipment_id=N`) e "Agendar manutenção" (`#maintenances?new=true&equipment_id=N`) já preenchidos — P-23
 
 ### S3 — Início (Dashboard) útil
 - [ ] S3.1 Endpoint `GET /dashboard/summary` com contagens reais e alertas de início de turno — P-40, P-41, P-42

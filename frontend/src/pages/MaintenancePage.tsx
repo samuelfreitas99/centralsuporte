@@ -105,6 +105,27 @@ export const MaintenancePage: React.FC = () => {
     setIsDetailDrawerOpen(true);
   };
 
+  // #maintenances?new=true&equipment_id=N: "Agendar manutenção" a partir da ficha do equipamento
+  const [createPrefill, setCreatePrefill] = useState<{ key: number; equipmentIds: number[] }>({ key: 0, equipmentIds: [] });
+  useEffect(() => {
+    const check = () => {
+      const [tab, query] = window.location.hash.replace('#', '').split('?');
+      const params = new URLSearchParams(query || '');
+      if (tab !== 'maintenances' || params.get('new') !== 'true') return;
+      const equipmentId = Number(params.get('equipment_id'));
+      setCreatePrefill((prev) => ({ key: prev.key + 1, equipmentIds: equipmentId ? [equipmentId] : [] }));
+      setIsCreateDrawerOpen(true);
+      window.history.replaceState(null, '', '#maintenances');
+    };
+    check();
+    window.addEventListener('popstate', check);
+    window.addEventListener('hashchange', check);
+    return () => {
+      window.removeEventListener('popstate', check);
+      window.removeEventListener('hashchange', check);
+    };
+  }, []);
+
   // #maintenances?id=N (busca global, ficha do equipamento, Início)
   useDeepLinkId('maintenances', async (id) => {
     try {
@@ -424,6 +445,8 @@ export const MaintenancePage: React.FC = () => {
       />
 
       <MaintenanceCreateDrawer
+        key={createPrefill.key}
+        initialEquipmentIds={createPrefill.equipmentIds}
         isOpen={isCreateDrawerOpen}
         onClose={() => setIsCreateDrawerOpen(false)}
         equipmentList={equipmentList}

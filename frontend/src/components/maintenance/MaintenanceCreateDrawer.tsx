@@ -28,6 +28,8 @@ interface Props {
   onSuccess: (newMaintenance: any) => void;
   initialProjectId?: number | null;
   initialProjectName?: string;
+  /** Equipamentos já selecionados ao abrir (ex.: "Agendar manutenção" na ficha do equipamento). */
+  initialEquipmentIds?: number[];
 }
 
 export const MaintenanceCreateDrawer: React.FC<Props> = ({
@@ -37,7 +39,8 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
   checklistTemplates,
   onSuccess,
   initialProjectId,
-  initialProjectName
+  initialProjectName,
+  initialEquipmentIds = [],
 }) => {
   const { success, error: toastError } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,9 +48,9 @@ export const MaintenanceCreateDrawer: React.FC<Props> = ({
 
   const initialForm: MaintenanceCreatePayload = {
     title: '',
-    equipment_id: 0,
-    equipment_ids: [],
-    store_id: null,
+    equipment_id: initialEquipmentIds[0] || 0,
+    equipment_ids: initialEquipmentIds,
+    store_id: equipmentList.find((e) => e.id === initialEquipmentIds[0])?.store_id || null,
     maintenance_type: 'preventiva',
     priority: 'media',
     status: 'agendada',

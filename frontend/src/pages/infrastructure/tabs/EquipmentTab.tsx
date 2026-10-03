@@ -566,6 +566,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                     <EquipmentActivity
                       equipmentId={editingEquipment.id}
                       canRegisterAttendance={hasPermission('attendance:write')}
+                      canScheduleMaintenance={hasPermission('maintenance:write')}
                     />
                   </TabsContent>
 

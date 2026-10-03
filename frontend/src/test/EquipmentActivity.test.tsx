@@ -44,6 +44,13 @@ describe('EquipmentActivity (ficha do equipamento)', () => {
     expect(window.location.hash).toBe('#attendance?new=true&equipment_id=7');
   });
 
+  it('schedules a maintenance for the equipment when allowed', async () => {
+    render(<EquipmentActivity equipmentId={7} canRegisterAttendance={false} canScheduleMaintenance />);
+    await screen.findByText('PDV sem rede');
+    fireEvent.click(screen.getByRole('button', { name: /Agendar manutenção/ }));
+    expect(window.location.hash).toBe('#maintenances?new=true&equipment_id=7');
+  });
+
   it('hides the register button without permission', async () => {
     render(<EquipmentActivity equipmentId={7} canRegisterAttendance={false} />);
     await screen.findByText('PDV sem rede');
