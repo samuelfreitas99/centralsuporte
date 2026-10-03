@@ -194,3 +194,27 @@ def test_operational_reports_csv_export():
     content = res.text
     assert "Chamado OTRS" in content
     assert "Queda de portas no switch core" in content
+
+
+def test_global_search_finds_multi_step_command_by_title_and_step():
+    """Comandos multi-passo não usam a coluna legada `command`; a busca deve achar por título e passos."""
+    headers = {"Authorization": f"Bearer {get_token()}"}
+    created = client.post(
+        "/commands",
+        json={
+            "title": "Reiniciar spooler remoto",
+            "category": "windows",
+            "steps": [{"position": 1, "title": "Parar", "command_text": "net stop spooler-xyz123"}],
+        },
+        headers=headers,
+    )
+    assert created.status_code in (200, 201), created.text
+    cmd_id = created.json()["id"]
+
+    for term in ("spooler remoto", "spooler-xyz123"):
+        res = client.get(f"/search/global?q={term}&entity_type=command", headers=headers)
+        assert res.status_code == 200
+        hits = [r for r in res.json()["results"] if r["entity_type"] == "command"]
+        assert any(r["id"] == cmd_id for r in hits), term
+        hit = next(r for r in hits if r["id"] == cmd_id)
+        assert hit["snippet"] == "net stop spooler-xyz123"

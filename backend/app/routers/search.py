@@ -5,6 +5,7 @@ from sqlalchemy import or_
 
 from app.database import get_db
 from app.models import (
+    CommandStep,
     KnowledgeArticle,
     Command,
     Attendance,
@@ -65,23 +66,27 @@ def global_search(
             )
 
     # 2. Commands & Responses
-    if not entity_type or entity_type == "commands":
+    if not entity_type or entity_type in ("command", "commands"):
         c_query = db.query(Command).filter(
             or_(
+                Command.title.ilike(term),
                 Command.command.ilike(term),
                 Command.description.ilike(term),
                 Command.category.ilike(term),
                 Command.tags.ilike(term),
+                Command.steps.any(CommandStep.command_text.ilike(term)),
+                Command.steps.any(CommandStep.title.ilike(term)),
             )
         )
         for cmd in c_query.limit(limit).all():
+            first_step = cmd.steps[0].command_text if cmd.steps else None
             results.append(
                 SearchResultItem(
                     id=cmd.id,
                     entity_type="command",
-                    title=cmd.title or cmd.description or cmd.command,
-                    snippet=cmd.command,
-                    badge=cmd.category.upper(),
+                    title=cmd.title or cmd.description or cmd.command or first_step or f"Comando #{cmd.id}",
+                    snippet=first_step or cmd.command or cmd.description or "",
+                    badge=(cmd.category or "comando").upper(),
                     created_at=cmd.created_at,
                     url_tab="commands",
                     metadata={"copies_count": cmd.copies_count, "category": cmd.category},
