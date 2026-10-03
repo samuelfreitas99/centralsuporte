@@ -44,7 +44,7 @@ from app.schemas import (
     StockMovementUpdate,
     StockMovementResponse,
 )
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, require_permission
 
 router = APIRouter(
     prefix="/infrastructure",
@@ -60,7 +60,7 @@ router = APIRouter(
 def list_stores(
     status: Optional[str] = Query(None, description="Filtro por status: ativa, inativa, reforma"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(Store)
     if status:
@@ -74,7 +74,7 @@ def list_stores(
 def create_store(
     store_in: StoreCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     if store_in.code:
         existing = db.query(Store).filter(Store.code == store_in.code).first()
@@ -95,7 +95,7 @@ def create_store(
 def get_store(
     store_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     store = db.query(Store).filter(Store.id == store_id).first()
     if not store:
@@ -108,7 +108,7 @@ def update_store(
     store_id: int,
     store_in: StoreUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     store = db.query(Store).filter(Store.id == store_id).first()
     if not store:
@@ -135,7 +135,7 @@ def update_store(
 def delete_store(
     store_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     store = db.query(Store).filter(Store.id == store_id).first()
     if not store:
@@ -155,7 +155,7 @@ def delete_store(
 def list_departments(
     store_id: Optional[int] = Query(None, description="Filtrar por loja"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(Department)
     if store_id:
@@ -167,7 +167,7 @@ def list_departments(
 def create_department(
     dept_in: DepartmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     if dept_in.store_id:
         store = db.query(Store).filter(Store.id == dept_in.store_id).first()
@@ -186,7 +186,7 @@ def update_department(
     department_id: int,
     dept_in: DepartmentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     dept = db.query(Department).filter(Department.id == department_id).first()
     if not dept:
@@ -210,7 +210,7 @@ def update_department(
 def delete_department(
     department_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     dept = db.query(Department).filter(Department.id == department_id).first()
     if not dept:
@@ -235,7 +235,7 @@ def list_locations(
     location_type: Optional[str] = Query(None, description="Filtrar por tipo"),
     q: Optional[str] = Query(None, description="Busca textual por nome"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(TechnicalLocation)
 
@@ -255,7 +255,7 @@ def list_locations(
 def get_location(
     location_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == location_id).first()
     if not loc:
@@ -267,7 +267,7 @@ def get_location(
 def create_location(
     loc_in: TechnicalLocationCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     store = db.query(Store).filter(Store.id == loc_in.store_id).first()
     if not store:
@@ -292,7 +292,7 @@ def update_location(
     location_id: int,
     loc_in: TechnicalLocationUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == location_id).first()
     if not loc:
@@ -322,7 +322,7 @@ def update_location(
 def delete_location(
     location_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     loc = db.query(TechnicalLocation).filter(TechnicalLocation.id == location_id).first()
     if not loc:
@@ -350,7 +350,7 @@ def list_equipment(
     status: Optional[str] = Query(None, description="Filtrar por status: ativo, em_manutencao, reserva, descartado"),
     project_id: Optional[int] = Query(None, description="Filtrar por projeto"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(Equipment)
 
@@ -392,7 +392,7 @@ def list_equipment(
 def create_equipment(
     eq_in: EquipmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     if eq_in.patrimony:
         existing = db.query(Equipment).filter(Equipment.patrimony == eq_in.patrimony).first()
@@ -432,7 +432,7 @@ def create_equipment(
 def get_equipment(
     equipment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     equipment = db.query(Equipment).filter(Equipment.id == equipment_id).first()
     if not equipment:
@@ -445,7 +445,7 @@ def update_equipment(
     equipment_id: int,
     eq_in: EquipmentUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     equipment = db.query(Equipment).filter(Equipment.id == equipment_id).first()
     if not equipment:
@@ -518,7 +518,7 @@ def update_equipment(
 def delete_equipment(
     equipment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     equipment = db.query(Equipment).filter(Equipment.id == equipment_id).first()
     if not equipment:
@@ -543,7 +543,7 @@ def add_equipment_history(
     equipment_id: int,
     history_in: EquipmentHistoryCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     equipment = db.query(Equipment).filter(Equipment.id == equipment_id).first()
     if not equipment:
@@ -569,7 +569,7 @@ def add_equipment_history(
 def list_licenses(
     status_filter: Optional[str] = Query(None, alias="status", description="Filtrar por status: ativa, vencida, cancelada"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(License)
     if status_filter:
@@ -593,7 +593,7 @@ def list_licenses(
 def create_license(
     lic_in: LicenseCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     lic = License(**lic_in.model_dump())
     db.add(lic)
@@ -610,7 +610,7 @@ def create_license(
 def get_license(
     license_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     lic = db.query(License).filter(License.id == license_id).first()
     if not lic:
@@ -627,7 +627,7 @@ def update_license(
     license_id: int,
     lic_in: LicenseUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     lic = db.query(License).filter(License.id == license_id).first()
     if not lic:
@@ -651,7 +651,7 @@ def update_license(
 def delete_license(
     license_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     lic = db.query(License).filter(License.id == license_id).first()
     if not lic:
@@ -665,7 +665,7 @@ def delete_license(
 def reveal_license(
     license_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     lic = db.query(License).filter(License.id == license_id).first()
     if not lic:
@@ -692,7 +692,7 @@ def assign_license_seat(
     license_id: int,
     assignment_in: LicenseAssignmentCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     lic = db.query(License).filter(License.id == license_id).first()
     if not lic:
@@ -722,7 +722,7 @@ def revoke_license_seat(
     license_id: int,
     assignment_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     assignment = (
         db.query(LicenseAssignment)
@@ -747,7 +747,7 @@ def list_stock_items(
     category: Optional[str] = Query(None, description="Filtrar por categoria"),
     low_stock_only: bool = Query(False, description="Filtrar apenas itens com estoque crítico"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(StockItem)
 
@@ -779,7 +779,7 @@ def list_stock_items(
 def create_stock_item(
     item_in: StockItemCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     item = StockItem(**item_in.model_dump())
     db.add(item)
@@ -793,7 +793,7 @@ def create_stock_item(
 def get_stock_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     item = db.query(StockItem).filter(StockItem.id == item_id).first()
     if not item:
@@ -807,7 +807,7 @@ def update_stock_item(
     item_id: int,
     item_in: StockItemUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     item = db.query(StockItem).filter(StockItem.id == item_id).first()
     if not item:
@@ -826,7 +826,7 @@ def update_stock_item(
 def delete_stock_item(
     item_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     item = db.query(StockItem).filter(StockItem.id == item_id).first()
     if not item:
@@ -842,7 +842,7 @@ def register_stock_movement(
     item_id: int,
     movement_in: StockMovementCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     item = db.query(StockItem).filter(StockItem.id == item_id).first()
     if not item:
@@ -893,7 +893,7 @@ def list_stock_movements(
     project_id: Optional[int] = None,
     item_id: Optional[int] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:read")),
 ):
     query = db.query(StockMovement)
     if project_id is not None:
@@ -908,7 +908,7 @@ def update_stock_movement(
     movement_id: int,
     payload: StockMovementUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("equipment:write")),
 ):
     movement = db.query(StockMovement).filter(StockMovement.id == movement_id).first()
     if not movement:

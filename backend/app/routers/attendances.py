@@ -5,7 +5,7 @@ from sqlalchemy import or_
 
 from app.database import get_db
 from app.models import Attendance, AttendanceNote, KnowledgeArticle, KnowledgeCategory, User
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, require_permission
 from app.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
@@ -28,7 +28,7 @@ def list_attendances(
     project_id: Optional[int] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:read")),
 ):
     query = db.query(Attendance)
 
@@ -66,7 +66,7 @@ def list_attendances(
 def create_attendance(
     payload: AttendanceCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:write")),
 ):
     assigned_tech_id = payload.technician_id or current_user.id
 
@@ -97,7 +97,7 @@ def create_attendance(
 def get_attendance(
     attendance_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:read")),
 ):
     attendance_obj = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not attendance_obj:
@@ -109,7 +109,7 @@ def update_attendance(
     attendance_id: int,
     payload: AttendanceUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:write")),
 ):
     attendance_obj = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not attendance_obj:
@@ -130,7 +130,7 @@ def update_attendance(
 def delete_attendance(
     attendance_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:write")),
 ):
     attendance_obj = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not attendance_obj:
@@ -148,7 +148,7 @@ def add_attendance_note(
     attendance_id: int,
     payload: AttendanceNoteCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:write")),
 ):
     attendance_obj = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not attendance_obj:
@@ -168,7 +168,7 @@ def add_attendance_note(
 def convert_attendance_to_knowledge(
     attendance_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("attendance:write")),
 ):
     attendance_obj = db.query(Attendance).filter(Attendance.id == attendance_id).first()
     if not attendance_obj:

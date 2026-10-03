@@ -5,7 +5,7 @@ from sqlalchemy import or_, distinct
 
 from app.database import get_db
 from app.models import StandardResponse, User
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, require_permission
 from app.schemas import (
     StandardResponseCreate,
     StandardResponseUpdate,
@@ -23,7 +23,7 @@ def list_responses(
     audience: Optional[str] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     query = db.query(StandardResponse)
 
@@ -56,7 +56,7 @@ def list_responses(
 @router.get("/categories", response_model=List[str])
 def list_response_categories(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     results = db.query(distinct(StandardResponse.category)).filter(StandardResponse.category.isnot(None)).all()
     return sorted([r[0] for r in results if r[0]])
@@ -64,7 +64,7 @@ def list_response_categories(
 @router.get("/audiences", response_model=List[str])
 def list_response_audiences(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     results = db.query(distinct(StandardResponse.audience)).filter(StandardResponse.audience.isnot(None)).all()
     return sorted([r[0] for r in results if r[0]])
@@ -73,7 +73,7 @@ def list_response_audiences(
 def create_response(
     payload: StandardResponseCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:write")),
 ):
     resp_obj = StandardResponse(
         title=payload.title,
@@ -93,7 +93,7 @@ def create_response(
 def get_response(
     response_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     resp_obj = db.query(StandardResponse).filter(StandardResponse.id == response_id).first()
     if not resp_obj:
@@ -109,7 +109,7 @@ def update_response(
     response_id: int,
     payload: StandardResponseUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:write")),
 ):
     resp_obj = db.query(StandardResponse).filter(StandardResponse.id == response_id).first()
     if not resp_obj:
@@ -139,7 +139,7 @@ def update_response(
 def delete_response(
     response_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:write")),
 ):
     resp_obj = db.query(StandardResponse).filter(StandardResponse.id == response_id).first()
     if not resp_obj:
@@ -156,7 +156,7 @@ def delete_response(
 def record_response_copy(
     response_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     resp_obj = db.query(StandardResponse).filter(StandardResponse.id == response_id).first()
     if not resp_obj:

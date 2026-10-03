@@ -34,6 +34,7 @@ O trabalho é **reorganizar, conectar e simplificar**.
 | P-04 | Scripts soltos na raiz (`fix_prefix.py`, `fix_maintenance_test.py`) e testes fora de `tests/`. | **Corrigido**. |
 | P-05 | `User(role_id=...)` abria uma segunda sessão de banco dentro do construtor. | Erros intermitentes de sessão. **Corrigido** (resolução no `before_flush`). |
 | P-06 | Produção roda em modo desenvolvimento: `uvicorn --reload` e `vite` dev server; `SECRET_KEY` e senha `admin123` têm valores padrão no código. | Risco de segurança e desempenho. Precisa de `.env` com segredos reais e build de produção do frontend. |
+| P-08 | Atendimentos, Manutenções, Infraestrutura (equipamentos, lojas, licenças, estoque), Comandos e Respostas só exigiam "usuário logado": o perfil **Consulta** podia criar, editar e excluir registros e **revelar chaves de licença**. | Falha de segurança. **Corrigido** (permissões `*:read`/`*:write` por rota + testes). |
 | P-07 | Documentação inchada e contraditória (ex.: ROADMAP marcava 12.2 tarefas 3–5 como pendentes; PROJECT_STATE dizia concluídas). | Agentes de IA se perdiam e repetiam trabalho. **Corrigido** nesta reorganização (`docs/README.md`, histórico em `docs/history/`). |
 
 ---

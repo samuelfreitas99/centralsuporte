@@ -5,7 +5,7 @@ from sqlalchemy import or_, distinct
 
 from app.database import get_db
 from app.models import Command, CommandStep, User
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, require_permission
 from app.schemas import (
     CommandCreate,
     CommandUpdate,
@@ -23,7 +23,7 @@ def list_commands(
     category: Optional[str] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     query = db.query(Command)
 
@@ -67,7 +67,7 @@ def list_commands(
 @router.get("/systems", response_model=List[str])
 def list_systems(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     results = db.query(distinct(Command.system)).filter(Command.system.isnot(None)).all()
     return sorted([r[0] for r in results if r[0]])
@@ -75,7 +75,7 @@ def list_systems(
 @router.get("/categories", response_model=List[str])
 def list_command_categories(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     results = db.query(distinct(Command.category)).filter(Command.category.isnot(None)).all()
     return sorted([r[0] for r in results if r[0]])
@@ -84,7 +84,7 @@ def list_command_categories(
 def create_command(
     payload: CommandCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:write")),
 ):
     command_obj = Command(
         title=payload.title,
@@ -118,7 +118,7 @@ def create_command(
 def get_command(
     command_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     command_obj = db.query(Command).filter(Command.id == command_id).first()
     if not command_obj:
@@ -134,7 +134,7 @@ def update_command(
     command_id: int,
     payload: CommandUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:write")),
 ):
     command_obj = db.query(Command).filter(Command.id == command_id).first()
     if not command_obj:
@@ -181,7 +181,7 @@ def update_command(
 def delete_command(
     command_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:write")),
 ):
     command_obj = db.query(Command).filter(Command.id == command_id).first()
     if not command_obj:
@@ -198,7 +198,7 @@ def delete_command(
 def record_command_copy(
     command_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("knowledge:read")),
 ):
     command_obj = db.query(Command).filter(Command.id == command_id).first()
     if not command_obj:

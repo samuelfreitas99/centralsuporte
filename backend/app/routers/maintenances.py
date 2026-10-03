@@ -14,7 +14,7 @@ from app.models import (
     Checklist,
     ChecklistItem,
 )
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, require_permission
 from app.schemas import (
     MaintenanceRecordCreate,
     MaintenanceRecordUpdate,
@@ -35,7 +35,7 @@ def is_admin_or_manager(user: User) -> bool:
 @router.get("/metrics/summary", response_model=MaintenanceSummaryMetrics)
 def get_maintenance_metrics(
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:read")),
 ):
     total = db.query(func.count(MaintenanceRecord.id)).scalar() or 0
     agendadas = db.query(func.count(MaintenanceRecord.id)).filter(MaintenanceRecord.status == "agendada").scalar() or 0
@@ -65,7 +65,7 @@ def list_maintenances(
     project_id: Optional[int] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:read")),
 ):
     query = db.query(MaintenanceRecord)
 
@@ -112,7 +112,7 @@ def list_maintenances(
 def get_maintenance(
     id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:read")),
 ):
     maintenance = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == id).first()
     if not maintenance:
@@ -127,7 +127,7 @@ def get_maintenance(
 def create_maintenance(
     payload: MaintenanceRecordCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:write")),
 ):
     equipment_ids = payload.equipment_ids or ([payload.equipment_id] if payload.equipment_id else [])
     if not equipment_ids:
@@ -232,7 +232,7 @@ def update_maintenance(
     id: int,
     payload: MaintenanceRecordUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:write")),
 ):
     maintenance = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == id).first()
     if not maintenance:
@@ -319,7 +319,7 @@ def update_maintenance_status(
     id: int,
     payload: MaintenanceRecordStatusUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:write")),
 ):
     maintenance = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == id).first()
     if not maintenance:
@@ -391,7 +391,7 @@ def create_maintenance_checklist(
     id: int,
     payload: ChecklistCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:write")),
 ):
     maintenance = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == id).first()
     if not maintenance:
@@ -428,7 +428,7 @@ def create_maintenance_checklist(
 def delete_maintenance(
     id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(require_permission("maintenance:write")),
 ):
     maintenance = db.query(MaintenanceRecord).filter(MaintenanceRecord.id == id).first()
     if not maintenance:
