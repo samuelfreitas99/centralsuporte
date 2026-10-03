@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PriorityBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
+import { statusOptions, priorityOptions } from '@/lib/status';
 import { useConfirm } from '@/hooks/useConfirm';
-import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   CheckSquare,
   Plus,
-  Search,
   ExternalLink,
   Clock,
   Trash2,
@@ -33,8 +33,7 @@ export const TasksPage: React.FC = () => {
   const { page, limit, setPage, updateHashParams } = usePagination(50);
 
   const [loading, setLoading] = useState(true);
-  const [searchTermInput, setSearchTermInput] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('search') || '');
-  const [debouncedSearch, setDebouncedSearch] = useState(searchTermInput);
+  const [debouncedSearch, setDebouncedSearch] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('search') || '');
   const [statusFilter, setStatusFilter] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('status') || '');
   const [priorityFilter, setPriorityFilter] = useState(() => new URLSearchParams(window.location.hash.split('?')[1] || '').get('priority') || '');
 
@@ -44,17 +43,6 @@ export const TasksPage: React.FC = () => {
   const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-  // Debounce search term
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchTermInput);
-      if (searchTermInput !== debouncedSearch) {
-        setPage(1); // Reset page on search change
-        updateHashParams({ search: searchTermInput || null, page: '1' });
-      }
-    }, 400);
-    return () => clearTimeout(handler);
-  }, [searchTermInput, debouncedSearch, setPage, updateHashParams]);
 
   const loadTasks = useCallback(async () => {
     try {
@@ -167,50 +155,34 @@ export const TasksPage: React.FC = () => {
           </div>
 
           <Card className="flex-1 flex flex-col min-h-[500px]">
-            <CardHeader className="p-4 pb-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex flex-1 items-center gap-2">
-                  <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Pesquisar tarefas ou OTRS..."
-                      value={searchTermInput}
-                      onChange={(e) => setSearchTermInput(e.target.value)}
-                      className="pl-8 h-9 text-xs bg-muted/30"
-                    />
-                  </div>
-
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => handleStatusFilterChange(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-muted/30 px-2.5 text-xs text-foreground font-medium"
-                  >
-                    <option value="">Todos os Status</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="em_andamento">Em Andamento</option>
-                    <option value="concluida">Concluída</option>
-                    <option value="cancelada">Cancelada</option>
-                  </select>
-
-                  <select
-                    value={priorityFilter}
-                    onChange={(e) => handlePriorityFilterChange(e.target.value)}
-                    className="h-9 rounded-md border border-input bg-muted/30 px-2.5 text-xs text-foreground font-medium"
-                  >
-                    <option value="">Prioridades</option>
-                    <option value="urgente">Urgente</option>
-                    <option value="alta">Alta</option>
-                    <option value="media">Média</option>
-                    <option value="baixa">Baixa</option>
-                  </select>
-                </div>
-
+            <div className="p-4 pb-3">
+              <FilterBar
+                bare
+                search={debouncedSearch}
+                onSearch={(value) => {
+                  setDebouncedSearch(value);
+                  updateHashParams({ search: value || null, page: null });
+                }}
+                placeholder="Buscar tarefa ou chamado OTRS..."
+              >
+                <FilterSelect
+                  label="Status"
+                  value={statusFilter || 'all'}
+                  onChange={(value) => handleStatusFilterChange(value === 'all' ? '' : value)}
+                  options={statusOptions('task')}
+                />
+                <FilterSelect
+                  label="Prioridade"
+                  value={priorityFilter || 'all'}
+                  onChange={(value) => handlePriorityFilterChange(value === 'all' ? '' : value)}
+                  options={priorityOptions()}
+                />
                 <Button size="sm" onClick={openCreateDialog} className="flex items-center gap-1.5 h-9 shrink-0">
                   <Plus className="h-4 w-4" />
                   <span>Nova Tarefa</span>
                 </Button>
-              </div>
-            </CardHeader>
+              </FilterBar>
+            </div>
 
             <CardContent className="p-0 border-t border-border/50 flex-1 flex flex-col">
               {loading ? (

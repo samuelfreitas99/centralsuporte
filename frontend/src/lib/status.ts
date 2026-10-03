@@ -55,3 +55,10 @@ export const statusMeta = (domain: StatusDomain, status: string): StatusMeta =>
 
 export const priorityMeta = (priority: string): StatusMeta =>
   PRIORITY_META[priority] ?? { label: priority, variant: 'outline' };
+
+/** Opções de filtro por status de um domínio (para FilterSelect). */
+export const statusOptions = (domain: StatusDomain) =>
+  Object.entries(STATUS_META[domain]).map(([value, meta]) => ({ value, label: meta.label }));
+
+export const priorityOptions = () =>
+  Object.entries(PRIORITY_META).map(([value, meta]) => ({ value, label: meta.label }));

@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
+import { statusOptions } from '@/lib/status';
 import {
   Wrench,
-  Search,
   Plus,
   RefreshCw,
   FileText,
@@ -16,7 +17,6 @@ import {
   HardDrive
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/Toast';
@@ -269,42 +269,20 @@ export const MaintenancePage: React.FC = () => {
         </div>
       </div>
 
-      {/* FILTERS & VIEW TOGGLE */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between p-3 rounded-xl border bg-card/50">
-        <div className="flex items-center gap-3 w-full sm:w-auto flex-wrap">
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar manutenção..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 h-8 text-xs bg-background"
-            />
-          </div>
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="all">Status: Todos</option>
-            <option value="agendada">Agendada</option>
-            <option value="em_andamento">Em Andamento</option>
-            <option value="concluida">Concluída</option>
-            <option value="cancelada">Cancelada</option>
-          </select>
-          <select
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-            className="h-8 rounded-md border border-input bg-background px-2 text-xs"
-          >
-            <option value="all">Tipo: Todos</option>
-            <option value="preventiva">Preventiva</option>
-            <option value="corretiva">Corretiva</option>
-            <option value="substituicao">Substituição</option>
-            <option value="atualizacao">Atualização</option>
-          </select>
-        </div>
-        <div className="flex p-1 bg-muted rounded-lg">
+      <FilterBar search={searchQuery} onSearch={setSearchQuery} placeholder="Buscar por título, equipamento, chamado OTRS...">
+        <FilterSelect label="Status" value={selectedStatus} onChange={setSelectedStatus} options={statusOptions('maintenance')} />
+        <FilterSelect
+          label="Tipo"
+          value={selectedType}
+          onChange={setSelectedType}
+          options={[
+            { value: 'preventiva', label: 'Preventiva' },
+            { value: 'corretiva', label: 'Corretiva' },
+            { value: 'substituicao', label: 'Substituição' },
+            { value: 'atualizacao', label: 'Atualização' },
+          ]}
+        />
+        <div className="flex rounded-lg bg-muted p-1" role="group" aria-label="Visualização">
           <Button
             variant={viewMode === 'list' ? 'secondary' : 'ghost'}
             size="sm"
@@ -322,7 +300,7 @@ export const MaintenancePage: React.FC = () => {
             <CalendarIcon className="h-3.5 w-3.5 mr-1.5" /> Agenda
           </Button>
         </div>
-      </div>
+      </FilterBar>
 
       {/* CONTENT AREA */}
       {isLoading ? (

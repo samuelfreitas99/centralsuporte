@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
+import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
+import { statusOptions } from '@/lib/status';
 import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Headset,
-  Search,
   Plus,
   ExternalLink,
   HardDrive,
@@ -16,7 +17,6 @@ import {
   User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -244,61 +244,45 @@ export const AttendancePage: React.FC = () => {
         </Button>
       </PageHeader>
 
-      {/* 3. Filter and Search Bar */}
-      <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setPage(1);
-            }}
-            placeholder="Buscar por chamado OTRS, título, diagnóstico, equipamento..."
-            className="pl-9 h-9 bg-background/50 border-border/60 text-sm"
-          />
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <select
-            value={selectedStatus}
-            onChange={(e) => {
-              setSelectedStatus(e.target.value);
-              setPage(1);
-            }}
-            className="rounded-md border border-border/60 bg-background/50 px-3 py-1.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer h-9"
-          >
-            <option value="all">Todos os Status</option>
-            <option value="em_andamento">Em Andamento</option>
-            <option value="resolvido">Resolvido</option>
-            <option value="cancelado">Cancelado</option>
-          </select>
-
-          <Button
-            variant={onlyOtrs ? "default" : "outline"}
-            size="sm"
-            onClick={() => {
-              setOnlyOtrs(!onlyOtrs);
-              setPage(1);
-            }}
-            className={`h-9 text-xs font-medium gap-1.5 cursor-pointer ${onlyOtrs ? 'shadow-sm' : 'border-border/60'}`}
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Apenas OTRS</span>
-            <span className="sm:hidden">OTRS</span>
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={loadAttendances}
-            className="h-9 w-9 text-muted-foreground hover:text-foreground cursor-pointer"
-            aria-label="Atualizar lista"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+      <FilterBar
+        search={searchQuery}
+        onSearch={(value) => {
+          setSearchQuery(value);
+          setPage(1);
+        }}
+        placeholder="Buscar por chamado OTRS, título, diagnóstico, equipamento..."
+      >
+        <FilterSelect
+          label="Status"
+          value={selectedStatus}
+          onChange={(value) => {
+            setSelectedStatus(value);
+            setPage(1);
+          }}
+          options={statusOptions('attendance')}
+        />
+        <Button
+          variant={onlyOtrs ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => {
+            setOnlyOtrs(!onlyOtrs);
+            setPage(1);
+          }}
+          className={`h-9 text-xs font-medium gap-1.5 cursor-pointer ${onlyOtrs ? 'shadow-sm' : 'border-border/60'}`}
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Só com chamado OTRS
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={loadAttendances}
+          className="h-9 w-9 text-muted-foreground hover:text-foreground cursor-pointer"
+          aria-label="Atualizar lista"
+        >
+          <RefreshCw className="h-4 w-4" />
+        </Button>
+      </FilterBar>
 
       {/* 4. Main Content Area */}
       {errorMessage && (

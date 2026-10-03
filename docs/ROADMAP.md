@@ -53,11 +53,12 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S3.2 Lembretes pessoais x alertas automáticos (`reminders.source`); listagem só do próprio usuário; sino mostra avisos com selo "Automático", Início e Tarefas mostram "Meus lembretes" — P-30, P-31, P-33
 
 ### S4 — Código compartilhado e manutenção
-- [~] S4.1 Componentes comuns — P-60, P-61
+- [x] S4.1 Componentes comuns — P-60, P-61
   - feito: `ConfirmDialog` + `useConfirm` (todas as 16 chamadas de `window.confirm` substituídas)
   - feito: `PageHeader` em todas as telas principais (mesmo tamanho, ícone e posição das ações; descrições curtas); banner OTRS repetido removido de Atendimentos
   - feito: `StatusBadge`/`PriorityBadge` + `lib/status.ts` substituindo 11 funções duplicadas (o card de atendimentos do Início mostrava status inexistentes)
-  - falta: `FilterBar`
+  - feito: `FilterBar`/`FilterSelect` (busca com debounce, opções de status de `lib/status.ts`) em Atendimentos, Tarefas e Manutenções
+  - opcional: Conhecimento, Comandos e Equipamentos têm filtros próprios (pílulas de categoria/sistema) e ficaram como estão
 - [x] S4.2 Telas gigantes divididas: `AttendancePage` 1.058 → 475 linhas (`components/attendance/`), `CommandsPage` 1.356 → 726 (`components/commands/`) — P-51
 - [x] S4.3 Listas leves e paginadas — P-62
   - feito: lista de equipamentos sem histórico embutido (`EquipmentListResponse`): 4 MB → 375 KB, 0,52 s → 0,04 s

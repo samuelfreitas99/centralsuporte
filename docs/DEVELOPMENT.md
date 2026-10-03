@@ -85,6 +85,7 @@ docker exec centralsuporte_backend sh -c "cd /app && alembic upgrade head"
 * Textos de interface em **português do Brasil**, curtos e diretos. Sem jargão de desenvolvimento
   ("Fase 8", "MVP", "Roadmap") na interface.
 * Cabeçalho de tela: sempre `<PageHeader icon title description>{ações}</PageHeader>` (`components/ui/PageHeader.tsx`); título igual ao rótulo do menu.
+* Busca e filtros de lista: `<FilterBar search onSearch placeholder>` + `<FilterSelect>` (`components/ui/FilterBar.tsx`); a busca já tem debounce.
 * Status e prioridade: `<StatusBadge domain status>` / `<PriorityBadge priority>`; rótulos e cores só em `lib/status.ts`.
 * Confirmações: `const confirm = useConfirm();` e `if (!(await confirm({ title: 'Excluir X?' }))) return;`
   (`hooks/useConfirm.ts`). Nunca use `window.confirm`.
