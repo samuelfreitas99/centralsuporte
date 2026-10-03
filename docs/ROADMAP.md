@@ -59,13 +59,13 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
   - feito: `StatusBadge`/`PriorityBadge` + `lib/status.ts` substituindo 11 funções duplicadas (o card de atendimentos do Início mostrava status inexistentes)
   - falta: `FilterBar`
 - [x] S4.2 Telas gigantes divididas: `AttendancePage` 1.058 → 475 linhas (`components/attendance/`), `CommandsPage` 1.356 → 726 (`components/commands/`) — P-51
-- [~] S4.3 Listas leves e paginadas — P-62
+- [x] S4.3 Listas leves e paginadas — P-62
   - feito: lista de equipamentos sem histórico embutido (`EquipmentListResponse`): 4 MB → 375 KB, 0,52 s → 0,04 s
   - feito: lista de manutenções usa `EquipmentListResponse` + eager loading: 17 MB → 2,3 MB, 1,39 s → 0,26 s
   - feito: atendimentos paginados (`PaginatedResponse[AttendanceListResponse]`, sem notas na lista; detalhe sempre via `GET /attendances/{id}`): 1,2 MB → ~78 KB por página (30 itens)
   - feito: artigos paginados e leves (`KnowledgeArticleListResponse`: sem conteúdo/versões, com `has_commands`/`versions_count`); edição carrega o artigo completo
   - feito: manutenções paginadas; Agenda usa `scheduled_from` (agendadas a partir de 7 dias atrás, em ordem cronológica); equipamentos/modelos/eventos carregados uma vez só
-  - falta: paginação em equipamentos
+  - feito: equipamentos paginados na tela (50 por página); API continua completa e leve para os seletores (ver `DECISIONS.md`)
 - [x] S4.4 Tabela de rotas única no lugar da cadeia de ternários em `AuthenticatedView.tsx` — P-63
 
 ---

@@ -110,3 +110,8 @@
 - **Decisão**: Em vez de limpar seletivamente, o banco `centralsuporte_db` foi recriado (drop do schema, `alembic upgrade head`, seed padrão) e os anexos físicos foram apagados.
 - **Contexto**: O responsável confirmou que todo o conteúdo era experimental. O banco estava dominado por dados gerados pela suíte de testes antes do isolamento (S0.1).
 - **Consequências**: Ambiente limpo para uso real; a partir daqui o banco principal só recebe dados pela interface. Backups do estado anterior ficam em `~/centralsuporte_backups/` (fora do Git).
+
+### 2026-10-03: Paginação de listas (padrão) e exceção para equipamentos
+- **Decisão**: Listagens de tarefas, atendimentos, artigos e manutenções usam paginação no servidor (`PaginatedResponse[XListResponse]`, DTO de lista sem campos pesados; detalhe sempre via `GET /recurso/{id}`). A listagem de equipamentos continua completa no servidor (sem histórico embutido) e é paginada apenas na tela.
+- **Contexto**: A lista de equipamentos alimenta seletores (manutenção, projeto, atendimento) e filtros instantâneos na aba de inventário; com o DTO leve ela custa ~0,7 KB por equipamento.
+- **Consequências**: Se o inventário passar de alguns milhares de itens, migrar a aba para paginação no servidor (o endpoint já filtra por `q`, loja, tipo e status) e os seletores para busca no servidor, como o `EquipmentPicker` já faz.

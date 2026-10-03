@@ -172,6 +172,7 @@ describe('InfrastructurePage (Phase 8)', () => {
 
     expect(screen.getByRole('heading', { name: 'Equipamentos e Lojas' })).toBeInTheDocument();
     expect(screen.queryByText('Fase 8')).not.toBeInTheDocument();
+    expect(await screen.findByText(/^\d+ equipamento\(s\)$/)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('PDV-01-MATRIZ')).toBeInTheDocument();

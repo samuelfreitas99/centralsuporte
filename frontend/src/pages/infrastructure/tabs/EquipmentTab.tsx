@@ -3,6 +3,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
 import { equipmentToForm } from '../equipmentForm';
 import { clearDeepLinkId } from '@/hooks/useDeepLink';
+import { Pagination } from '@/components/ui/Pagination';
 import { EquipmentActivity } from '@/components/infrastructure/EquipmentActivity';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -57,6 +58,8 @@ export interface EquipmentTabProps {
   eqForm: EquipmentCreatePayload;
   setEqForm: React.Dispatch<React.SetStateAction<EquipmentCreatePayload>>;
 }
+
+const EQUIPMENT_PAGE_SIZE = 50;
 
 export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   equipmentList,
@@ -130,6 +133,17 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
       return matchesSearch && matchesStore && matchesType && matchesStatus;
     });
   }, [equipmentList, searchQuery, selectedStoreFilter, selectedTypeFilter, selectedStatusFilter]);
+
+  // Paginação só na tela: a lista completa continua disponível para filtros instantâneos e seletores.
+  const [page, setPage] = useState(1);
+  const filterKey = `${searchQuery}|${selectedStoreFilter}|${selectedTypeFilter}|${selectedStatusFilter}`;
+  const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+  if (filterKey !== lastFilterKey) {
+    setLastFilterKey(filterKey);
+    setPage(1);
+  }
+  const totalPages = Math.max(1, Math.ceil(filteredEquipment.length / EQUIPMENT_PAGE_SIZE));
+  const visibleEquipment = filteredEquipment.slice((page - 1) * EQUIPMENT_PAGE_SIZE, page * EQUIPMENT_PAGE_SIZE);
 
   const handleOpenEquipmentModalLocal = (eq?: EquipmentItem) => {
     if (eq) {
@@ -274,7 +288,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
           
           <div className="flex flex-col">
             <AnimatePresence>
-              {filteredEquipment.map((eq) => (
+              {visibleEquipment.map((eq) => (
                 <motion.div
                   key={eq.id}
                   initial={{ opacity: 0 }}
@@ -334,6 +348,10 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                 </motion.div>
               ))}
             </AnimatePresence>
+          </div>
+          <div className="flex flex-col items-center gap-1 border-t border-border/50 p-3">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            <p className="text-[11px] text-muted-foreground">{filteredEquipment.length} equipamento(s)</p>
           </div>
         </div>
       )}
