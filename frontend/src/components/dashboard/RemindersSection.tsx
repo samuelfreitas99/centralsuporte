@@ -52,7 +52,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ reminders: i
             <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
               <Bell className="h-3.5 w-3.5" />
             </div>
-            <CardTitle className="font-heading text-base font-bold">Lembretes</CardTitle>
+            <CardTitle className="font-heading text-base font-bold">Meus lembretes</CardTitle>
             {!loading && (
               <Badge variant="secondary" className="ml-2 font-mono text-[10px] font-bold">
                 {localReminders.filter(r => r.status !== 'concluido').length}

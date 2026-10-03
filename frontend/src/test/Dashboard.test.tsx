@@ -167,7 +167,7 @@ describe('DashboardPage', () => {
   it('renders shift reminders and quick knowledge procedures', async () => {
     renderDashboard();
 
-    expect(await screen.findByText('Lembretes')).toBeInTheDocument();
+    expect(await screen.findByText('Meus lembretes')).toBeInTheDocument();
     expect(await screen.findByText(/passagem de turno com técnico da noite/i)).toBeInTheDocument();
     expect(await screen.findByText('Base de Conhecimento')).toBeInTheDocument();
     expect(await screen.findByText(/comandos úteis para reinicialização do spooler e sat fiscal/i)).toBeInTheDocument();

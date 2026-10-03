@@ -36,9 +36,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(147, 51, 234, 0.15);
-  border: 1px solid rgba(147, 51, 234, 0.35);
-  color: #c084fc;
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(37, 99, 235, 0.35);
+  color: #93c5fd;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -51,9 +51,9 @@
 .brand-dot {
   width: 6px;
   height: 6px;
-  background: #a855f7;
+  background: #3b82f6;
   border-radius: 50%;
-  box-shadow: 0 0 8px #a855f7;
+  box-shadow: 0 0 8px #3b82f6;
 }
 
 .login-title {
@@ -123,8 +123,8 @@
 }
 
 .form-input:focus {
-  border-color: #a855f7;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .password-input-wrapper {
@@ -158,20 +158,20 @@
 .submit-button {
   margin-top: 6px;
   padding: 12px 20px;
-  background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   color: #ffffff;
   border: none;
   border-radius: 8px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.35);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
   transition: transform 0.1s, box-shadow 0.2s, opacity 0.2s;
 }
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(147, 51, 234, 0.45);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.45);
 }
 
 .submit-button:active:not(:disabled) {

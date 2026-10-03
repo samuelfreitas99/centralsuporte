@@ -34,11 +34,11 @@ export const LoginPage: React.FC = () => {
         <div className="login-header">
           <div className="brand-badge">
             <span className="brand-dot"></span>
-            Operação Interna
+            Uso interno
           </div>
           <h1 className="login-title">Central de Suporte</h1>
           <p className="login-subtitle">
-            Central Operacional do Suporte Técnico — Gestão de conhecimento, atendimentos internos e tarefas.
+            Atendimentos, conhecimento e inventário da equipe de suporte.
           </p>
         </div>
 
@@ -101,14 +101,14 @@ export const LoginPage: React.FC = () => {
                 Autenticando...
               </span>
             ) : (
-              'Entrar no Sistema'
+              'Entrar'
             )}
           </button>
         </form>
 
         <div className="login-footer">
           <p className="otrs-reminder">
-            🔒 <strong>Atenção:</strong> A Central é um sistema interno complementar e não substitui o OTRS para chamados oficiais.
+            Chamados oficiais continuam no OTRS. Esqueceu a senha? Fale com o administrador da Central.
           </p>
         </div>
       </div>

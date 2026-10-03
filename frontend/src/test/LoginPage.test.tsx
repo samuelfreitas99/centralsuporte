@@ -39,8 +39,8 @@ describe('LoginPage', () => {
     expect(screen.getByText('Central de Suporte')).toBeInTheDocument();
     expect(screen.getByLabelText(/usuário ou e-mail/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /entrar no sistema/i })).toBeInTheDocument();
-    expect(screen.getByText(/a central é um sistema interno complementar/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^entrar$/i })).toBeInTheDocument();
+    expect(screen.getByText(/Chamados oficiais continuam no OTRS/i)).toBeInTheDocument();
   });
 
   it('toggles password visibility when toggle button is clicked', () => {
@@ -70,7 +70,7 @@ describe('LoginPage', () => {
       target: { value: 'admin123' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /entrar no sistema/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^entrar$/i }));
 
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith('admin', 'admin123');
@@ -88,7 +88,7 @@ describe('LoginPage', () => {
       target: { value: 'wrongpassword' },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /entrar no sistema/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^entrar$/i }));
 
     await waitFor(() => {
       expect(screen.getByText('Credenciais inválidas')).toBeInTheDocument();
