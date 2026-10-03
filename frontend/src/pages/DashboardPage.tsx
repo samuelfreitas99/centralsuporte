@@ -12,6 +12,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { GettingStarted } from '@/components/dashboard/GettingStarted';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { TaskListSection } from '@/components/dashboard/TaskListSection';
 import { RecentAttendancesSection } from '@/components/dashboard/RecentAttendancesSection';
@@ -118,6 +119,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
       className="space-y-8 pb-8"
     >
       <DashboardHeader />
+
+      <GettingStarted onNavigate={go} />
 
       {/* Ações rápidas */}
       <div className="flex flex-wrap items-center gap-2">
