@@ -46,7 +46,7 @@ docs/                  # ver docs/README.md
 
 | Domínio | Roteadores (backend) | Páginas (frontend, hash) |
 |---|---|---|
-| Identidade e acesso | `auth`, `users` (inclui roles/permissions) | `#users`, `#roles`, `#profile` |
+| Identidade e acesso | `auth`, `users` (inclui roles/permissions) | `#users` e `#roles` (abas da mesma tela `AccessPage`), `#profile` |
 | Operação diária | `attendances`, `tasks`, `checklists`, `checklist_templates`, `reminders`, `calendar`, `maintenances`, `projects` | `#attendance`, `#tasks`, `#maintenances`, `#projects` |
 | Conhecimento | `knowledge`, `commands`, `responses` | `#knowledge`, `#commands` |
 | Inventário | `infrastructure` (stores, departments, locations, equipment, licenses, stock) | `#equipment` (abas) |

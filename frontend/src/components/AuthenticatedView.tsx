@@ -16,9 +16,8 @@ const InfrastructurePage = lazy(() =>
   import('@/pages/InfrastructurePage').then((m) => ({ default: m.InfrastructurePage }))
 );
 const AuditLogsPage = lazy(() => import('@/pages/AuditLogsPage').then((m) => ({ default: m.AuditLogsPage })));
-const UsersPage = lazy(() => import('@/pages/UsersPage').then((m) => ({ default: m.UsersPage })));
+const AccessPage = lazy(() => import('@/pages/AccessPage').then((m) => ({ default: m.AccessPage })));
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
-const RolesPage = lazy(() => import('@/pages/RolesPage').then((m) => ({ default: m.RolesPage })));
 const FilesPage = lazy(() => import('@/pages/files/FilesPage').then((m) => ({ default: m.FilesPage })));
 
 interface RouteContext {
@@ -41,10 +40,8 @@ const ROUTES: Record<string, (ctx: RouteContext) => React.ReactNode> = {
   files: () => <FilesPage />,
   equipment: () => <InfrastructurePage />,
   reports: () => <ReportsPage />,
-  users: ({ navigate }) => (
-    <UsersPage onSelectTab={navigate} onOpenProfile={(id) => navigate(`profile?id=${id}`)} />
-  ),
-  roles: () => <RolesPage />,
+  users: ({ navigate }) => <AccessPage tab="users" navigate={navigate} />,
+  roles: ({ navigate }) => <AccessPage tab="roles" navigate={navigate} />,
   audit: () => <AuditLogsPage />,
   profile: ({ navigate, profileUserId }) => (
     <ProfilePage userId={profileUserId} onBack={() => navigate('users')} onSelectTab={navigate} />

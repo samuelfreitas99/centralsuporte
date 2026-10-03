@@ -38,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="space-y-0.5">
           {items.map((item) => {
             const Icon = item.icon;
-            const isActive = currentTab === item.id;
+            const isActive = currentTab === item.id || (item.activeFor?.includes(currentTab) ?? false);
             return (
               <button
                 key={item.id}

@@ -12,7 +12,6 @@ import {
   BarChart3,
   ShieldAlert,
   Briefcase,
-  Shield,
 } from 'lucide-react';
 
 export type NavSection = 'inicio' | 'dia-a-dia' | 'conhecimento' | 'inventario' | 'gestao';
@@ -24,6 +23,8 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   permission?: string;
   section: NavSection;
+  /** Outros ids de hash que também marcam este item como ativo (sub-telas). */
+  activeFor?: string[];
 }
 
 /** Grupos do menu, na ordem em que aparecem. `title` vazio = sem cabeçalho. */
@@ -50,8 +51,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: 'equipment', label: 'Equipamentos e Lojas', icon: Server, permission: 'equipment:read', section: 'inventario' },
 
   { id: 'reports', label: 'Relatórios', icon: BarChart3, section: 'gestao' },
-  { id: 'users', label: 'Usuários', icon: Users, permission: 'users:read', section: 'gestao' },
-  { id: 'roles', label: 'Perfis e Permissões', icon: Shield, permission: 'roles:read', section: 'gestao' },
+  { id: 'users', label: 'Usuários e Permissões', icon: Users, permission: 'users:read', section: 'gestao', activeFor: ['roles'] },
   { id: 'audit', label: 'Auditoria', icon: ShieldAlert, permission: 'audit:read', section: 'gestao' },
 ];
 

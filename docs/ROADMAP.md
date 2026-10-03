@@ -38,7 +38,7 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 - [x] S1.2 Busca global em paleta flutuante (Ctrl+K) que abre o item; Relatórios em página própria — P-11, P-12
 - [x] S1.3 Deep link `#modulo?id=N` padronizado para os resultados da busca — P-12, P-16
 - [x] S1.4 Remover resíduos (badges "Fase X", tela "Roadmap Futuro", banners OTRS repetidos, mock fora de `services/`) — P-14, P-15
-- [ ] S1.5 Unificar "Usuários" e "Perfis e Permissões" em uma tela com abas — P-13
+- [x] S1.5 Unificar "Usuários" e "Perfis e Permissões" em uma tela com abas — P-13
 
 ### S2 — Atendimento conectado ao equipamento (fluxo central)
 - [x] S2.1 Formulário completo: problema, sintomas, URL OTRS, notas internas — P-20
