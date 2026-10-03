@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { equipmentToForm } from '../equipmentForm';
 import { clearDeepLinkId } from '@/hooks/useDeepLink';
+import { EquipmentActivity } from '@/components/infrastructure/EquipmentActivity';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Server,
@@ -17,6 +18,7 @@ import {
   Wrench,
   FileText,
   Activity,
+  Headset,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -366,6 +368,9 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                   <TabsTrigger value="base" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-2 pt-1 h-auto">
                     <Activity className="h-3.5 w-3.5 mr-1.5" /> Informações
                   </TabsTrigger>
+                  <TabsTrigger value="activity" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-2 pt-1 h-auto">
+                    <Headset className="h-3.5 w-3.5 mr-1.5" /> Ocorrências
+                  </TabsTrigger>
                   <TabsTrigger value="history" className="text-xs data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-2 pt-1 h-auto">
                     <Wrench className="h-3.5 w-3.5 mr-1.5" /> Histórico
                   </TabsTrigger>
@@ -557,6 +562,13 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
 
               {editingEquipment && (
                 <>
+                  <TabsContent value="activity" className="m-0">
+                    <EquipmentActivity
+                      equipmentId={editingEquipment.id}
+                      canRegisterAttendance={hasPermission('attendance:write')}
+                    />
+                  </TabsContent>
+
                   <TabsContent value="history" className="m-0 flex flex-col h-full space-y-4">
                     <form onSubmit={handleAddHistoryNote} className="flex gap-2">
                       <Input
