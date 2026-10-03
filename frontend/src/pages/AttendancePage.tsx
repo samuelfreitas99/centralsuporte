@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -409,19 +410,7 @@ export const AttendancePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Page Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
-              Atendimentos
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Registro técnico operacional, diagnósticos, e comandos vinculados a chamados OTRS.
-          </p>
-        </div>
-
+      <PageHeader icon={Headset} title="Atendimentos" description="Diagnóstico, solução e comandos de cada atendimento. O chamado oficial continua no OTRS.">
         <Button
           onClick={() => handleOpenForm()}
           className="flex items-center gap-2 shadow-sm cursor-pointer w-full sm:w-auto"
@@ -429,19 +418,7 @@ export const AttendancePage: React.FC = () => {
           <Plus className="h-4 w-4" />
           <span>Novo Atendimento</span>
         </Button>
-      </div>
-
-      {/* 2. OTRS Architectural Complementarity Alert */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 text-xs text-muted-foreground shadow-sm">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-foreground flex items-center gap-1.5">
-            <ExternalLink className="h-4 w-4 text-primary" />
-            <span>Integração Oficial com OTRS</span>
-          </span>
-          <span className="hidden sm:inline">—</span>
-          <span className="font-medium text-center sm:text-left">Abertura, SLA, histórico do cliente e encerramento ocorrem exclusivamente no OTRS. A Central armazena detalhes técnicos restritos.</span>
-        </div>
-      </div>
+      </PageHeader>
 
       {/* 3. Filter and Search Bar */}
       <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-card p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">

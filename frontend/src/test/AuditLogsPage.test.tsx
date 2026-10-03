@@ -54,7 +54,7 @@ describe('AuditLogsPage', () => {
     render(<AuditLogsPage />);
 
     expect(screen.getByRole('heading', { name: 'Auditoria' })).toBeInTheDocument();
-    expect(screen.getByText('Imutável')).toBeInTheDocument();
+    expect(screen.getByText(/Registro das ações sensíveis/)).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Filtrar por usuário, IP, ação/i)).toBeInTheDocument();
     expect(screen.getByText('Atualizar Trilha')).toBeInTheDocument();
   });

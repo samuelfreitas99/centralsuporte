@@ -55,7 +55,8 @@ conectado e intuitivo** para o dia a dia do suporte, sem adicionar módulos novo
 ### S4 — Código compartilhado e manutenção
 - [~] S4.1 Componentes comuns — P-60, P-61
   - feito: `ConfirmDialog` + `useConfirm` (todas as 16 chamadas de `window.confirm` substituídas)
-  - falta: `PageHeader`, `FilterBar`, `StatusBadge`
+  - feito: `PageHeader` em todas as telas principais (mesmo tamanho, ícone e posição das ações; descrições curtas); banner OTRS repetido removido de Atendimentos
+  - falta: `FilterBar`, `StatusBadge`
 - [ ] S4.2 Quebrar `CommandsPage.tsx` e `AttendancePage.tsx` em componentes menores — P-51
 - [~] S4.3 Listas leves e paginadas — P-62
   - feito: lista de equipamentos sem histórico embutido (`EquipmentListResponse`): 4 MB → 375 KB, 0,52 s → 0,04 s

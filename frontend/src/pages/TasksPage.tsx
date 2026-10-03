@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -160,17 +161,7 @@ export const TasksPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <CheckSquare className="h-6 w-6 text-primary" />
-            <span>Tarefas e Agenda</span>
-          </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Gerenciamento de tarefas técnicas, procedimentos com checklist, lembretes de escala e calendário
-          </p>
-        </div>
-      </div>
+      <PageHeader icon={CheckSquare} title="Tarefas e Agenda" description="Tarefas da equipe com checklists, seus lembretes e a agenda." />
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2 space-y-6">

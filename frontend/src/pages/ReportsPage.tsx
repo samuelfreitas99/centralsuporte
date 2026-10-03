@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   BarChart3,
   Download,
@@ -63,15 +64,7 @@ export const ReportsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="border-b border-border/60 pb-5">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading flex items-center gap-2">
-          <BarChart3 className="h-6 w-6 text-primary" />
-          Relatórios
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Indicadores de atendimentos e manutenções, equipamentos com falhas recorrentes e produtividade da equipe.
-        </p>
-      </div>
+      <PageHeader icon={BarChart3} title="Relatórios" description="Atendimentos e manutenções do período, equipamentos com falhas recorrentes e produtividade." />
 
     <div className="space-y-6">
       {/* Controls Bar: Period selector & CSV Export */}

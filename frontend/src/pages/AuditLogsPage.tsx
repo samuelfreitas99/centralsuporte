@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   ShieldAlert,
   Search,
@@ -7,7 +8,6 @@ import {
   Clock,
   User as UserIcon,
   Laptop,
-  CheckCircle2,
   AlertTriangle,
   FileCode2,
   ChevronLeft,
@@ -105,23 +105,7 @@ export const AuditLogsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
-              Auditoria
-            </h1>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
-              <CheckCircle2 className="h-3 w-3" />
-              Imutável
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Registro cronológico e rastreabilidade detalhada de todas as operações sensíveis do sistema.
-          </p>
-        </div>
-
+      <PageHeader icon={ShieldAlert} title="Auditoria" description="Registro das ações sensíveis do sistema (logins, permissões, exclusões).">
         <Button
           variant="outline"
           size="sm"
@@ -132,7 +116,7 @@ export const AuditLogsPage: React.FC = () => {
           <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Atualizar Trilha</span>
         </Button>
-      </div>
+      </PageHeader>
 
       {/* Filter Bar */}
       <Card className="border-border/80 bg-card/70 backdrop-blur-sm">

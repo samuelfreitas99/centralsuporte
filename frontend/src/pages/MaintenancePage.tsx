@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import {
   Wrench,
   Search,
@@ -187,17 +188,7 @@ export const MaintenancePage: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      {/* HEADER */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
-            Manutenções
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Workspace operacional para gestão de preventivas, corretivas e intervenções.
-          </p>
-        </div>
-
+      <PageHeader icon={Wrench} title="Manutenções" description="Preventivas e corretivas, com checklists e equipamentos envolvidos.">
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
@@ -212,7 +203,7 @@ export const MaintenancePage: React.FC = () => {
             Nova Manutenção
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       {/* METRICS (Compact Row) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

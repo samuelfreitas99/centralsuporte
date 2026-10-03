@@ -128,7 +128,7 @@ describe('CommandsPage (Phase 6)', () => {
     renderCommandsPage();
 
     expect(screen.getByRole('heading', { name: 'Comandos e Respostas' })).toBeInTheDocument();
-    expect(screen.getByText(/biblioteca de comandos úteis de suporte/i)).toBeInTheDocument();
+    expect(screen.getByText(/Comandos de terminal e respostas padrão/)).toBeInTheDocument();
     expect(screen.getByText('Comandos Rápidos')).toBeInTheDocument();
     expect(screen.getByText('Respostas Padrão')).toBeInTheDocument();
 

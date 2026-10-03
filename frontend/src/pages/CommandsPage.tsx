@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -422,19 +423,7 @@ export const CommandsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header and Module Tabs */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-heading">
-              Comandos e Respostas
-            </h1>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Biblioteca de comandos úteis de suporte e modelos de comunicação padrão com cópia rápida em 1 clique.
-          </p>
-        </div>
-
+      <PageHeader icon={Terminal} title="Comandos e Respostas" description="Comandos de terminal e respostas padrão para copiar com um clique.">
         {/* Action Button */}
         <div>
           {activeTab === 'commands' ? (
@@ -455,7 +444,7 @@ export const CommandsPage: React.FC = () => {
             </Button>
           )}
         </div>
-      </div>
+      </PageHeader>
 
       {/* 2. Primary Navigation Tabs */}
       <Tabs

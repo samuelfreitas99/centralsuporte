@@ -182,7 +182,7 @@ describe('MaintenancePage (Phase 9)', () => {
     renderMaintenancePage();
 
     expect(screen.getByRole('heading', { name: 'Manutenções' })).toBeInTheDocument();
-    expect(screen.getByText('Workspace operacional para gestão de preventivas, corretivas e intervenções.')).toBeInTheDocument();
+    expect(screen.getByText(/Preventivas e corretivas/)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Revisão Preventiva Trimestral PDV 01')).toBeInTheDocument();
@@ -267,7 +267,7 @@ describe('MaintenancePage (Phase 9)', () => {
     fireEvent.click(screen.getByText('Revisão Preventiva Trimestral PDV 01'));
 
     await waitFor(() => {
-      expect(screen.getByText(/Checklist/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Limpeza física interna e coolers/i)).toBeInTheDocument();
     });
 
     const itemCheckbox = screen.getByLabelText(/Limpeza física interna e coolers/i);

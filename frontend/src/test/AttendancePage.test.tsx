@@ -126,11 +126,11 @@ describe('AttendancePage (Phase 7)', () => {
     window.location.hash = '';
   });
 
-  it('renders page header and OTRS boundary banner', async () => {
+  it('renders page header stating the OTRS boundary in one line', async () => {
     renderAttendancePage();
 
-    expect(screen.getByRole('heading', { name: 'Atendimentos' })).toBeInTheDocument();
-    expect(screen.getByText(/Integração Oficial com OTRS/i)).toBeInTheDocument();
+    expect(screen.getByText(/O chamado oficial continua no OTRS/)).toBeInTheDocument();
+    expect(screen.getByText(/O chamado oficial continua no OTRS/)).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Falha Spooler de Impressão PDV 02')).toBeInTheDocument();

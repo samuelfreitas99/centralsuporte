@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -82,21 +83,12 @@ export const ProjectList: React.FC = () => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-foreground flex items-center gap-2 tracking-tight">
-            <Briefcase className="h-6 w-6 text-blue-500" />
-            Projetos
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Gerencie implantações, reformas e acompanhe o progresso das movimentações operacionais.
-          </p>
-        </div>
+      <PageHeader icon={Briefcase} title="Projetos" description="Implantações, reformas e aberturas de loja que agrupam várias atividades.">
         <Button onClick={() => { setProjectToEdit(null); setFormOpen(true); }} className="w-full sm:w-auto flex items-center gap-2 shadow-sm">
           <Plus className="h-4 w-4" />
           Novo Projeto
         </Button>
-      </div>
+      </PageHeader>
 
       <div className="bg-card/40 border border-border/40 p-4 rounded-xl flex flex-col sm:flex-row gap-4 items-center justify-between shadow-sm">
         <div className="relative w-full sm:max-w-md">

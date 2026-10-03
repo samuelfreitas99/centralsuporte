@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,18 +152,7 @@ export const KnowledgePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-primary" />
-            <span>Base de Conhecimento</span>
-          </h2>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Procedimentos operacionais, manuais de infraestrutura, diagnósticos de suporte e biblioteca de soluções
-          </p>
-        </div>
-
+      <PageHeader icon={BookOpen} title="Base de Conhecimento" description="Procedimentos e soluções documentadas pela equipe.">
         <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
@@ -178,7 +168,7 @@ export const KnowledgePage: React.FC = () => {
             <span>Novo Artigo Técnico</span>
           </Button>
         </div>
-      </div>
+      </PageHeader>
 
       {/* Barra de Filtros e Busca */}
       <Card>
