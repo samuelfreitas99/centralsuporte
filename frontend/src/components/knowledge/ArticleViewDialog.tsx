@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDateTime } from '@/lib/format';
 import { useConfirm } from '@/hooks/useConfirm';
 import {
   Dialog,
@@ -145,7 +146,7 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-3.5 w-3.5" />
-              <span>Atualizado em: {new Date(article.updated_at).toLocaleString('pt-BR')}</span>
+              <span>Atualizado em: {formatDateTime(article.updated_at)}</span>
             </div>
             <div className="flex items-center gap-1">
               <Eye className="h-3.5 w-3.5" />
@@ -299,7 +300,7 @@ export const ArticleViewDialog: React.FC<ArticleViewDialogProps> = ({
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-[11px] text-muted-foreground">
-                          {new Date(ver.created_at).toLocaleString('pt-BR')}
+                          {formatDateTime(ver.created_at)}
                         </span>
                         {idx > 0 && (
                           <Button

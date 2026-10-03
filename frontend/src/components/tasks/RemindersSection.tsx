@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDateTime } from '@/lib/format';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -171,7 +172,7 @@ export const RemindersSection: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                         <Clock className="h-3 w-3" />
-                        <span>{new Date(rem.remind_at).toLocaleString('pt-BR')}</span>
+                        <span>{formatDateTime(rem.remind_at)}</span>
                       </div>
                     </div>
 

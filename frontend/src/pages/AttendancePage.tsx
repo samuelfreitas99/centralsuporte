@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
@@ -405,7 +406,7 @@ export const AttendancePage: React.FC = () => {
                         )}
                         <div className="flex items-center gap-1.5 text-[11px] mt-1 opacity-70">
                           <Clock className="h-3 w-3" />
-                          <span>{new Date(att.updated_at).toLocaleDateString('pt-BR')}</span>
+                          <span>{formatDate(att.updated_at)}</span>
                         </div>
                       </div>
                     </div>

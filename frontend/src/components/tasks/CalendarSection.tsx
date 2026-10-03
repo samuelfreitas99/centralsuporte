@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDateTime, formatTime } from '@/lib/format';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -207,10 +208,10 @@ export const CalendarSection: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3 text-[11px] text-muted-foreground pt-1 border-t border-border/40">
                   <div className="flex items-center gap-1">
                     <Clock className="h-3 w-3 text-primary" />
-                    <span>Início: {new Date(ev.start_time).toLocaleString('pt-BR')}</span>
+                    <span>Início: {formatDateTime(ev.start_time)}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <span>Até: {new Date(ev.end_time).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                    <span>Até: {formatTime(ev.end_time)}</span>
                   </div>
                 </div>
               </div>

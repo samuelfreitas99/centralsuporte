@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Drawer,
@@ -363,13 +364,13 @@ export const MaintenanceDrawer: React.FC<Props> = ({
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Agendado Para</p>
                       <p className="text-sm font-medium">
-                        {maintenance.scheduled_date ? new Date(maintenance.scheduled_date).toLocaleDateString('pt-BR') : '—'}
+                        {maintenance.scheduled_date ? formatDate(maintenance.scheduled_date) : '—'}
                       </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-muted-foreground">Realizado Em</p>
                       <p className="text-sm font-medium">
-                        {maintenance.performed_date ? new Date(maintenance.performed_date).toLocaleDateString('pt-BR') : '—'}
+                        {maintenance.performed_date ? formatDate(maintenance.performed_date) : '—'}
                       </p>
                     </div>
                   </div>

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { formatDate, formatTime } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useConfirm } from '@/hooks/useConfirm';
 import { equipmentToForm } from '../equipmentForm';
@@ -605,7 +606,7 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
                             <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
                               <span className="font-semibold text-foreground uppercase tracking-wider">{h.event_type}</span>
                               <span className="font-mono">
-                                • {new Date(h.created_at).toLocaleDateString('pt-BR')} {new Date(h.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                • {formatDate(h.created_at)} {formatTime(h.created_at)}
                               </span>
                             </div>
                             <p className="text-sm text-foreground/90">{h.description}</p>

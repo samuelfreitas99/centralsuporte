@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDateTime } from '@/lib/format';
 import { PriorityBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
@@ -240,7 +241,7 @@ export const TasksPage: React.FC = () => {
                               {task.due_date && (
                                 <div className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
-                                  <span>Prazo: {new Date(task.due_date).toLocaleString('pt-BR')}</span>
+                                  <span>Prazo: {formatDateTime(task.due_date)}</span>
                                 </div>
                               )}
 

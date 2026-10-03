@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { formatDate } from '@/lib/format';
 import { useConfirm } from '@/hooks/useConfirm';
 import {
   Paperclip,
@@ -412,7 +413,7 @@ export const AttachmentManager: React.FC<AttachmentManagerProps> = ({
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground mt-0.5">
                     <span>{formatFileSize(item.file_size)}</span>
                     <span>•</span>
-                    <span>{new Date(item.created_at).toLocaleDateString('pt-BR')}</span>
+                    <span>{formatDate(item.created_at)}</span>
                     {item.uploader && (
                       <>
                         <span>•</span>

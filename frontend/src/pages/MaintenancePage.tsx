@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { FilterBar, FilterSelect } from '@/components/ui/FilterBar';
@@ -358,7 +359,7 @@ export const MaintenancePage: React.FC = () => {
                             <p className="text-xs text-muted-foreground mt-0.5 ml-5">{maint.store?.name || 'N/A'}</p>
                           </td>
                           <td className="px-4 py-3 text-xs">
-                            {maint.scheduled_date ? new Date(maint.scheduled_date).toLocaleDateString('pt-BR') : '—'}
+                            {maint.scheduled_date ? formatDate(maint.scheduled_date) : '—'}
                           </td>
                           <td className="px-4 py-3">
                             {getStatusBadge(maint.status)}

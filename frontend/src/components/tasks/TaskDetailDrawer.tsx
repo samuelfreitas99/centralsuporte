@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDateTime } from '@/lib/format';
 import { PriorityBadge, StatusBadge } from '@/components/ui/StatusBadge';
 import {
   Drawer,
@@ -184,7 +185,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               <Calendar className="h-4 w-4 text-foreground/70" />
               <div>
                 <p className="font-semibold text-foreground">Prazo</p>
-                <p>{task.due_date ? new Date(task.due_date).toLocaleString('pt-BR') : 'Sem prazo'}</p>
+                <p>{task.due_date ? formatDateTime(task.due_date) : 'Sem prazo'}</p>
               </div>
             </div>
 
@@ -192,7 +193,7 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
               <Clock className="h-4 w-4 text-foreground/70" />
               <div>
                 <p className="font-semibold text-foreground">Concluído em</p>
-                <p>{task.completed_at ? new Date(task.completed_at).toLocaleString('pt-BR') : '-'}</p>
+                <p>{task.completed_at ? formatDateTime(task.completed_at) : '-'}</p>
               </div>
             </div>
 

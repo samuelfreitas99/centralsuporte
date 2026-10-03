@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatDate } from '@/lib/format';
 import { X, ChevronLeft, ChevronRight, Download, File as FileIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { AttachmentItem } from '@/types/attachment';
@@ -195,7 +196,7 @@ export const FileViewer: React.FC<FileViewerProps> = ({
               </div>
               <div className="flex justify-between items-center border-b border-border/40 pb-2">
                 <span className="text-muted-foreground text-sm">Data</span>
-                <span className="font-medium text-sm">{new Date(currentFile.created_at).toLocaleDateString()}</span>
+                <span className="font-medium text-sm">{formatDate(currentFile.created_at)}</span>
               </div>
               {currentFile.uploader && (
                 <div className="flex justify-between items-center border-b border-border/40 pb-2">

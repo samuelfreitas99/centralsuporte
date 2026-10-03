@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDate } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -384,7 +385,7 @@ export const KnowledgePage: React.FC = () => {
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
-                        <span>{new Date(article.updated_at).toLocaleDateString('pt-BR')}</span>
+                        <span>{formatDate(article.updated_at)}</span>
                       </div>
 
                       <div className="flex items-center gap-3">

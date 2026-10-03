@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatDate } from '@/lib/format';
 import type { AttachmentItem } from '@/types/attachment';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -34,7 +35,7 @@ export const FileListItem: React.FC<FileListItemProps> = ({ file, canDelete, onC
             <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground flex-wrap">
               <span className="font-medium text-foreground/70">{formatSize(file.file_size)}</span>
               <span className="hidden sm:inline">•</span>
-              <span className="hidden sm:inline">{new Date(file.created_at).toLocaleDateString()}</span>
+              <span className="hidden sm:inline">{formatDate(file.created_at)}</span>
             </div>
           </div>
         </div>

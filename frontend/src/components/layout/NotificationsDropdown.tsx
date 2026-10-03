@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { formatDate } from '@/lib/format';
 import {
   Bell,
   CheckCircle2,
@@ -214,7 +215,7 @@ export const NotificationsDropdown: React.FC = () => {
                         )}
                         <div className="flex items-center justify-between pt-0.5">
                           <span className="text-[10px] text-muted-foreground font-mono">
-                            {new Date(rem.remind_at).toLocaleDateString('pt-BR')}
+                            {formatDate(rem.remind_at)}
                           </span>
                           <div className="flex items-center gap-1 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <button

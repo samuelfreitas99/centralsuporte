@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { formatDate, formatTime } from '@/lib/format';
 import {
   Package,
   ShieldAlert,
@@ -354,7 +355,7 @@ export const StockTab: React.FC<StockTabProps> = ({
                                 {mov.movement_type} <span className="text-muted-foreground font-mono ml-1">({isPositive ? '+' : '-'}{mov.quantity})</span>
                               </span>
                               <span className="text-[10px] text-muted-foreground font-mono">
-                                {new Date(mov.created_at).toLocaleDateString('pt-BR')} {new Date(mov.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                {formatDate(mov.created_at)} {formatTime(mov.created_at)}
                               </span>
                             </div>
                             {mov.reason && (

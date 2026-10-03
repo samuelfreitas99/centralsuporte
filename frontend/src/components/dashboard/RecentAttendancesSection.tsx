@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatTime } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Headset, ExternalLink, ArrowRight, Loader2, Info } from 'lucide-react';
@@ -84,7 +85,7 @@ export const RecentAttendancesSection: React.FC<RecentAttendancesSectionProps> =
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1 justify-center text-right">
                 <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                  {new Date(attendance.updated_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  {formatTime(attendance.updated_at)}
                 </span>
               </div>
             </div>

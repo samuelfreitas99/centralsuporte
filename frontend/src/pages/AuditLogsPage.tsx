@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDateTime } from '@/lib/format';
 import { PageHeader } from '@/components/ui/PageHeader';
 import {
   ShieldAlert,
@@ -237,7 +238,7 @@ export const AuditLogsPage: React.FC = () => {
                     <td className="py-3 px-4 text-muted-foreground whitespace-nowrap">
                       <div className="flex items-center gap-1.5 font-mono text-[11px]">
                         <Clock className="h-3 w-3 text-muted-foreground shrink-0" />
-                        <span>{new Date(log.created_at).toLocaleString('pt-BR')}</span>
+                        <span>{formatDateTime(log.created_at)}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4 font-medium text-foreground whitespace-nowrap">
@@ -336,7 +337,7 @@ export const AuditLogsPage: React.FC = () => {
                   </CardTitle>
                   <CardDescription className="text-xs">
                     {selectedLog.action} em {selectedLog.entity_type} por {selectedLog.username} às{' '}
-                    {new Date(selectedLog.created_at).toLocaleString('pt-BR')}
+                    {formatDateTime(selectedLog.created_at)}
                   </CardDescription>
                 </div>
               </div>

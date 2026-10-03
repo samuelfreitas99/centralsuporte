@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -156,11 +157,11 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                 {(project.target_date || project.completion_date) && (
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-4 w-4 opacity-70" /> 
-                    {project.completion_date ? `Concluído em: ${new Date(project.completion_date).toLocaleDateString()}` : `Prazo: ${new Date(project.target_date!).toLocaleDateString()}`}
+                    {project.completion_date ? `Concluído em: ${formatDate(project.completion_date)}` : `Prazo: ${formatDate(project.target_date!)}`}
                   </span>
                 )}
                 <span className="flex items-center gap-1.5">
-                  <History className="h-4 w-4 opacity-70" /> Atualizado: {new Date(project.updated_at).toLocaleDateString()}
+                  <History className="h-4 w-4 opacity-70" /> Atualizado: {formatDate(project.updated_at)}
                 </span>
               </div>
             </div>
@@ -312,7 +313,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                             <Wrench className="h-4 w-4 text-amber-500 mt-0.5" />
                             <div>
                               <p className="text-sm font-medium group-hover:text-amber-500 transition-colors">{maint.title}</p>
-                              <p className="text-xs text-muted-foreground mt-0.5">Manutenção • {maint.scheduled_date ? new Date(maint.scheduled_date).toLocaleDateString() : 'Sem data'}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">Manutenção • {maint.scheduled_date ? formatDate(maint.scheduled_date) : 'Sem data'}</p>
                             </div>
                           </div>
                         </div>
@@ -365,7 +366,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                           <div>
                             <p className="text-sm text-foreground/90 leading-tight">{event.title}</p>
                             <p className="text-xs text-muted-foreground mt-1">
-                              {new Date(event.created_at).toLocaleString()} • {event.author?.username || 'Sistema'}
+                              {formatDateTime(event.created_at)} • {event.author?.username || 'Sistema'}
                             </p>
                           </div>
                         </div>
@@ -593,7 +594,7 @@ export const ProjectWorkspace: React.FC<ProjectWorkspaceProps> = ({ projectId, o
                                   <p className="text-sm text-foreground/90 font-medium">{event.title}</p>
                                   {event.description && <p className="text-sm text-muted-foreground mt-1 whitespace-pre-wrap">{event.description}</p>}
                                   <p className="text-xs text-muted-foreground/70 mt-2">
-                                     {new Date(event.created_at).toLocaleString()} • Por: {event.author?.username || 'Sistema'}
+                                     {formatDateTime(event.created_at)} • Por: {event.author?.username || 'Sistema'}
                                   </p>
                                </div>
                             </div>

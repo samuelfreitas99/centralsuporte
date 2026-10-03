@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatTime } from '@/lib/format';
 import { PriorityBadge } from '@/components/ui/StatusBadge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -112,7 +113,7 @@ export const TaskListSection: React.FC<TaskListSectionProps> = ({ tasks: initial
                           <span>•</span>
                         </>
                       )}
-                      <span>{task.due_date ? new Date(task.due_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Sem prazo'}</span>
+                      <span>{task.due_date ? formatTime(task.due_date) : 'Sem prazo'}</span>
                     </div>
                   </div>
                 </div>

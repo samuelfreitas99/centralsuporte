@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatDate } from '@/lib/format';
 import type { AttachmentItem } from '@/types/attachment';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +44,7 @@ export const FileCard: React.FC<FileCardProps> = ({ file, canDelete, onClick, on
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3 text-xs text-muted-foreground">
           <span>{formatSize(file.file_size)}</span>
           <span>•</span>
-          <span>{new Date(file.created_at).toLocaleDateString()}</span>
+          <span>{formatDate(file.created_at)}</span>
         </div>
 
         <div className="mt-auto pt-2 flex items-center justify-between border-t border-border/40">

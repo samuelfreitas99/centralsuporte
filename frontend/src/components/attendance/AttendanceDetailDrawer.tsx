@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatDate, formatTime } from '@/lib/format';
 import {
   AlertTriangle,
   BookOpen,
@@ -263,7 +264,7 @@ export const AttendanceDetailDrawer: React.FC<AttendanceDetailDrawerProps> = ({
                               {n.author?.username || 'Técnico'}
                             </span>
                             <span className="text-[10px] font-mono text-muted-foreground">
-                              {new Date(n.created_at).toLocaleDateString()} {new Date(n.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              {formatDate(n.created_at)} {formatTime(n.created_at)}
                             </span>
                           </div>
                           <p className="text-sm text-foreground/80 leading-relaxed">{n.note}</p>

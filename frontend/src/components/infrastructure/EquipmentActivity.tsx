@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { formatDate } from '@/lib/format';
 import { ExternalLink, Headset, Loader2, Plus, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -141,7 +142,7 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({
                     <p className="truncate text-sm font-medium text-foreground">{row.title}</p>
                     <p className="text-[11px] text-muted-foreground">
                       {row.kind === 'attendance' ? 'Atendimento' : 'Manutenção'} ·{' '}
-                      {new Date(row.date).toLocaleDateString('pt-BR')}
+                      {formatDate(row.date)}
                       {row.otrs && ` · OTRS ${row.otrs}`}
                     </p>
                   </div>

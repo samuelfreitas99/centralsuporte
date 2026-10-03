@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatDate } from '@/lib/format';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
@@ -177,15 +178,15 @@ export const ProjectList: React.FC = () => {
                           <Calendar className="h-3.5 w-3.5 text-slate-400" />
                           <span className="truncate">
                             {project.completion_date 
-                              ? `Fim: ${new Date(project.completion_date).toLocaleDateString()}` 
+                              ? `Fim: ${formatDate(project.completion_date)}` 
                               : project.target_date 
-                                ? `Prazo: ${new Date(project.target_date).toLocaleDateString()}` 
+                                ? `Prazo: ${formatDate(project.target_date)}` 
                                 : 'Sem prazo'}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Clock className="h-3.5 w-3.5 text-slate-400" />
-                          <span className="truncate">Atualizado: {new Date(project.updated_at || project.created_at).toLocaleDateString()}</span>
+                          <span className="truncate">Atualizado: {formatDate(project.updated_at || project.created_at)}</span>
                         </div>
                       </div>
                    </div>
