@@ -36,6 +36,8 @@ os.environ["DATABASE_URL"] = _test_url.render_as_string(hide_password=False)
 os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="centralsuporte_test_uploads_")
 # A suíte faz muitos logins errados propositais pelo mesmo cliente de teste.
 os.environ.setdefault("LOGIN_MAX_FAILS_PER_IP", "100000")
+# Chave fixa só para os testes do cofre (nunca use em produção).
+os.environ["CENTRAL_VAULT_KEY"] = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
 
 
 def _recreate_test_database() -> None:

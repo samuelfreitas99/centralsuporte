@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/format';
-import { ExternalLink, Headset, Loader2, Plus, Wrench } from 'lucide-react';
+import { ExternalLink, Headset, KeyRound, Loader2, Plus, Wrench } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { attendanceService } from '@/services/attendanceService';
@@ -12,6 +12,7 @@ interface EquipmentActivityProps {
   equipmentId: number;
   canRegisterAttendance: boolean;
   canScheduleMaintenance?: boolean;
+  canSeeVault?: boolean;
 }
 
 interface ActivityRow {
@@ -45,6 +46,7 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({
   equipmentId,
   canRegisterAttendance,
   canScheduleMaintenance = false,
+  canSeeVault = false,
 }) => {
   const [rows, setRows] = useState<ActivityRow[] | null>(null);
 
@@ -93,6 +95,17 @@ export const EquipmentActivity: React.FC<EquipmentActivityProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs text-muted-foreground">Atendimentos e manutenções deste equipamento.</p>
         <div className="flex flex-wrap gap-2">
+        {canSeeVault && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-8 gap-1.5 text-xs cursor-pointer"
+            onClick={() => go(`vault?equipment_id=${equipmentId}`)}
+          >
+            <KeyRound className="h-3.5 w-3.5" />
+            Senhas
+          </Button>
+        )}
         {canScheduleMaintenance && (
           <Button
             size="sm"

@@ -1813,6 +1813,79 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/vault/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Status */
+        get: operations["get_status_vault_status_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vault": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Entries */
+        get: operations["list_entries_vault_get"];
+        put?: never;
+        /** Create Entry */
+        post: operations["create_entry_vault_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vault/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Entry */
+        put: operations["update_entry_vault__entry_id__put"];
+        post?: never;
+        /** Delete Entry */
+        delete: operations["delete_entry_vault__entry_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vault/{entry_id}/reveal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reveal Entry
+         * @description Decifra e devolve a credencial. Sempre auditado (PASSWORD_REVEAL).
+         */
+        post: operations["reveal_entry_vault__entry_id__reveal_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -4792,6 +4865,112 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** VaultEntryCreate */
+        VaultEntryCreate: {
+            /** Title */
+            title: string;
+            /** System Url */
+            system_url?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Visibility
+             * @default equipe
+             * @enum {string}
+             */
+            visibility: "equipe" | "pessoal";
+            /** Store Id */
+            store_id?: number | null;
+            /** Equipment Id */
+            equipment_id?: number | null;
+            /** Username */
+            username?: string | null;
+            /** Password */
+            password: string;
+            /** Notes */
+            notes?: string | null;
+        };
+        /**
+         * VaultEntryOut
+         * @description Metadados — nunca inclui usuário, senha ou notas.
+         */
+        VaultEntryOut: {
+            /** Title */
+            title: string;
+            /** System Url */
+            system_url?: string | null;
+            /** Category */
+            category?: string | null;
+            /**
+             * Visibility
+             * @default equipe
+             * @enum {string}
+             */
+            visibility: "equipe" | "pessoal";
+            /** Store Id */
+            store_id?: number | null;
+            /** Equipment Id */
+            equipment_id?: number | null;
+            /** Id */
+            id: number;
+            /** Owner Id */
+            owner_id: number;
+            owner?: components["schemas"]["UserSimpleResponse"] | null;
+            /** Store Name */
+            store_name?: string | null;
+            /** Equipment Name */
+            equipment_name?: string | null;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** VaultEntryUpdate */
+        VaultEntryUpdate: {
+            /** Title */
+            title?: string | null;
+            /** System Url */
+            system_url?: string | null;
+            /** Category */
+            category?: string | null;
+            /** Visibility */
+            visibility?: ("equipe" | "pessoal") | null;
+            /** Store Id */
+            store_id?: number | null;
+            /** Equipment Id */
+            equipment_id?: number | null;
+            /** Username */
+            username?: string | null;
+            /** Password */
+            password?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** VaultSecretOut */
+        VaultSecretOut: {
+            /** Username */
+            username?: string | null;
+            /** Password */
+            password: string;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** VaultStatus */
+        VaultStatus: {
+            /** Configured */
+            configured: boolean;
         };
     };
     responses: never;
@@ -9851,6 +10030,188 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PushTestResult"];
+                };
+            };
+        };
+    };
+    get_status_vault_status_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VaultStatus"];
+                };
+            };
+        };
+    };
+    list_entries_vault_get: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                store_id?: number | null;
+                equipment_id?: number | null;
+                visibility?: ("equipe" | "pessoal") | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VaultEntryOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_entry_vault_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VaultEntryCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VaultEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_entry_vault__entry_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VaultEntryUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VaultEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_entry_vault__entry_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reveal_entry_vault__entry_id__reveal_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["VaultSecretOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

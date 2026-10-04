@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { copyToClipboard } from '@/lib/clipboard';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { useConfirm } from '@/hooks/useConfirm';
 import { motion, AnimatePresence } from 'motion/react';
@@ -35,28 +36,6 @@ import type {
 
 type ActiveTab = 'commands' | 'responses';
 
-
-const copyToClipboard = async (text: string) => {
-  if (!navigator.clipboard || !window.isSecureContext) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";
-    textArea.style.left = "-999999px";
-    textArea.style.top = "-999999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      document.execCommand('copy');
-    } catch (err) {
-      throw err;
-    } finally {
-      textArea.remove();
-    }
-    return;
-  }
-  await navigator.clipboard.writeText(text);
-};
 
 export const CommandsPage: React.FC = () => {
   const { user, hasRole } = useAuth();

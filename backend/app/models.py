@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text, Float, desc
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, Table, DateTime, Text, Float, LargeBinary, desc
 from sqlalchemy import event
 from sqlalchemy.orm import relationship, Session
 from app.database import Base
@@ -787,3 +787,28 @@ class PushSubscription(Base):
     auth = Column(String(255), nullable=False)
     user_agent = Column(String(255), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+
+class VaultEntry(Base):
+    """Credencial do Cofre de Senhas. Usuário, senha e notas ficam só cifrados (AES-256-GCM)."""
+    __tablename__ = "vault_entries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(150), nullable=False)
+    system_url = Column(String(500), nullable=True)
+    category = Column(String(50), nullable=True)
+    # equipe = qualquer pessoa com vault:read; pessoal = só o dono
+    visibility = Column(String(20), nullable=False, default="equipe", server_default="equipe", index=True)
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
+    store_id = Column(Integer, ForeignKey("stores.id", ondelete="SET NULL"), nullable=True, index=True)
+    equipment_id = Column(Integer, ForeignKey("equipment.id", ondelete="SET NULL"), nullable=True, index=True)
+    nonce = Column(LargeBinary, nullable=False)
+    ciphertext = Column(LargeBinary, nullable=False)
+    auth_tag = Column(LargeBinary, nullable=False)
+    key_version = Column(Integer, nullable=False, default=1, server_default="1")
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    owner = relationship("User")
+    store = relationship("Store")
+    equipment = relationship("Equipment")

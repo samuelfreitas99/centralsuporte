@@ -31,6 +31,7 @@ import type { OperationalSummaryReport, RecurrentEquipmentIssue, TechnicianPerfo
 import type { SearchResultItem } from './search';
 import type { CalendarEvent, Checklist, ChecklistItem, Reminder, Task, TaskList, UserSimple } from './tasks';
 import type { ChecklistTemplate } from './checklistTemplate';
+import type { VaultEntry, VaultSecret } from './vault';
 
 type S = components['schemas'];
 
@@ -78,4 +79,6 @@ export const contractChecks = [
   ok<OnlyApiFields<SearchResultItem, S['SearchResultItem']>>(true),
   ok<OnlyApiFields<AttachmentItem, S['AttachmentResponse']>>(true),
   ok<OnlyApiFields<AuditLogItem, S['AuditLogItem']>>(true),
+  ok<OnlyApiFields<VaultEntry, S['VaultEntryOut']>>(true),
+  ok<OnlyApiFields<VaultSecret, S['VaultSecretOut']>>(true),
 ];

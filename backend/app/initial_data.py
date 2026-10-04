@@ -29,6 +29,8 @@ INITIAL_PERMISSIONS = [
     {"name": "project:create", "description": "Criar novos projetos operacionais"},
     {"name": "project:update", "description": "Atualizar projetos operacionais"},
     {"name": "project:delete", "description": "Excluir projetos operacionais"},
+    {"name": "vault:read", "description": "Ver e revelar senhas compartilhadas do cofre"},
+    {"name": "vault:write", "description": "Cadastrar e alterar senhas no cofre"},
 ]
 
 ROLE_PERMISSIONS_MAP = {
@@ -38,14 +40,16 @@ ROLE_PERMISSIONS_MAP = {
         "attendance:read", "attendance:write", "equipment:read", "equipment:write",
         "tasks:read", "tasks:write", "maintenance:read", "maintenance:write",
         "attachment:read", "attachment:upload", "attachment:delete", "audit:read",
-        "project:read", "project:create", "project:update", "project:delete"
+        "project:read", "project:create", "project:update", "project:delete",
+        "vault:read", "vault:write"
     ],
     "Técnico": [
         "knowledge:read", "knowledge:write", "attendance:read", "attendance:write",
         "equipment:read", "equipment:write", "tasks:read", "tasks:write",
         "maintenance:read", "maintenance:write",
         "attachment:read", "attachment:upload", "attachment:delete",
-        "project:read", "project:create", "project:update"
+        "project:read", "project:create", "project:update",
+        "vault:read", "vault:write"
     ],
     "Consulta": [
         "knowledge:read", "attendance:read", "equipment:read", "tasks:read",
