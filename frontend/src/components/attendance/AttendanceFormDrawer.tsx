@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Headset } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,10 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerFooter, DrawerHeader, D
 import { ProjectSelect } from '@/components/projects/ProjectSelect';
 import { EquipmentPicker } from '@/components/infrastructure/EquipmentPicker';
 import type { AttendanceCreateInput } from '@/types/attendance';
+import { useAttendanceContext } from '@/hooks/useAttendanceContext';
+import { EquipmentHistory, SameTicketWarning } from './AttendanceContext';
+import { TemplatePicker } from './TemplatePicker';
+import { applyTemplate, parseOtrsInput } from './attendanceForm';
 
 const TEXTAREA_CLASS =
   'w-full rounded-xl border border-border/60 bg-card p-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 resize-y';
@@ -34,6 +38,10 @@ interface AttendanceFormDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   isEditing: boolean;
+  /** Id do atendimento em edição (não aparece como "mesmo chamado"). */
+  editingId?: number;
+  /** Pode criar/excluir modelos (attendance:write). */
+  canManageTemplates?: boolean;
   form: AttendanceCreateInput;
   setForm: React.Dispatch<React.SetStateAction<AttendanceCreateInput>>;
   /** Nome do projeto quando o atendimento é aberto a partir de um projeto (campo travado). */
@@ -47,6 +55,8 @@ export const AttendanceFormDrawer: React.FC<AttendanceFormDrawerProps> = ({
   open,
   onOpenChange,
   isEditing,
+  editingId,
+  canManageTemplates = false,
   form,
   setForm,
   lockedProjectName,
@@ -55,6 +65,25 @@ export const AttendanceFormDrawer: React.FC<AttendanceFormDrawerProps> = ({
 }) => {
   const setField = <K extends keyof AttendanceCreateInput>(key: K, value: AttendanceCreateInput[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
+
+  const context = useAttendanceContext(open ? form.otrs_ticket || '' : '', open ? form.equipment_id : null, editingId);
+
+  // Link do chamado montado pelo servidor (OTRS_TICKET_URL): preenche se vazio ou se foi preenchido por nós.
+  const autoUrl = useRef('');
+  const suggestedUrl = context?.otrs_url || '';
+  useEffect(() => {
+    if (!suggestedUrl) return;
+    setForm((prev) => {
+      if (prev.otrs_url && prev.otrs_url !== autoUrl.current) return prev;
+      autoUrl.current = suggestedUrl;
+      return { ...prev, otrs_url: suggestedUrl };
+    });
+  }, [suggestedUrl, setForm]);
+
+  const handleTicketChange = (value: string) => {
+    const parsed = parseOtrsInput(value);
+    setForm((prev) => ({ ...prev, otrs_ticket: parsed.ticket, ...(parsed.url ? { otrs_url: parsed.url } : {}) }));
+  };
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
@@ -73,22 +102,17 @@ export const AttendanceFormDrawer: React.FC<AttendanceFormDrawerProps> = ({
           <div className="flex-1 overflow-y-auto bg-muted/10 p-6 space-y-6">
             
             <FormSection title="Chamado">
-              <FormField label="Título *">
-                <Input
-                  value={form.title}
-                  onChange={(e) => setField('title', e.target.value)}
-                  placeholder="Ex.: PDV 03 não imprime cupom"
-                  className="bg-card border-border/60 h-10"
-                  required
-                />
-              </FormField>
+              {!isEditing && (
+                <TemplatePicker canManage={canManageTemplates} onApply={(tpl) => setForm((prev) => applyTemplate(prev, tpl))} />
+              )}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <FormField label="Nº do chamado OTRS">
+                <FormField label="Nº do chamado OTRS" hint="Pode colar o link do chamado.">
                   <Input
                     value={form.otrs_ticket || ''}
-                    onChange={(e) => setField('otrs_ticket', e.target.value)}
+                    onChange={(e) => handleTicketChange(e.target.value)}
                     placeholder="Ex.: 2026092410001"
                     className="bg-card border-border/60 h-10 font-mono"
+                    autoFocus={!isEditing}
                   />
                 </FormField>
                 <FormField label="Link do chamado" className="sm:col-span-2">
@@ -101,6 +125,16 @@ export const AttendanceFormDrawer: React.FC<AttendanceFormDrawerProps> = ({
                   />
                 </FormField>
               </div>
+              <SameTicketWarning items={context?.same_ticket ?? []} />
+              <FormField label="Título *">
+                <Input
+                  value={form.title}
+                  onChange={(e) => setField('title', e.target.value)}
+                  placeholder="Ex.: PDV 03 não imprime cupom"
+                  className="bg-card border-border/60 h-10"
+                  required
+                />
+              </FormField>
               <FormField label="Status">
                 <select
                   value={form.status || 'em_andamento'}
@@ -130,6 +164,7 @@ export const AttendanceFormDrawer: React.FC<AttendanceFormDrawerProps> = ({
                   }
                 />
               </FormField>
+              <EquipmentHistory items={context?.equipment_history ?? []} />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField label="Loja / Departamento">
                   <Input

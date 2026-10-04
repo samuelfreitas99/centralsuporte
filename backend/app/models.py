@@ -862,3 +862,23 @@ class PurchaseQuote(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
     request = relationship("PurchaseRequest", back_populates="quotes", foreign_keys=[request_id])
+
+
+class AttendanceTemplate(Base):
+    """Modelo de atendimento para problemas recorrentes: preenche o formulário de um novo atendimento."""
+    __tablename__ = "attendance_templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(120), nullable=False, unique=True)
+    title = Column(String(255), nullable=True)
+    problem_description = Column(Text, nullable=True)
+    symptoms = Column(Text, nullable=True)
+    diagnosis = Column(Text, nullable=True)
+    cause = Column(Text, nullable=True)
+    solution = Column(Text, nullable=True)
+    commands_used = Column(Text, nullable=True)
+    created_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    created_by = relationship("User", foreign_keys=[created_by_id])

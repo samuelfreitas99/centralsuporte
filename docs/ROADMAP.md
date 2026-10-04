@@ -96,6 +96,7 @@ Revisão tela a tela com dados realistas (ambiente de demonstração + screensho
 - [x] B4 Contrato frontend × backend verificado no build (`api.gen.ts` + `contract.check.ts`)
 - [x] B5 Cofre de Senhas (AES-256-GCM, revelação auditada, registros pessoais)
 - [x] B6 Compras operacionais (orçamentos → aprovação → recebimento com entrada no estoque)
+- [x] B7 Atendimento a partir do nº OTRS (aviso de chamado repetido, histórico do equipamento) e modelos de atendimento
 
 ---
 

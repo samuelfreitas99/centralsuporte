@@ -40,7 +40,7 @@ import type {
 const PAGE_SIZE = 30;
 
 export const AttendancePage: React.FC = () => {
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, hasPermission } = useAuth();
   const { success, error: toastError } = useToast();
 
   // Search & Filter state
@@ -119,7 +119,8 @@ export const AttendancePage: React.FC = () => {
         }
 
         setEditingAttendance(null);
-        setAttendanceForm({ ...EMPTY_FORM, project_id: pId });
+        // #attendance?new=true&otrs=N: atendimento iniciado pelo número do chamado (ex.: atalho do Início)
+        setAttendanceForm({ ...EMPTY_FORM, project_id: pId, otrs_ticket: hashParams.get('otrs') || '' });
         // #attendance?new=true&equipment_id=N: atendimento aberto a partir da ficha do equipamento
         const equipmentId = Number(hashParams.get('equipment_id'));
         if (equipmentId) {
@@ -439,6 +440,7 @@ export const AttendancePage: React.FC = () => {
         onEdit={handleOpenForm}
         onDelete={handleDeleteAttendance}
         canModify={selectedAttendanceDetails ? canModifyAttendance(selectedAttendanceDetails) : false}
+        canSaveTemplate={hasPermission('attendance:write')}
       />
 
       {/* Novo atendimento / edição */}
@@ -449,6 +451,8 @@ export const AttendancePage: React.FC = () => {
           if (!open) setLockedProjectName(undefined);
         }}
         isEditing={Boolean(editingAttendance)}
+        editingId={editingAttendance?.id}
+        canManageTemplates={hasPermission('attendance:write')}
         form={attendanceForm}
         setForm={setAttendanceForm}
         lockedProjectName={lockedProjectName}

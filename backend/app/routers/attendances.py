@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session, joinedload
@@ -16,6 +17,8 @@ from app.schemas import (
     AttendanceNoteCreate,
     AttendanceNoteResponse,
     KnowledgeArticleResponse,
+    AttendanceBrief,
+    AttendanceContextResponse,
 )
 
 router = APIRouter(prefix="/attendances", tags=["Attendances"])
@@ -130,6 +133,53 @@ def create_attendance(
     db.commit()
     db.refresh(attendance_obj)
     return attendance_obj
+
+def otrs_ticket_url(ticket: Optional[str]) -> Optional[str]:
+    """Monta o link do chamado a partir de OTRS_TICKET_URL (ex.: https://otrs/index.pl?Action=AgentTicketZoom;TicketNumber={ticket})."""
+    template = os.getenv("OTRS_TICKET_URL", "").strip()
+    ticket = (ticket or "").strip()
+    if not template or not ticket or "{ticket}" not in template:
+        return None
+    return template.replace("{ticket}", ticket)
+
+
+def _brief(a: Attendance) -> AttendanceBrief:
+    solution = (a.solution or "").strip()
+    return AttendanceBrief(
+        id=a.id, title=a.title, status=a.status, otrs_ticket=a.otrs_ticket,
+        technician_name=(a.technician.full_name or a.technician.username) if a.technician else None,
+        solution=solution[:400] + ("…" if len(solution) > 400 else "") if solution else None,
+        created_at=a.created_at,
+    )
+
+
+@router.get("/context", response_model=AttendanceContextResponse)
+def attendance_context(
+    otrs_ticket: Optional[str] = None,
+    equipment_id: Optional[int] = None,
+    exclude_id: Optional[int] = None,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("attendance:read")),
+):
+    """Contexto para quem está registrando: atendimentos do mesmo chamado e histórico do equipamento."""
+    base = db.query(Attendance).options(joinedload(Attendance.technician))
+    if exclude_id:
+        base = base.filter(Attendance.id != exclude_id)
+    ticket = (otrs_ticket or "").strip()
+    same_ticket = (
+        base.filter(Attendance.otrs_ticket == ticket).order_by(Attendance.created_at.desc()).limit(5).all()
+        if ticket else []
+    )
+    history = (
+        base.filter(Attendance.equipment_id == equipment_id).order_by(Attendance.created_at.desc()).limit(5).all()
+        if equipment_id else []
+    )
+    return AttendanceContextResponse(
+        otrs_url=otrs_ticket_url(ticket),
+        same_ticket=[_brief(a) for a in same_ticket],
+        equipment_history=[_brief(a) for a in history],
+    )
+
 
 @router.get("/{attendance_id}", response_model=AttendanceResponse)
 def get_attendance(

@@ -1,3 +1,5 @@
+import type { UserSimple } from './tasks';
+
 export interface AttendanceNoteItem {
   id: number;
   attendance_id: number;
@@ -85,4 +87,39 @@ export interface AttendanceUpdateInput {
   commands_used?: string;
   internal_notes?: string;
   project_id?: number | null;
+}
+
+/** Resumo de atendimento usado como contexto no formulário. */
+export interface AttendanceBrief {
+  id: number;
+  title: string;
+  status: string;
+  otrs_ticket?: string | null;
+  technician_name?: string | null;
+  solution?: string | null;
+  created_at: string;
+}
+
+export interface AttendanceContext {
+  otrs_url?: string | null;
+  same_ticket: AttendanceBrief[];
+  equipment_history: AttendanceBrief[];
+}
+
+export interface AttendanceTemplateInput {
+  name: string;
+  title?: string | null;
+  problem_description?: string | null;
+  symptoms?: string | null;
+  diagnosis?: string | null;
+  cause?: string | null;
+  solution?: string | null;
+  commands_used?: string | null;
+}
+
+export interface AttendanceTemplate extends AttendanceTemplateInput {
+  id: number;
+  created_by?: UserSimple | null;
+  created_at: string;
+  updated_at: string;
 }

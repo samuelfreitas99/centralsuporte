@@ -5,9 +5,26 @@ import type {
   AttendanceNoteItem,
   AttendanceCreateInput,
   AttendanceUpdateInput,
+  AttendanceContext,
+  AttendanceTemplate,
+  AttendanceTemplateInput,
 } from '@/types/attendance';
 
 export const attendanceService = {
+  /** Atendimentos do mesmo chamado OTRS e histórico do equipamento (contexto do formulário). */
+  getContext: (params: { otrs_ticket?: string; equipment_id?: number | null; exclude_id?: number }) => {
+    const q = new URLSearchParams();
+    if (params.otrs_ticket) q.append('otrs_ticket', params.otrs_ticket);
+    if (params.equipment_id) q.append('equipment_id', String(params.equipment_id));
+    if (params.exclude_id) q.append('exclude_id', String(params.exclude_id));
+    return request<AttendanceContext>(`/attendances/context?${q.toString()}`);
+  },
+
+  getTemplates: () => request<AttendanceTemplate[]>('/attendance-templates'),
+  createTemplate: (data: AttendanceTemplateInput) =>
+    request<AttendanceTemplate>('/attendance-templates', { method: 'POST', body: JSON.stringify(data) }),
+  deleteTemplate: (id: number) => request<void>(`/attendance-templates/${id}`, { method: 'DELETE' }),
+
   getAttendances: (params?: {
     status?: string;
     technician_id?: number;

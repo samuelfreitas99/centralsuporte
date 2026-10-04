@@ -109,6 +109,8 @@ describe('AttendancePage (Phase 7)', () => {
     });
 
     vi.mocked(attendanceService.getAttendances).mockResolvedValue(pageOf(mockAttendances));
+    vi.mocked(attendanceService.getTemplates).mockResolvedValue([]);
+    vi.mocked(attendanceService.getContext).mockResolvedValue({ same_ticket: [], equipment_history: [] });
     vi.mocked(attendanceService.getAttendance).mockImplementation(async (id: number) => mockAttendances.find((a) => a.id === id)!);
     vi.mocked(attendanceService.convertToKnowledge).mockResolvedValue({
       id: 20,

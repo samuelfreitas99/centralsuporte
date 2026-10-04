@@ -20,6 +20,8 @@ import { RecentAttendancesSection } from '@/components/dashboard/RecentAttendanc
 import { QuickKnowledgeSection } from '@/components/dashboard/QuickKnowledgeSection';
 import { RemindersSection } from '@/components/dashboard/RemindersSection';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { parseOtrsInput } from '@/components/attendance/attendanceForm';
 import { useAuth } from '@/hooks/useAuth';
 import { dashboardService } from '@/services/dashboardService';
 import { organizationService } from '@/services/organizationService';
@@ -80,6 +82,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
   const [attendances, setAttendances] = useState<AttendanceItem[]>([]);
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
   const [loading, setLoading] = useState(true);
+  const [quickTicket, setQuickTicket] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -129,10 +132,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onSelectTab }) => 
       {/* Ações rápidas */}
       <div className="flex flex-wrap items-center gap-2">
         {hasPermission('attendance:write') && (
-          <Button size="sm" onClick={() => go('attendance?new=true')} className="h-8 gap-1.5 text-xs font-medium shadow-sm">
-            <PlusCircle className="h-3.5 w-3.5" />
-            Novo atendimento
-          </Button>
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const ticket = parseOtrsInput(quickTicket).ticket.trim();
+              go(ticket ? `attendance?new=true&otrs=${encodeURIComponent(ticket)}` : 'attendance?new=true');
+            }}
+          >
+            <Input
+              value={quickTicket}
+              onChange={(e) => setQuickTicket(e.target.value)}
+              placeholder="Nº do chamado OTRS"
+              aria-label="Nº do chamado OTRS"
+              className="h-8 w-48 font-mono text-xs"
+            />
+            <Button type="submit" size="sm" className="h-8 gap-1.5 text-xs font-medium shadow-sm">
+              <PlusCircle className="h-3.5 w-3.5" />
+              Novo atendimento
+            </Button>
+          </form>
         )}
       </div>
 

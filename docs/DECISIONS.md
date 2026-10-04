@@ -137,3 +137,11 @@
   servidor. Trocar a chave exige recifrar os registros (campo `key_version` reservado para isso).
   Novas permissões: `vault:read/write` (Técnico, Gestor), `purchase:read` (todos), `purchase:write` (Técnico, Gestor),
   `purchase:approve` (Gestor). Perfis existentes recebem as permissões no `init_db_data` ao subir o backend.
+
+### 2026-10-04: Contexto do atendimento e modelos
+- **Decisão**: `GET /attendances/context` devolve atendimentos do mesmo nº OTRS e os últimos do equipamento; o link do
+  chamado é montado a partir de `OTRS_TICKET_URL` (`{ticket}` = número). Modelos de atendimento (`attendance_templates`)
+  preenchem só campos vazios do formulário.
+- **Contexto**: Agilizar o registro e evitar atendimentos duplicados para o mesmo chamado.
+- **Consequências**: Não é integração com o OTRS (nenhuma chamada à API dele); é só um modelo de URL. Sem
+  `OTRS_TICKET_URL`, o técnico cola o link manualmente (o número é extraído de `TicketNumber=`).

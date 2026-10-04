@@ -2,7 +2,8 @@ import React, { useCallback, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './dialog';
 import { Button } from './button';
-import { ConfirmContext, type ConfirmOptions } from '@/context/ConfirmContextDef';
+import { Input } from './input';
+import { ConfirmContext, PromptContext, type ConfirmOptions, type PromptOptions } from '@/context/ConfirmContextDef';
 
 /** Provider global do diálogo de confirmação (usado via `useConfirm`). */
 export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -27,8 +28,30 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const destructive = options?.destructive ?? true;
 
+  const [promptOptions, setPromptOptions] = useState<PromptOptions | null>(null);
+  const [promptValue, setPromptValue] = useState('');
+  const promptResolver = useRef<((value: string | null) => void) | null>(null);
+
+  const prompt = useCallback(
+    (opts: PromptOptions) =>
+      new Promise<string | null>((resolve) => {
+        promptResolver.current?.(null);
+        promptResolver.current = resolve;
+        setPromptValue(opts.defaultValue ?? '');
+        setPromptOptions(opts);
+      }),
+    []
+  );
+
+  const closePrompt = (result: string | null) => {
+    promptResolver.current?.(result);
+    promptResolver.current = null;
+    setPromptOptions(null);
+  };
+
   return (
     <ConfirmContext.Provider value={confirm}>
+     <PromptContext.Provider value={prompt}>
       {children}
       <Dialog open={options !== null} onOpenChange={(open) => !open && close(false)}>
         <DialogContent size="sm">
@@ -49,6 +72,35 @@ export const ConfirmProvider: React.FC<{ children: React.ReactNode }> = ({ child
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <Dialog open={promptOptions !== null} onOpenChange={(open) => !open && closePrompt(null)}>
+        <DialogContent size="sm">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (promptValue.trim()) closePrompt(promptValue.trim());
+            }}
+            className="space-y-4"
+          >
+            <DialogHeader>
+              <DialogTitle>{promptOptions?.title}</DialogTitle>
+              {promptOptions?.description && <DialogDescription>{promptOptions.description}</DialogDescription>}
+            </DialogHeader>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold">{promptOptions?.label}</span>
+              <Input value={promptValue} onChange={(e) => setPromptValue(e.target.value)} placeholder={promptOptions?.placeholder} autoFocus />
+            </label>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => closePrompt(null)}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={!promptValue.trim()}>
+                {promptOptions?.confirmLabel ?? 'Salvar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+     </PromptContext.Provider>
     </ConfirmContext.Provider>
   );
 };

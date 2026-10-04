@@ -10,7 +10,7 @@
 import type { components } from './api.gen';
 import type { AttachmentItem } from './attachment';
 import type { AuditLogItem } from './audit';
-import type { AttendanceItem, AttendanceNoteItem } from './attendance';
+import type { AttendanceContext, AttendanceItem, AttendanceNoteItem, AttendanceTemplate } from './attendance';
 import type { CommandItem, CommandStep, StandardResponseItem } from './commands';
 import type { DashboardSummary } from './dashboard';
 import type {
@@ -84,4 +84,6 @@ export const contractChecks = [
   ok<OnlyApiFields<VaultSecret, S['VaultSecretOut']>>(true),
   ok<OnlyApiFields<PurchaseRequest, S['PurchaseRequestResponse']>>(true),
   ok<OnlyApiFields<PurchaseQuote, S['PurchaseQuoteResponse']>>(true),
+  ok<OnlyApiFields<AttendanceContext, S['AttendanceContextResponse']>>(true),
+  ok<OnlyApiFields<AttendanceTemplate, S['AttendanceTemplateResponse']>>(true),
 ];

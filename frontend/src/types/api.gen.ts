@@ -784,6 +784,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attendances/context": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Attendance Context
+         * @description Contexto para quem está registrando: atendimentos do mesmo chamado e histórico do equipamento.
+         */
+        get: operations["attendance_context_attendances_context_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/attendances/{attendance_id}": {
         parameters: {
             query?: never;
@@ -1993,6 +2013,42 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/attendance-templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Templates */
+        get: operations["list_templates_attendance_templates_get"];
+        put?: never;
+        /** Create Template */
+        post: operations["create_template_attendance_templates_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/attendance-templates/{template_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update Template */
+        put: operations["update_template_attendance_templates__template_id__put"];
+        post?: never;
+        /** Delete Template */
+        delete: operations["delete_template_attendance_templates__template_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -2061,6 +2117,44 @@ export interface components {
             created_at: string;
             /** Deleted At */
             deleted_at?: string | null;
+        };
+        /**
+         * AttendanceBrief
+         * @description Resumo de um atendimento para dar contexto ao técnico (mesmo chamado / mesmo equipamento).
+         */
+        AttendanceBrief: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Status */
+            status: string;
+            /** Otrs Ticket */
+            otrs_ticket?: string | null;
+            /** Technician Name */
+            technician_name?: string | null;
+            /** Solution */
+            solution?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** AttendanceContextResponse */
+        AttendanceContextResponse: {
+            /** Otrs Url */
+            otrs_url?: string | null;
+            /**
+             * Same Ticket
+             * @default []
+             */
+            same_ticket: components["schemas"]["AttendanceBrief"][];
+            /**
+             * Equipment History
+             * @default []
+             */
+            equipment_history: components["schemas"]["AttendanceBrief"][];
         };
         /** AttendanceCreate */
         AttendanceCreate: {
@@ -2231,6 +2325,57 @@ export interface components {
              * @default []
              */
             notes: components["schemas"]["AttendanceNoteResponse"][];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /** AttendanceTemplateBase */
+        AttendanceTemplateBase: {
+            /** Name */
+            name: string;
+            /** Title */
+            title?: string | null;
+            /** Problem Description */
+            problem_description?: string | null;
+            /** Symptoms */
+            symptoms?: string | null;
+            /** Diagnosis */
+            diagnosis?: string | null;
+            /** Cause */
+            cause?: string | null;
+            /** Solution */
+            solution?: string | null;
+            /** Commands Used */
+            commands_used?: string | null;
+        };
+        /** AttendanceTemplateResponse */
+        AttendanceTemplateResponse: {
+            /** Name */
+            name: string;
+            /** Title */
+            title?: string | null;
+            /** Problem Description */
+            problem_description?: string | null;
+            /** Symptoms */
+            symptoms?: string | null;
+            /** Diagnosis */
+            diagnosis?: string | null;
+            /** Cause */
+            cause?: string | null;
+            /** Solution */
+            solution?: string | null;
+            /** Commands Used */
+            commands_used?: string | null;
+            /** Id */
+            id: number;
+            created_by?: components["schemas"]["UserSimpleResponse"] | null;
             /**
              * Created At
              * Format: date-time
@@ -7490,6 +7635,39 @@ export interface operations {
             };
         };
     };
+    attendance_context_attendances_context_get: {
+        parameters: {
+            query?: {
+                otrs_ticket?: string | null;
+                equipment_id?: number | null;
+                exclude_id?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceContextResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     get_attendance_attendances__attendance_id__get: {
         parameters: {
             query?: never;
@@ -10695,6 +10873,123 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["PurchaseRequestResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_templates_attendance_templates_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceTemplateResponse"][];
+                };
+            };
+        };
+    };
+    create_template_attendance_templates_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceTemplateBase"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceTemplateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_template_attendance_templates__template_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AttendanceTemplateBase"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceTemplateResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_template_attendance_templates__template_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                template_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

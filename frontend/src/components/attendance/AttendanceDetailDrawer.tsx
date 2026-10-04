@@ -17,6 +17,7 @@ import {
   Terminal,
   Trash2,
   User,
+  FileStack,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useToast } from '@/components/ui/Toast';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { attendanceService } from '@/services/attendanceService';
+import { usePrompt } from '@/hooks/usePrompt';
 import type { AttendanceItem } from '@/types/attendance';
 
 const DetailBlock: React.FC<{ icon: React.ReactNode; title: string; children: React.ReactNode }> = ({
@@ -54,6 +56,8 @@ interface AttendanceDetailDrawerProps {
   onDelete: (attendance: AttendanceItem) => void;
   /** Técnico responsável ou administrador. */
   canModify: boolean;
+  /** Pode criar modelos de atendimento (attendance:write). */
+  canSaveTemplate?: boolean;
 }
 
 /** Detalhe do atendimento: relato técnico, notas de andamento, anexos e conversão em artigo. */
@@ -64,6 +68,7 @@ export const AttendanceDetailDrawer: React.FC<AttendanceDetailDrawerProps> = ({
   onEdit,
   onDelete,
   canModify,
+  canSaveTemplate = false,
 }) => {
   const { success, error: toastError } = useToast();
   const [detailsTab, setDetailsTab] = useState('info');
@@ -71,6 +76,40 @@ export const AttendanceDetailDrawer: React.FC<AttendanceDetailDrawerProps> = ({
   const [newNoteText, setNewNoteText] = useState('');
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
   const [converting, setConverting] = useState(false);
+
+  const [savingTemplate, setSavingTemplate] = useState(false);
+  const prompt = usePrompt();
+
+  /** Transforma este atendimento num modelo para problemas parecidos. */
+  const handleSaveAsTemplate = async () => {
+    if (!attendance) return;
+    const name = await prompt({
+      title: 'Salvar como modelo',
+      description: 'Diagnóstico, causa, solução e comandos viram texto pronto para atendimentos parecidos.',
+      label: 'Nome do modelo',
+      defaultValue: attendance.title,
+      placeholder: 'Ex.: Impressora fiscal sem papel',
+    });
+    if (!name) return;
+    setSavingTemplate(true);
+    try {
+      await attendanceService.createTemplate({
+        name: name.trim(),
+        title: attendance.title,
+        problem_description: attendance.problem_description,
+        symptoms: attendance.symptoms,
+        diagnosis: attendance.diagnosis,
+        cause: attendance.cause,
+        solution: attendance.solution,
+        commands_used: attendance.commands_used,
+      });
+      success('Modelo salvo', 'Use em "Novo atendimento → Usar modelo".');
+    } catch (err) {
+      toastError('Não foi possível salvar o modelo', err instanceof Error ? err.message : '');
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
 
   const handleCopyCommands = async (commands: string) => {
     if (!commands) return;
@@ -330,6 +369,18 @@ export const AttendanceDetailDrawer: React.FC<AttendanceDetailDrawerProps> = ({
                   >
                     <Sparkles className="h-3.5 w-3.5" />
                     {converting ? 'Convertendo...' : 'Gerar Artigo'}
+                  </Button>
+                )}
+                {canSaveTemplate && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleSaveAsTemplate}
+                    disabled={savingTemplate}
+                    className="text-xs font-medium gap-1.5 cursor-pointer"
+                  >
+                    <FileStack className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Salvar como modelo</span>
                   </Button>
                 )}
               </div>

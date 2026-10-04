@@ -621,6 +621,42 @@ class AttendanceResponse(AttendanceBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AttendanceBrief(BaseModel):
+    """Resumo de um atendimento para dar contexto ao técnico (mesmo chamado / mesmo equipamento)."""
+    id: int
+    title: str
+    status: str
+    otrs_ticket: Optional[str] = None
+    technician_name: Optional[str] = None
+    solution: Optional[str] = None
+    created_at: datetime
+
+
+class AttendanceContextResponse(BaseModel):
+    otrs_url: Optional[str] = None
+    same_ticket: List[AttendanceBrief] = []
+    equipment_history: List[AttendanceBrief] = []
+
+
+class AttendanceTemplateBase(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    title: Optional[str] = None
+    problem_description: Optional[str] = None
+    symptoms: Optional[str] = None
+    diagnosis: Optional[str] = None
+    cause: Optional[str] = None
+    solution: Optional[str] = None
+    commands_used: Optional[str] = None
+
+
+class AttendanceTemplateResponse(AttendanceTemplateBase):
+    id: int
+    created_by: Optional[UserSimpleResponse] = None
+    created_at: datetime
+    updated_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+
 # --- Phase 8: Infraestrutura (Lojas, Departamentos, Equipamentos, Licenças, Estoque) ---
 
 class StoreBase(BaseModel):

@@ -36,7 +36,8 @@ O endereço https usa um certificado da própria Central. Para o navegador confi
 
 | Situação | Onde |
 |---|---|
-| Atendeu um chamado do OTRS | **Atendimentos → Novo atendimento**: nº e link do chamado, equipamento, problema, diagnóstico, solução e comandos usados. O chamado oficial continua no OTRS. |
+| Atendeu um chamado do OTRS | No **Início**, digite o nº do chamado e clique em **Novo atendimento** (ou cole o link do chamado). Ao escolher o equipamento, aparecem os últimos atendimentos dele com a solução; se o chamado já tiver atendimento, a Central avisa. O chamado oficial continua no OTRS. |
+| Problema que se repete | No detalhe de um atendimento resolvido, **Salvar como modelo**. No próximo, **Usar modelo** preenche diagnóstico, solução e comandos. |
 | A solução vale para a equipe | No detalhe do atendimento, **Gerar artigo** → revise na **Base de Conhecimento** e publique. |
 | Precisa lembrar de algo | **Tarefas e Agenda → Meus lembretes** (só você vê; avisa no sino). |
 | Trabalho para alguém fazer | **Tarefas e Agenda → Nova tarefa** (responsável, prazo, checklist). |
