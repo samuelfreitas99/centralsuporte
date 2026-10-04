@@ -3,27 +3,28 @@
 > Documento curto: substitua o conteúdo a cada entrega. Histórico até 2026-10-02 em
 > `history/PROJECT_STATE_LOG_ate_2026-10-02.md`; o restante está no Git.
 
-**Atualizado em:** 2026-10-03
-**Ciclos concluídos:** S — Simplificação, U — Uso real e acabamento (ver `ROADMAP.md`)
+**Atualizado em:** 2026-10-04
+**Ciclos concluídos:** S — Simplificação, U — Uso real e acabamento, B — Backlog (B2 depende do responsável; ver `ROADMAP.md`)
 
 ## Situação
 
 * **Em produção** (`docker-compose.prod.yml`): https://10.0.29.220:8443 (principal) e http://10.0.29.220:5173.
   API em `/api` no mesmo endereço. Guia para a equipe: `GUIA_DA_EQUIPE.md`.
-* Testes: backend 185 ✓ (banco isolado `centralsuporte_test`), frontend 163 ✓, `tsc -b` limpo, lint sem avisos novos (57 antigos).
+* Testes: backend 202 ✓ (banco isolado `centralsuporte_test`), frontend 170 ✓, `tsc -b` limpo, lint sem avisos novos (56 antigos).
 * Banco recriado do zero em 2026-10-03; só existe o usuário `admin` (senha padrão `admin123`).
-* Migração mais recente: `a7c1e2d3f4b5`. Migrações sobem do zero; `alembic check` sem divergências.
+* Migração mais recente: `d1f4b5c6e7a8` (compras). Migrações sobem do zero; `alembic check` sem divergências.
 * Certificados HTTPS em `deploy/certs/` (fora do Git). Backups do banco em `~/centralsuporte_backups/`.
 
 ## Próximo passo
 
-Uso real pela equipe. Ajustes vindos do uso têm prioridade sobre o backlog. O backlog (`ROADMAP.md`)
-depende de decisão do responsável: Cofre de Senhas, Cotações, editor rich text, Arquivos N:N,
-integração OTRS, Web Push e testes de contrato (tipos gerados do OpenAPI).
+Uso real pela equipe; ajustes vindos do uso têm prioridade. Backlog restante (`ROADMAP.md`): editor rich
+text, Arquivos N:N e integração OTRS (só com API confirmada).
 
 ## Pendências do responsável
 
 * Trocar a senha do `admin` (Meu Perfil → Alterar senha) e criar os usuários da equipe.
+* Publicar em `https://suporte.voleidraft.top`: `sudo ./deploy/cloudflare-tunnel.sh` (B2).
+* Guardar fora do servidor uma cópia de `~/centralsuporte_backups/CENTRAL_VAULT_KEY.txt` (sem ela as senhas do cofre se perdem).
 * Instalar `https://10.0.29.220:8443/ca.crt` nos PCs da equipe (passo a passo em `GUIA_DA_EQUIPE.md`).
 
 ## Avisos para quem continuar

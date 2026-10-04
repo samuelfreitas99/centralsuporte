@@ -1291,6 +1291,7 @@ class DashboardSummaryResponse(BaseModel):
     expiring_licenses: Optional[List[DashboardExpiringLicense]] = None
     reminders_pending: int = 0
     knowledge_published: Optional[int] = None
+    purchases_pending_approval: Optional[int] = None
 
 
 class PasswordChangeRequest(BaseModel):

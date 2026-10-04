@@ -13,6 +13,7 @@ import {
   ShieldAlert,
   Briefcase,
   KeyRound,
+  ShoppingCart,
 } from 'lucide-react';
 
 export type NavSection = 'inicio' | 'dia-a-dia' | 'conhecimento' | 'inventario' | 'gestao';
@@ -51,6 +52,7 @@ export const NAV_ITEMS: NavItem[] = [
 
   { id: 'equipment', label: 'Equipamentos e Lojas', icon: Server, permission: 'equipment:read', section: 'inventario' },
   { id: 'vault', label: 'Senhas', icon: KeyRound, permission: 'vault:read', section: 'inventario' },
+  { id: 'purchases', label: 'Compras', icon: ShoppingCart, permission: 'purchase:read', section: 'inventario' },
 
   { id: 'reports', label: 'Relatórios', icon: BarChart3, section: 'gestao' },
   { id: 'users', label: 'Usuários e Permissões', icon: Users, permission: 'users:read', section: 'gestao', activeFor: ['roles'] },

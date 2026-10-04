@@ -3,7 +3,7 @@
  * Use via <StatusBadge domain="..." status="..."/> e <PriorityBadge/>; não crie switch próprio na tela.
  */
 export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info';
-export type StatusDomain = 'task' | 'attendance' | 'maintenance' | 'project' | 'equipment';
+export type StatusDomain = 'task' | 'attendance' | 'maintenance' | 'project' | 'equipment' | 'purchase';
 
 interface StatusMeta {
   label: string;
@@ -34,6 +34,13 @@ export const STATUS_META: Record<StatusDomain, Record<string, StatusMeta>> = {
     pausado: { label: 'Pausado', variant: 'warning' },
     concluido: { label: 'Concluído', variant: 'success' },
     cancelado: { label: 'Cancelado', variant: 'secondary' },
+  },
+  purchase: {
+    aguardando_aprovacao: { label: 'Aguardando aprovação', variant: 'warning' },
+    aprovada: { label: 'Aprovada', variant: 'info' },
+    recebida: { label: 'Recebida', variant: 'success' },
+    rejeitada: { label: 'Rejeitada', variant: 'destructive' },
+    cancelada: { label: 'Cancelada', variant: 'secondary' },
   },
   equipment: {
     ativo: { label: 'Ativo', variant: 'success' },
@@ -91,6 +98,10 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   PASSWORD_REVEAL: 'Senha revelada',
   LICENSE_KEY_REVEAL: 'Chave revelada',
   AUTOMATION_RUN: 'Automação',
+  APPROVE: 'Aprovação',
+  REJECT: 'Rejeição',
+  RECEIVE: 'Recebimento',
+  CANCEL: 'Cancelamento',
   'attachment.uploaded': 'Anexo enviado',
   'attachment.deleted': 'Anexo excluído',
 };

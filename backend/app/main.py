@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import SessionLocal
 from app.initial_data import init_db_data
-from app.routers import auth, users, tasks, checklists, reminders, calendar, knowledge, commands, responses, attendances, infrastructure, maintenances, attachments, search, reports, audit, automation, checklist_templates, projects, dashboard, push, vault
+from app.routers import auth, users, tasks, checklists, reminders, calendar, knowledge, commands, responses, attendances, infrastructure, maintenances, attachments, search, reports, audit, automation, checklist_templates, projects, dashboard, push, vault, purchases
 from app.services.automation import start_automation_scheduler, stop_automation_scheduler
 
 @asynccontextmanager
@@ -66,6 +66,7 @@ app.include_router(projects.router)
 app.include_router(dashboard.router)
 app.include_router(push.router)
 app.include_router(vault.router)
+app.include_router(purchases.router)
 
 @app.get("/health")
 def health_check():

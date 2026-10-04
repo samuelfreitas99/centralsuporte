@@ -19,6 +19,7 @@ const AuditLogsPage = lazy(() => import('@/pages/AuditLogsPage').then((m) => ({ 
 const AccessPage = lazy(() => import('@/pages/AccessPage').then((m) => ({ default: m.AccessPage })));
 const ProfilePage = lazy(() => import('@/pages/ProfilePage').then((m) => ({ default: m.ProfilePage })));
 const VaultPage = lazy(() => import('@/pages/VaultPage').then((m) => ({ default: m.VaultPage })));
+const PurchasesPage = lazy(() => import('@/pages/PurchasesPage').then((m) => ({ default: m.PurchasesPage })));
 const FilesPage = lazy(() => import('@/pages/files/FilesPage').then((m) => ({ default: m.FilesPage })));
 
 interface RouteContext {
@@ -41,6 +42,7 @@ const ROUTES: Record<string, (ctx: RouteContext) => React.ReactNode> = {
   files: () => <FilesPage />,
   equipment: () => <InfrastructurePage />,
   vault: () => <VaultPage />,
+  purchases: () => <PurchasesPage />,
   reports: () => <ReportsPage />,
   users: ({ navigate }) => <AccessPage tab="users" navigate={navigate} />,
   roles: ({ navigate }) => <AccessPage tab="roles" navigate={navigate} />,

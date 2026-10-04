@@ -812,3 +812,53 @@ class VaultEntry(Base):
     owner = relationship("User")
     store = relationship("Store")
     equipment = relationship("Equipment")
+
+
+class PurchaseRequest(Base):
+    """Pedido de compra operacional (não é financeiro): orçamentos, aprovação do gestor e recebimento."""
+    __tablename__ = "purchase_requests"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    reason = Column(Text, nullable=True)
+    quantity = Column(Integer, nullable=False, default=1)
+    # aguardando_aprovacao -> aprovada | rejeitada ; aprovada -> recebida ; aguardando/aprovada -> cancelada
+    status = Column(String(30), nullable=False, default="aguardando_aprovacao", index=True)
+    requester_id = Column(Integer, ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True)
+    approver_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    chosen_quote_id = Column(Integer, ForeignKey("purchase_quotes.id", ondelete="SET NULL", use_alter=True), nullable=True)
+    decision_note = Column(Text, nullable=True)
+    decided_at = Column(DateTime(timezone=True), nullable=True)
+    received_at = Column(DateTime(timezone=True), nullable=True)
+    stock_item_id = Column(Integer, ForeignKey("stock_items.id", ondelete="SET NULL"), nullable=True, index=True)
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="SET NULL"), nullable=True, index=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    requester = relationship("User", foreign_keys=[requester_id])
+    approver = relationship("User", foreign_keys=[approver_id])
+    stock_item = relationship("StockItem")
+    project = relationship("Project")
+    quotes = relationship(
+        "PurchaseQuote",
+        back_populates="request",
+        cascade="all, delete-orphan",
+        foreign_keys="PurchaseQuote.request_id",
+        order_by="PurchaseQuote.unit_price",
+    )
+
+
+class PurchaseQuote(Base):
+    """Orçamento de um fornecedor para um pedido de compra."""
+    __tablename__ = "purchase_quotes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    request_id = Column(Integer, ForeignKey("purchase_requests.id", ondelete="CASCADE"), nullable=False, index=True)
+    supplier = Column(String(150), nullable=False)
+    unit_price = Column(Float, nullable=False)
+    delivery_days = Column(Integer, nullable=True)
+    link = Column(String(500), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
+
+    request = relationship("PurchaseRequest", back_populates="quotes", foreign_keys=[request_id])

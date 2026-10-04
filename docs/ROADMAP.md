@@ -91,16 +91,16 @@ Revisão tela a tela com dados realistas (ambiente de demonstração + screensho
 ## Ciclo B — Backlog liberado pelo responsável (2026-10-04)
 
 - [x] B1 Endurecimento para exposição na internet (limite de tentativas de login, docs da API fechadas, cabeçalhos de segurança, IP real via Cloudflare)
-- [x] B2 Publicação em `suporte.voleidraft.top` pelo túnel Cloudflare existente (`deploy/cloudflare-tunnel.sh`, executado pelo responsável com sudo)
+- [~] B2 Publicação em `suporte.voleidraft.top` pelo túnel Cloudflare existente (`deploy/cloudflare-tunnel.sh`, executado pelo responsável com sudo)
 - [x] B3 Web Push: avisos com a Central fechada
 - [x] B4 Contrato frontend × backend verificado no build (`api.gen.ts` + `contract.check.ts`)
+- [x] B5 Cofre de Senhas (AES-256-GCM, revelação auditada, registros pessoais)
+- [x] B6 Compras operacionais (orçamentos → aprovação → recebimento com entrada no estoque)
 
 ---
 
 ## Backlog (não iniciar sem decisão registrada em `DECISIONS.md`)
 
-* **Cofre de Senhas** — requisitos de segurança já definidos em `DECISIONS.md` (2026-09-24).
-* **Cotações / Compras operacionais** — `PRODUCT_SPEC.md` §5.3.
 * **Editor rich text** para a Base de Conhecimento (imagens inline) — `DOMAIN_RULES.md` §6.
 * **Arquivos N:N** (um documento ligado a várias entidades).
 * **Integração com OTRS** — somente após confirmar API disponível (`AGENTS.md`).

@@ -10,6 +10,7 @@ import {
   Package,
   PlusCircle,
   Wrench,
+  ShoppingCart,
 } from 'lucide-react';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { GettingStarted } from '@/components/dashboard/GettingStarted';
@@ -61,6 +62,9 @@ const buildAlerts = (s: DashboardSummary): ShiftAlert[] => {
   if (s.expiring_licenses_total) {
     const next = s.expiring_licenses?.[0];
     alerts.push({ key: 'licenses', icon: KeyRound, tone: 'warning', target: 'equipment', text: `${plural(s.expiring_licenses_total, 'licença vence', 'licenças vencem')} em até 30 dias${next ? ` (próxima: ${next.name}, ${next.days_left < 0 ? 'vencida' : `${next.days_left} dias`})` : ''}` });
+  }
+  if (s.purchases_pending_approval) {
+    alerts.push({ key: 'purchases', icon: ShoppingCart, tone: 'warning', target: 'purchases?status=aguardando_aprovacao', text: `${plural(s.purchases_pending_approval, 'compra aguardando', 'compras aguardando')} sua aprovação` });
   }
   return alerts;
 };

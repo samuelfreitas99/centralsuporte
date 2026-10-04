@@ -12,6 +12,7 @@ from app.models import (
     KnowledgeArticle,
     License,
     MaintenanceRecord,
+    PurchaseRequest,
     Reminder,
     StockItem,
     Task,
@@ -125,6 +126,11 @@ def get_dashboard_summary(
         .filter(Reminder.user_id == current_user.id, Reminder.status == "pendente", Reminder.remind_at < day_end)
         .count()
     )
+
+    if current_user.has_permission("purchase:approve"):
+        summary["purchases_pending_approval"] = (
+            db.query(PurchaseRequest).filter(PurchaseRequest.status == "aguardando_aprovacao").count()
+        )
 
     if current_user.has_permission("knowledge:read"):
         summary["knowledge_published"] = (

@@ -125,3 +125,15 @@
 - **Decisão**: Os tipos em `frontend/src/types/` devem refletir exatamente os schemas de resposta de `backend/app/schemas.py`; telas são revisadas com dados reais (ambiente de demonstração), não só com testes de mock.
 - **Contexto**: A tela de Relatórios quebrava o app inteiro e o prazo de projetos nunca era salvo porque o frontend usava nomes de campos que a API não tinha — os testes passavam porque mockavam o formato errado.
 - **Consequências**: Próximo passo recomendado no backlog: gerar os tipos a partir do OpenAPI do FastAPI.
+
+### 2026-10-04: Cofre de Senhas e Compras implementados
+- **Decisão**: Cofre conforme a decisão de 2026-09-24 (AES-256-GCM, chave só no ambiente `CENTRAL_VAULT_KEY`,
+  id do registro como dado associado, listagem sem segredos, `POST /vault/{id}/reveal` grava `PASSWORD_REVEAL`,
+  registros "pessoal" invisíveis até para administradores). Compras como fluxo de aprovação operacional
+  (PRODUCT_SPEC §5.3), sem valores financeiros além dos orçamentos.
+- **Contexto**: Liberados pelo responsável ("pode seguir com os itens do backlog").
+- **Consequências**: **Perder a `CENTRAL_VAULT_KEY` = perder as senhas do cofre.** Cópia em
+  `~/centralsuporte_backups/CENTRAL_VAULT_KEY.txt` (permissão 600) — o responsável deve guardar outra fora do
+  servidor. Trocar a chave exige recifrar os registros (campo `key_version` reservado para isso).
+  Novas permissões: `vault:read/write` (Técnico, Gestor), `purchase:read` (todos), `purchase:write` (Técnico, Gestor),
+  `purchase:approve` (Gestor). Perfis existentes recebem as permissões no `init_db_data` ao subir o backend.

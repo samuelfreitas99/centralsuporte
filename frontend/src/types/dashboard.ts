@@ -54,4 +54,5 @@ export interface DashboardSummary {
   expiring_licenses: { id: number; name: string; expiration_date: string; days_left: number }[] | null;
   reminders_pending: number;
   knowledge_published: number | null;
+  purchases_pending_approval?: number | null;
 }

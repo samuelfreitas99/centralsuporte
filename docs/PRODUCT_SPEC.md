@@ -91,6 +91,11 @@ A evolução do produto trará 3 novos domínios críticos:
 ### 5.3. Cotações / Compras (Operacional)
 * **Comportamento Esperado:** Módulo para formalizar solicitações de compras de peças (ex: memórias, monitores) aprovadas pela gestão da TI.
 * NÃO envolve pagamentos, NF-e ou integração bancária. É apenas controle de aprovação operacional.
+* **Implementado (2026-10-04):** pedido com 1+ orçamentos (fornecedor, preço unitário, prazo, link) →
+  quem tem `purchase:approve` (Gestor/Admin) escolhe um orçamento e aprova, ou rejeita com motivo →
+  "Registrar recebimento" marca como recebida e, se o pedido estiver ligado a um item de estoque, lança
+  a entrada da quantidade. Pedido novo avisa quem aprova; a decisão avisa quem pediu (sino + push).
+  Status: aguardando_aprovacao, aprovada, rejeitada, recebida, cancelada.
 
 ---
 

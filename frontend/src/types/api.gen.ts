@@ -1886,6 +1886,113 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Purchases */
+        get: operations["list_purchases_purchases_get"];
+        put?: never;
+        /** Create Purchase */
+        post: operations["create_purchase_purchases_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/purchases/{purchase_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Purchase */
+        get: operations["get_purchase_purchases__purchase_id__get"];
+        /** Update Purchase */
+        put: operations["update_purchase_purchases__purchase_id__put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/purchases/{purchase_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve Purchase */
+        post: operations["approve_purchase_purchases__purchase_id__approve_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/purchases/{purchase_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject Purchase */
+        post: operations["reject_purchase_purchases__purchase_id__reject_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/purchases/{purchase_id}/receive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive Purchase
+         * @description Marca como recebida; se ligada a um item de estoque, registra a entrada da quantidade.
+         */
+        post: operations["receive_purchase_purchases__purchase_id__receive_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/purchases/{purchase_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel Purchase */
+        post: operations["cancel_purchase_purchases__purchase_id__cancel_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -2730,6 +2837,8 @@ export interface components {
             reminders_pending: number;
             /** Knowledge Published */
             knowledge_published?: number | null;
+            /** Purchases Pending Approval */
+            purchases_pending_approval?: number | null;
         };
         /** DashboardTaskCounts */
         DashboardTaskCounts: {
@@ -3927,6 +4036,124 @@ export interface components {
             store_id?: number | null;
             /** Owner Id */
             owner_id?: number | null;
+        };
+        /** PurchaseDecisionIn */
+        PurchaseDecisionIn: {
+            /** Quote Id */
+            quote_id?: number | null;
+            /** Note */
+            note?: string | null;
+        };
+        /** PurchaseQuoteIn */
+        PurchaseQuoteIn: {
+            /** Supplier */
+            supplier: string;
+            /** Unit Price */
+            unit_price: number;
+            /** Delivery Days */
+            delivery_days?: number | null;
+            /** Link */
+            link?: string | null;
+            /** Notes */
+            notes?: string | null;
+        };
+        /** PurchaseQuoteResponse */
+        PurchaseQuoteResponse: {
+            /** Supplier */
+            supplier: string;
+            /** Unit Price */
+            unit_price: number;
+            /** Delivery Days */
+            delivery_days?: number | null;
+            /** Link */
+            link?: string | null;
+            /** Notes */
+            notes?: string | null;
+            /** Id */
+            id: number;
+            /** Total */
+            total: number;
+        };
+        /** PurchaseRequestIn */
+        PurchaseRequestIn: {
+            /** Title */
+            title: string;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Quantity
+             * @default 1
+             */
+            quantity: number;
+            /** Stock Item Id */
+            stock_item_id?: number | null;
+            /** Project Id */
+            project_id?: number | null;
+            /** Quotes */
+            quotes: components["schemas"]["PurchaseQuoteIn"][];
+        };
+        /** PurchaseRequestResponse */
+        PurchaseRequestResponse: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+            /** Reason */
+            reason?: string | null;
+            /** Quantity */
+            quantity: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "aguardando_aprovacao" | "aprovada" | "rejeitada" | "recebida" | "cancelada";
+            requester?: components["schemas"]["UserSimpleResponse"] | null;
+            approver?: components["schemas"]["UserSimpleResponse"] | null;
+            /** Chosen Quote Id */
+            chosen_quote_id?: number | null;
+            /** Decision Note */
+            decision_note?: string | null;
+            /** Decided At */
+            decided_at?: string | null;
+            /** Received At */
+            received_at?: string | null;
+            /** Stock Item Id */
+            stock_item_id?: number | null;
+            /** Stock Item Name */
+            stock_item_name?: string | null;
+            /** Project Id */
+            project_id?: number | null;
+            /** Project Title */
+            project_title?: string | null;
+            /**
+             * Quotes
+             * @default []
+             */
+            quotes: components["schemas"]["PurchaseQuoteResponse"][];
+            /** Best Total */
+            best_total?: number | null;
+            /** Chosen Total */
+            chosen_total?: number | null;
+            /**
+             * Can Edit
+             * @default false
+             */
+            can_edit: boolean;
+            /**
+             * Can Decide
+             * @default false
+             */
+            can_decide: boolean;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
         };
         /** PushConfig */
         PushConfig: {
@@ -10203,6 +10430,270 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["VaultSecretOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_purchases_purchases_get: {
+        parameters: {
+            query?: {
+                status_filter?: ("aguardando_aprovacao" | "aprovada" | "rejeitada" | "recebida" | "cancelada") | null;
+                search?: string | null;
+                mine?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_purchase_purchases_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_purchase_purchases__purchase_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_purchase_purchases__purchase_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    approve_purchase_purchases__purchase_id__approve_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reject_purchase_purchases__purchase_id__reject_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseDecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    receive_purchase_purchases__purchase_id__receive_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    cancel_purchase_purchases__purchase_id__cancel_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                purchase_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseRequestResponse"];
                 };
             };
             /** @description Validation Error */

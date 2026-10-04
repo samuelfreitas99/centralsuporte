@@ -31,6 +31,9 @@ INITIAL_PERMISSIONS = [
     {"name": "project:delete", "description": "Excluir projetos operacionais"},
     {"name": "vault:read", "description": "Ver e revelar senhas compartilhadas do cofre"},
     {"name": "vault:write", "description": "Cadastrar e alterar senhas no cofre"},
+    {"name": "purchase:read", "description": "Ver pedidos de compra"},
+    {"name": "purchase:write", "description": "Criar pedidos de compra e registrar recebimento"},
+    {"name": "purchase:approve", "description": "Aprovar ou rejeitar pedidos de compra"},
 ]
 
 ROLE_PERMISSIONS_MAP = {
@@ -41,7 +44,8 @@ ROLE_PERMISSIONS_MAP = {
         "tasks:read", "tasks:write", "maintenance:read", "maintenance:write",
         "attachment:read", "attachment:upload", "attachment:delete", "audit:read",
         "project:read", "project:create", "project:update", "project:delete",
-        "vault:read", "vault:write"
+        "vault:read", "vault:write",
+        "purchase:read", "purchase:write", "purchase:approve"
     ],
     "Técnico": [
         "knowledge:read", "knowledge:write", "attendance:read", "attendance:write",
@@ -49,11 +53,13 @@ ROLE_PERMISSIONS_MAP = {
         "maintenance:read", "maintenance:write",
         "attachment:read", "attachment:upload", "attachment:delete",
         "project:read", "project:create", "project:update",
-        "vault:read", "vault:write"
+        "vault:read", "vault:write",
+        "purchase:read", "purchase:write"
     ],
     "Consulta": [
         "knowledge:read", "attendance:read", "equipment:read", "tasks:read",
-        "maintenance:read", "attachment:read", "project:read"
+        "maintenance:read", "attachment:read", "project:read",
+        "purchase:read"
     ]
 }
 

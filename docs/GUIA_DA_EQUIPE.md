@@ -44,12 +44,14 @@ O endereço https usa um certificado da própria Central. Para o navegador confi
 | Abertura de loja, reforma, implantação | **Projetos** (agrupa tarefas, manutenções e atendimentos). |
 | Achar qualquer coisa | **Ctrl+K** ou **Buscar** no topo. |
 | Histórico de um PDV/servidor | **Equipamentos e Lojas** → abra o equipamento → aba **Ocorrências**. |
+| Senha de switch, roteador, Wi-Fi, sistema | **Senhas**: copie usuário/senha com um clique. Cada visualização fica registrada. "Só eu" = nem administradores veem. |
+| Precisa comprar peça/equipamento | **Compras → Novo pedido** com os orçamentos. O gestor aprova; ao chegar, **Registrar recebimento** (entra no estoque). |
 
 ## 5. Perfis de acesso
 
 | Perfil | Pode |
 |---|---|
 | Consulta | Ver tudo do dia a dia, sem alterar. |
-| Técnico | Registrar e editar atendimentos, tarefas, manutenções, conhecimento e inventário. |
-| Gestor | Tudo do técnico + usuários (visualizar) e auditoria. |
+| Técnico | Registrar e editar atendimentos, tarefas, manutenções, conhecimento, inventário, senhas e pedidos de compra. |
+| Gestor | Tudo do técnico + aprovar compras, usuários (visualizar) e auditoria. |
 | Administrador | Tudo, inclusive usuários e perfis. |
