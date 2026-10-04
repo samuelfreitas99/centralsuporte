@@ -98,6 +98,7 @@ Revisão tela a tela com dados realistas (ambiente de demonstração + screensho
 - [x] B6 Compras operacionais (orçamentos → aprovação → recebimento com entrada no estoque)
 - [x] B7 Atendimento a partir do nº OTRS (aviso de chamado repetido, histórico do equipamento) e modelos de atendimento
 - [x] B8 Etiquetas com QR code que abrem a ficha do equipamento
+- [x] B9 Resumo semanal (Relatórios + entrega no sino/push dos gestores na segunda-feira)
 
 ---
 

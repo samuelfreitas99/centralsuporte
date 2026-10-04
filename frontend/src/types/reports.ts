@@ -30,3 +30,18 @@ export interface OperationalSummaryReport {
   recurrent_equipment: RecurrentEquipmentIssue[];
   top_technicians: TechnicianPerformanceMetric[];
 }
+
+/** Resumo dos últimos 7 dias (GET /reports/weekly), também entregue aos gestores na segunda-feira. */
+export interface WeeklyDigest {
+  start: string;
+  end: string;
+  attendances_total: number;
+  attendances_resolved: number;
+  attendances_open: number;
+  by_store: { name: string; count: number }[];
+  top_equipment: { equipment_id: number; name: string; count: number }[];
+  maintenances_done: number;
+  overdue_tasks: number;
+  pending_purchases: number;
+  low_stock_items: number;
+}

@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { reportsService } from '@/services/reportsService';
-import type { OperationalSummaryReport } from '@/types/reports';
+import type { OperationalSummaryReport, WeeklyDigest } from '@/types/reports';
+import { WeeklyDigestCard } from '@/components/reports/WeeklyDigestCard';
 
 const PERIODS = [
   { days: 7, label: '7 dias' },
@@ -39,6 +40,18 @@ export const ReportsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [weekly, setWeekly] = useState<WeeklyDigest | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    reportsService
+      .getWeekly()
+      .then((w) => !cancelled && setWeekly(w))
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [reloadKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,6 +106,8 @@ export const ReportsPage: React.FC = () => {
           Exportar CSV
         </Button>
       </PageHeader>
+
+      {weekly && <WeeklyDigestCard digest={weekly} />}
 
       {error ? (
         <ErrorState title="Não foi possível carregar os relatórios" message={error} onRetry={() => setReloadKey((k) => k + 1)} />

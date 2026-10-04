@@ -1137,6 +1137,31 @@ class TechnicianPerformanceMetric(BaseModel):
     maintenances_count: int
     total_actions: int
 
+class WeeklyStoreCount(BaseModel):
+    name: str
+    count: int
+
+
+class WeeklyEquipmentCount(BaseModel):
+    equipment_id: int
+    name: str
+    count: int
+
+
+class WeeklyDigestResponse(BaseModel):
+    start: datetime
+    end: datetime
+    attendances_total: int
+    attendances_resolved: int
+    attendances_open: int
+    by_store: List[WeeklyStoreCount]
+    top_equipment: List[WeeklyEquipmentCount]
+    maintenances_done: int
+    overdue_tasks: int
+    pending_purchases: int
+    low_stock_items: int
+
+
 class OperationalSummaryReport(BaseModel):
     period_days: int
     attendances_total: int

@@ -18,7 +18,9 @@ from app.schemas import (
     OperationalSummaryReport,
     RecurrentEquipmentIssue,
     TechnicianPerformanceMetric,
+    WeeklyDigestResponse,
 )
+from app.services.weekly_digest import build_weekly_digest
 from app.auth import get_current_active_user
 
 router = APIRouter(prefix="/reports", tags=["reports"])
@@ -151,6 +153,12 @@ def get_operational_summary(
         recurrent_equipment=recurrent_items[:10],
         top_technicians=tech_metrics[:10],
     )
+
+
+@router.get("/weekly", response_model=WeeklyDigestResponse)
+def get_weekly_digest(db: Session = Depends(get_db), current_user: User = Depends(get_current_active_user)):
+    """Resumo dos últimos 7 dias (o mesmo entregue aos gestores na segunda-feira)."""
+    return build_weekly_digest(db)
 
 
 @router.get("/export")

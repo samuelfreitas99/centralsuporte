@@ -1474,6 +1474,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/reports/weekly": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Weekly Digest
+         * @description Resumo dos últimos 7 dias (o mesmo entregue aos gestores na segunda-feira).
+         */
+        get: operations["get_weekly_digest_reports_weekly_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/reports/export": {
         parameters: {
             query?: never;
@@ -5343,6 +5363,53 @@ export interface components {
         VaultStatus: {
             /** Configured */
             configured: boolean;
+        };
+        /** WeeklyDigestResponse */
+        WeeklyDigestResponse: {
+            /**
+             * Start
+             * Format: date-time
+             */
+            start: string;
+            /**
+             * End
+             * Format: date-time
+             */
+            end: string;
+            /** Attendances Total */
+            attendances_total: number;
+            /** Attendances Resolved */
+            attendances_resolved: number;
+            /** Attendances Open */
+            attendances_open: number;
+            /** By Store */
+            by_store: components["schemas"]["WeeklyStoreCount"][];
+            /** Top Equipment */
+            top_equipment: components["schemas"]["WeeklyEquipmentCount"][];
+            /** Maintenances Done */
+            maintenances_done: number;
+            /** Overdue Tasks */
+            overdue_tasks: number;
+            /** Pending Purchases */
+            pending_purchases: number;
+            /** Low Stock Items */
+            low_stock_items: number;
+        };
+        /** WeeklyEquipmentCount */
+        WeeklyEquipmentCount: {
+            /** Equipment Id */
+            equipment_id: number;
+            /** Name */
+            name: string;
+            /** Count */
+            count: number;
+        };
+        /** WeeklyStoreCount */
+        WeeklyStoreCount: {
+            /** Name */
+            name: string;
+            /** Count */
+            count: number;
         };
     };
     responses: never;
@@ -9697,6 +9764,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_weekly_digest_reports_weekly_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyDigestResponse"];
                 };
             };
         };

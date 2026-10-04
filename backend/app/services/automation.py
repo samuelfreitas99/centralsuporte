@@ -8,6 +8,7 @@ from sqlalchemy import or_, and_, func
 from app.database import SessionLocal
 from app.models import Task, Reminder, MaintenanceRecord, Equipment, User, Role
 from app.services.audit import record_audit_log
+from app.services.weekly_digest import deliver_weekly_digest
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,14 @@ def get_automation_rules_catalog() -> List[Dict[str, Any]]:
             "description": "Identifica ativos com recorrência de falhas ou manutenções (>= 3 eventos em 30 dias) e gera alertas operacionais preventivos.",
             "category": "equipamentos",
             "frequency": "A cada 60 minutos",
+            "is_active": True,
+        },
+        {
+            "id": "weekly_digest",
+            "name": "Resumo da semana",
+            "description": "Na segunda-feira de manhã, envia aos gestores e administradores o resumo dos últimos 7 dias: atendimentos por loja, equipamentos que mais falharam, tarefas atrasadas, compras pendentes e estoque baixo.",
+            "category": "gestao",
+            "frequency": "Segunda-feira, a partir das 7h",
             "is_active": True,
         },
     ]
@@ -249,6 +258,10 @@ def run_automation_rules(db: Session, triggered_by_user: Optional[User] = None) 
                         stats["total_created"] += 1
 
         db.commit()
+
+        # --- RULE 4: Weekly digest (segunda-feira de manhã) ---
+        stats["weekly_digests_created"] = deliver_weekly_digest(db, now)
+        stats["total_created"] += stats["weekly_digests_created"]
 
         # Audit trail
         record_audit_log(

@@ -45,6 +45,7 @@ O endereço https usa um certificado da própria Central. Para o navegador confi
 | Abertura de loja, reforma, implantação | **Projetos** (agrupa tarefas, manutenções e atendimentos). |
 | Achar qualquer coisa | **Ctrl+K** ou **Buscar** no topo. |
 | Histórico de um PDV/servidor | **Equipamentos e Lojas** → abra o equipamento → aba **Ocorrências**. Ou aponte a câmera do celular para a **etiqueta QR** colada no equipamento. |
+| Como foi a semana (gestor) | Toda segunda-feira chega no sino o **Resumo da semana**; o mesmo resumo fica no topo de **Relatórios**. |
 | Etiquetar equipamentos | Na ficha, **Imprimir etiqueta**; ou filtre a lista (ex.: por loja) e use **Imprimir etiquetas da lista** (62 × 30 mm, cabe em A4 ou impressora de etiquetas). |
 | Senha de switch, roteador, Wi-Fi, sistema | **Senhas**: copie usuário/senha com um clique. Cada visualização fica registrada. "Só eu" = nem administradores veem. |
 | Precisa comprar peça/equipamento | **Compras → Novo pedido** com os orçamentos. O gestor aprova; ao chegar, **Registrar recebimento** (entra no estoque). |

@@ -27,7 +27,7 @@ import type {
 import type { KnowledgeArticle, KnowledgeCategory, KnowledgeTag, KnowledgeVersion } from './knowledge';
 import type { MaintenanceRecord } from './maintenance';
 import type { Project, ProjectNote } from './projects';
-import type { OperationalSummaryReport, RecurrentEquipmentIssue, TechnicianPerformanceMetric } from './reports';
+import type { OperationalSummaryReport, RecurrentEquipmentIssue, TechnicianPerformanceMetric, WeeklyDigest } from './reports';
 import type { SearchResultItem } from './search';
 import type { CalendarEvent, Checklist, ChecklistItem, Reminder, Task, TaskList, UserSimple } from './tasks';
 import type { ChecklistTemplate } from './checklistTemplate';
@@ -86,4 +86,5 @@ export const contractChecks = [
   ok<OnlyApiFields<PurchaseQuote, S['PurchaseQuoteResponse']>>(true),
   ok<OnlyApiFields<AttendanceContext, S['AttendanceContextResponse']>>(true),
   ok<OnlyApiFields<AttendanceTemplate, S['AttendanceTemplateResponse']>>(true),
+  ok<OnlyApiFields<WeeklyDigest, S['WeeklyDigestResponse']>>(true),
 ];

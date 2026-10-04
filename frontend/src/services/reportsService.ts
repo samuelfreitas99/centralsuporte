@@ -1,7 +1,9 @@
 import { request, getApiBase } from './api';
-import type { OperationalSummaryReport } from '@/types/reports';
+import type { OperationalSummaryReport, WeeklyDigest } from '@/types/reports';
 
 export const reportsService = {
+  getWeekly: () => request<WeeklyDigest>('/reports/weekly'),
+
   getSummary: (days: number = 30): Promise<OperationalSummaryReport> => {
     return request<OperationalSummaryReport>(`/reports/summary?days=${days}`);
   },
