@@ -23,6 +23,7 @@ import {
   FileText,
   Activity,
   Headset,
+  QrCode,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ import { useToast, type ToastType } from '@/components/ui/Toast';
 import { infrastructureService } from '@/services/infrastructureService';
 import { AttachmentManager } from '@/components/attachments/AttachmentManager';
 import { useAuth } from '@/hooks/useAuth';
+import { printEquipmentLabels } from '@/lib/labels';
 import type { EquipmentItem, EquipmentType, EquipmentStatus, EquipmentCreatePayload, StoreItem, DepartmentItem, TechnicalLocationItem } from '@/types/infrastructure';
 
 export interface EquipmentTabProps {
@@ -84,6 +86,11 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
   const addToast = (opts: { title: string; description?: string; type?: ToastType }) => {
     showToast(opts.title, { message: opts.description, type: opts.type });
   };
+
+  const printLabels = (items: EquipmentItem[]) =>
+    printEquipmentLabels(items).catch((err) =>
+      addToast({ title: 'Não foi possível imprimir', description: err instanceof Error ? err.message : '', type: 'error' })
+    );
 
   const [activeDrawerTab, setActiveDrawerTab] = useState('base');
   const [newHistoryNote, setNewHistoryNote] = useState('');
@@ -352,7 +359,18 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
           </div>
           <div className="flex flex-col items-center gap-1 border-t border-border/50 p-3">
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-            <p className="text-[11px] text-muted-foreground">{filteredEquipment.length} equipamento(s)</p>
+            <p className="flex items-center gap-2 text-[11px] text-muted-foreground">
+              {filteredEquipment.length} equipamento(s)
+              {filteredEquipment.length <= 200 && (
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 text-primary hover:underline cursor-pointer"
+                  onClick={() => printLabels(filteredEquipment)}
+                >
+                  <QrCode className="h-3 w-3" /> Imprimir etiquetas {filteredEquipment.length > 1 ? 'da lista' : ''}
+                </button>
+              )}
+            </p>
           </div>
         </div>
       )}
@@ -638,6 +656,12 @@ export const EquipmentTab: React.FC<EquipmentTabProps> = ({
             {activeDrawerTab === 'base' && (
               <Button type="submit" form="equipment-form" className="w-full sm:w-auto cursor-pointer">
                 {editingEquipment ? 'Salvar Alterações' : 'Cadastrar'}
+              </Button>
+            )}
+            {editingEquipment && (
+              <Button type="button" variant="outline" className="w-full sm:w-auto gap-2 cursor-pointer" onClick={() => printLabels([editingEquipment])}>
+                <QrCode className="h-4 w-4" />
+                Imprimir etiqueta
               </Button>
             )}
             {editingEquipment && (
