@@ -14,7 +14,7 @@ if [ "$what" = all ] || [ "$what" = backend ]; then
 fi
 
 if [ "$what" = all ] || [ "$what" = frontend ]; then
-  echo "== Frontend (tsc, vitest, oxlint)"
+  echo "== Frontend (tsc com verificação de contrato da API, vitest, oxlint)"
   docker run --rm -v "$ROOT/frontend:/app" -v centralsuporte_frontend_node_modules:/app/node_modules -w /app \
     node:20-alpine sh -c "npm ci --silent >/dev/null 2>&1 || npm install --silent >/dev/null; npx tsc -b && npx vitest run --reporter=dot && npx oxlint | tail -2"
 fi

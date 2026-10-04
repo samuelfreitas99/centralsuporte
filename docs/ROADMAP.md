@@ -88,6 +88,15 @@ Revisão tela a tela com dados realistas (ambiente de demonstração + screensho
 
 ---
 
+## Ciclo B — Backlog liberado pelo responsável (2026-10-04)
+
+- [x] B1 Endurecimento para exposição na internet (limite de tentativas de login, docs da API fechadas, cabeçalhos de segurança, IP real via Cloudflare)
+- [x] B2 Publicação em `suporte.voleidraft.top` pelo túnel Cloudflare existente (`deploy/cloudflare-tunnel.sh`, executado pelo responsável com sudo)
+- [x] B3 Web Push: avisos com a Central fechada
+- [x] B4 Contrato frontend × backend verificado no build (`api.gen.ts` + `contract.check.ts`)
+
+---
+
 ## Backlog (não iniciar sem decisão registrada em `DECISIONS.md`)
 
 * **Cofre de Senhas** — requisitos de segurança já definidos em `DECISIONS.md` (2026-09-24).
@@ -95,5 +104,4 @@ Revisão tela a tela com dados realistas (ambiente de demonstração + screensho
 * **Editor rich text** para a Base de Conhecimento (imagens inline) — `DOMAIN_RULES.md` §6.
 * **Arquivos N:N** (um documento ligado a várias entidades).
 * **Integração com OTRS** — somente após confirmar API disponível (`AGENTS.md`).
-* **Web Push** (notificações com a Central fechada) — exige VAPID + `pywebpush` + tabela de inscrições; hoje os avisos chegam com a Central aberta em alguma aba/app.
-* **Testes de contrato** frontend × backend (ex.: gerar tipos TypeScript a partir do OpenAPI do FastAPI) para evitar regressões como as do U1.
+

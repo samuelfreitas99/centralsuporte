@@ -72,6 +72,13 @@ docker exec centralsuporte_backend sh -c "cd /app && python -m pytest -q -p no:w
 * **Nunca** remova o `conftest.py` nem aponte os testes para `centralsuporte_db`.
 * Novos testes ficam em `backend/tests/`. Podem usar `admin`/`admin123` (o conftest cria).
 
+### Tudo de uma vez (recomendado)
+
+```bash
+./scripts/check.sh            # backend + frontend com o código atual, em containers descartáveis
+./scripts/check.sh backend    # ou só um dos lados
+```
+
 ### Frontend (vitest, typecheck, lint)
 
 ```bash
@@ -118,7 +125,7 @@ docker exec centralsuporte_backend sh -c "cd /app && alembic upgrade head"
 * Cabeçalho de tela: sempre `<PageHeader icon title description>{ações}</PageHeader>` (`components/ui/PageHeader.tsx`); título igual ao rótulo do menu.
 * Busca e filtros de lista: `<FilterBar search onSearch placeholder>` + `<FilterSelect>` (`components/ui/FilterBar.tsx`); a busca já tem debounce.
 * Datas: sempre `formatDate`/`formatTime`/`formatDateTime`/`formatRelative` (`lib/format.ts`), nunca `toLocaleString` direto.
-* Tipos de `src/types/` devem espelhar os schemas de resposta do backend (`app/schemas.py`). Testes com mock não pegam contrato errado: ao mudar um schema, revise o tipo e rode a tela com dados reais.
+* **Contrato com a API**: `src/types/api.gen.ts` é gerado do OpenAPI do backend (`./scripts/gen-api-types.sh`, rode após mudar `app/schemas.py` e faça commit). `src/types/contract.check.ts` faz o `tsc` falhar se um tipo das telas usar campo que a API não tem — ao criar um tipo novo de resposta, acrescente a linha correspondente lá.
 * Status e prioridade: `<StatusBadge domain status>` / `<PriorityBadge priority>`; rótulos e cores só em `lib/status.ts`.
 * Confirmações: `const confirm = useConfirm();` e `if (!(await confirm({ title: 'Excluir X?' }))) return;`
   (`hooks/useConfirm.ts`). Nunca use `window.confirm`.

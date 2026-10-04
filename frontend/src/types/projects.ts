@@ -45,7 +45,6 @@ export interface ProjectNote {
   author?: User;
   note: string;
   created_at: string;
-  updated_at: string;
 }
 
 export interface ProjectNoteCreatePayload {
