@@ -66,3 +66,57 @@ export const takeUnnotified = (ids: number[]): number[] => {
   }
   return fresh;
 };
+
+// ---------------------------------------------------------------------------
+// Web Push: avisos com a Central fechada (exige HTTPS, service worker e chaves VAPID no servidor).
+
+const urlBase64ToUint8Array = (base64: string) => {
+  const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+  const raw = atob((base64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+};
+
+const toPayload = (sub: PushSubscription) => {
+  const json = sub.toJSON();
+  return { endpoint: sub.endpoint, keys: { p256dh: json.keys?.p256dh ?? '', auth: json.keys?.auth ?? '' } };
+};
+
+/**
+ * Garante que este navegador está inscrito para receber push do usuário logado.
+ * Silencioso quando algo não está disponível (HTTP, sem SW, sem chaves no servidor, permissão negada).
+ */
+export const ensurePushSubscription = async () => {
+  if (notificationPermission() !== 'granted' || !('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+  try {
+    const { pushService } = await import('@/services/pushService');
+    const config = await pushService.getConfig();
+    if (!config.enabled || !config.public_key) return false;
+    const reg = await navigator.serviceWorker.ready;
+    const sub =
+      (await reg.pushManager.getSubscription()) ??
+      (await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(config.public_key),
+      }));
+    await pushService.subscribe(toPayload(sub));
+    return true;
+  } catch (err) {
+    console.warn('Não foi possível ativar o Web Push:', err);
+    return false;
+  }
+};
+
+/** Ao sair: este navegador deixa de receber push do usuário (PCs compartilhados). */
+export const cancelPushSubscription = async () => {
+  try {
+    if (!('serviceWorker' in navigator)) return;
+    const reg = await navigator.serviceWorker.getRegistration();
+    const sub = await reg?.pushManager.getSubscription();
+    if (!sub) return;
+    const { pushService } = await import('@/services/pushService');
+    await pushService.unsubscribe(toPayload(sub)).catch(() => {});
+    await sub.unsubscribe();
+  } catch {
+    // melhor esforço
+  }
+};

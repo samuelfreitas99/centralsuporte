@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { cancelPushSubscription } from '@/lib/notifications';
 import type { User } from '../types/auth';
 import { api } from '../services/api';
 import { AuthContext } from './AuthContextDef';
@@ -9,10 +10,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setToken(null);
-    setUser(null);
+    const clear = () => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setToken(null);
+      setUser(null);
+    };
+    // Cancela o Web Push deste navegador antes de apagar o token (PCs compartilhados).
+    cancelPushSubscription().finally(clear);
   }, []);
 
   const refreshUser = useCallback(async () => {

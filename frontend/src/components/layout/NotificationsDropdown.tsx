@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatRelative } from '@/lib/format';
 import { priorityLabel } from '@/lib/status';
 import {
+  ensurePushSubscription,
   notificationPermission,
   requestNotificationPermission,
   showNotification,
@@ -13,6 +14,7 @@ import {
 } from '@/lib/notifications';
 import { organizationService } from '@/services/organizationService';
 import { automationService } from '@/services/automationService';
+import { pushService } from '@/services/pushService';
 import type { Reminder } from '@/types/tasks';
 
 const POLL_MS = 60_000;
@@ -101,7 +103,32 @@ export const NotificationsDropdown: React.FC = () => {
     }
   };
 
-  const enableNotifications = async () => setPermission(await requestNotificationPermission());
+  const sendTest = async () => {
+    try {
+      await ensurePushSubscription();
+      const { sent } = await pushService.sendTest();
+      setMessage(
+        sent > 0
+          ? `Teste enviado para ${sent} dispositivo(s). Deve aparecer em instantes.`
+          : 'Este navegador ainda não recebe avisos com a Central fechada (use o endereço https).'
+      );
+    } catch {
+      setMessage('Não foi possível enviar o teste.');
+    } finally {
+      setTimeout(() => setMessage(null), 6000);
+    }
+  };
+
+  const enableNotifications = async () => {
+    const result = await requestNotificationPermission();
+    setPermission(result);
+    if (result === 'granted') ensurePushSubscription();
+  };
+
+  // Mantém a inscrição de push em dia (servidor pode ter sido reinstalado, outro usuário no mesmo PC etc.).
+  useEffect(() => {
+    if (permission === 'granted') ensurePushSubscription();
+  }, [permission]);
 
   const open = (r: Reminder) => {
     window.location.hash = targetFor(r);
@@ -220,6 +247,15 @@ export const NotificationsDropdown: React.FC = () => {
               >
                 <BellRing className="h-3.5 w-3.5" />
                 Ativar notificações no computador
+              </button>
+            )}
+            {permission === 'granted' && (
+              <button
+                type="button"
+                onClick={sendTest}
+                className="w-full border-t border-border/60 bg-muted/20 p-2 text-center text-[11px] text-muted-foreground hover:bg-muted/40 hover:text-foreground cursor-pointer"
+              >
+                Enviar notificação de teste
               </button>
             )}
             {permission === 'denied' && (

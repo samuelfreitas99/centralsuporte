@@ -3,7 +3,7 @@
  * - Nunca guarda respostas da API (dados sempre frescos).
  * - Abre a tela certa ao clicar numa notificação.
  */
-const CACHE = 'central-shell-v1';
+const CACHE = 'central-shell-v2';
 const SHELL = ['/', '/manifest.webmanifest', '/favicon.svg', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -52,6 +52,25 @@ self.addEventListener('fetch', (event) => {
       )
     );
   }
+});
+
+// Web Push: avisos enviados pelo servidor mesmo com a Central fechada.
+self.addEventListener('push', (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data && event.data.text() };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Central de Suporte', {
+      body: data.body || '',
+      icon: '/icon-192.png',
+      badge: '/icon-192.png',
+      tag: data.tag,
+      data: { url: data.url || '/#dashboard' },
+    })
+  );
 });
 
 self.addEventListener('notificationclick', (event) => {

@@ -285,6 +285,29 @@ def get_automation_status() -> Dict[str, Any]:
     }
 
 
+async def _push_loop():
+    """A cada minuto envia por Web Push os lembretes/alertas que chegaram na hora."""
+    from app.services.push import push_due_reminders
+
+    def _run():
+        db = SessionLocal()
+        try:
+            push_due_reminders(db)
+        finally:
+            db.close()
+
+    while not _stop_event.is_set():
+        try:
+            await asyncio.to_thread(_run)
+        except Exception as e:
+            logger.error(f"Erro no envio de push: {e}")
+        try:
+            await asyncio.wait_for(_stop_event.wait(), timeout=60)
+            break
+        except asyncio.TimeoutError:
+            pass
+
+
 async def _background_scheduler_loop():
     """Lightweight background loop that fires automation rules periodically."""
     logger.info("Iniciando scheduler de automação em segundo plano...")
@@ -320,6 +343,7 @@ def start_automation_scheduler(interval_minutes: int = 60):
         try:
             loop = asyncio.get_running_loop()
             _scheduler_task = loop.create_task(_background_scheduler_loop())
+            loop.create_task(_push_loop())
         except RuntimeError:
             # When outside running loop (e.g. during sync tests)
             _automation_state["status"] = "ready"

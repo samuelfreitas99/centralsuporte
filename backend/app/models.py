@@ -256,6 +256,8 @@ class Reminder(Base):
     status = Column(String(20), default="pendente", nullable=False)  # pendente, concluido, dispensado
     # manual = lembrete criado pelo usuário; automacao = alerta gerado pelas regras de automação
     source = Column(String(20), default="manual", server_default="manual", nullable=False, index=True)
+    # Quando o aviso foi enviado por Web Push (None = ainda não enviado)
+    pushed_at = Column(DateTime(timezone=True), nullable=True)
     task_id = Column(Integer, ForeignKey('tasks.id', ondelete="CASCADE"), nullable=True)
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     
@@ -772,3 +774,16 @@ def _resolve_pending_user_roles(session, flush_context, instances):
                 role = session.get(Role, pending)
                 if role:
                     obj.roles = [role]
+
+
+class PushSubscription(Base):
+    """Navegador/dispositivo inscrito para receber Web Push (um usuário pode ter vários)."""
+    __tablename__ = "push_subscriptions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    endpoint = Column(Text, nullable=False, unique=True)
+    p256dh = Column(String(255), nullable=False)
+    auth = Column(String(255), nullable=False)
+    user_agent = Column(String(255), nullable=True)
+    created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
